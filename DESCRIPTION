@@ -1,0 +1,28 @@
+Package: dsem
+Type: Package
+Title: Fit dynamic structural equation models
+Version: 1.0
+Date: 2023-06-21
+Authors@R: 
+    c(person(given = "James",
+             family = "Thorson",
+             role = c("aut", "cre"),
+             email = "James.Thorson@noaa.gov",
+             comment = c(ORCID = "0000-0001-7415-1010"))
+    )
+Depends:
+    R (>= 4.0.0),
+    TMB,
+    Matrix
+Suggests:
+    knitr,
+    rmarkdown,
+LinkingTo:
+    TMB, 
+    RcppEigen
+Description: Applies dynamic structural equation models to time-series data
+	with generic and simplified specification for simultaneous and lagged
+	effects.   
+License: file LICENSE
+RoxygenNote: 7.2.3
+VignetteBuilder: knitr

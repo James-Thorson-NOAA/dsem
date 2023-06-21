@@ -1,0 +1,149 @@
+#' Fit dynamic structural equation model
+#'
+#' Fits a dynamic structural equation model
+#'
+#' @inheritParams sem::specifyModel
+#' @inheritParams fit_tmb
+#'
+#' @param sem structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
+#'        or \code{\link[sem]{specifyEquations}} and then parsed to control
+#'        the set of path coefficients and variance-covariance parameters
+#' @param tsdata phylogenetic structure, using class \code{\link[ape]{as.phylo}}
+#' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
+#'        each element must be \code{fixed} or \code{normal}.
+#'        \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
+#'        Other options correspond to different specifications of measurement error.
+#' @param run_model Boolean indicating whether to estimate parameters (the default), or
+#'        instead to return the model inputs and compiled TMB object without running;
+#' @param ... Additional parameters passed to \code{\link{fit_tmb}}
+#'
+#' @examples
+#' \dontrun{
+#' # Load data set
+#' library(phylopath)
+#'
+#' # Define model
+#' sem = "
+#'   Profits -> Consumption, 0, a2
+#'   Profits -> Consumption, -1, a3
+#'   Priv_wage -> Consumption, 0, a4
+#'   Gov_wage -> Consumption, 0, a4
+#'   Consumption <-> Consumption, 0, v1
+#'   Consumption -> Consumption, -1, ar1
+#'   Consumption -> Consumption, -2, ar2
+#'   Profits -> Investment, 0, b2
+#'   Profits -> Investment, -1, b3
+#'   Capital_stock -> Investment, -1, b4
+#'   Investment <-> Investment, 0, v2
+#'   neg_Gov_wage <-> neg_Gov_wage, 0, v3
+#'   GNP -> Priv_wage, 0, c2
+#'   Taxes -> Priv_wage, 0, c2
+#'   neg_Gov_wage -> Priv_wage, 0, c2
+#'   GNP -> Priv_wage, -1, c3
+#'   Taxes -> Priv_wage, -1, c3
+#'   neg_Gov_wage -> Priv_wage, -1, c3
+#'   Time -> Priv_wage, 0, c4
+#'   Priv_wage <-> Priv_wage, 0, v4
+#'   GNP <-> GNP, 0, v5
+#'   Profits <-> Profits, 0, v6
+#'   Capital_stock <-> Capital_stock, 0, v7
+#'   Taxes <-> Taxes, 0, v8
+#'   Time <-> Time, 0, v9
+#'   Gov_wage <-> Gov_wage, 0, v10
+#'   Gov_expense <-> Gov_expense, 0, v11
+#' "
+#'
+#' # Load data
+#' data("KleinI", package = "AER")
+#' Data = as.data.frame(KleinI)
+#' Data = cbind( Data, "time" = seq(1,22)-11 )
+#' colnames(Data) = sapply( colnames(Data), FUN=switch, "consumption"="Consumption", "invest"="Investment", "cprofits"="Profits", "capital"="Capital_stock", "gwage"="Gov_wage", "pwage"="Priv_wage", "gexpenditure"="Gov_expense", "taxes"="Taxes", "time"="Time", "gnp"="GNP")
+#' Z = ts( cbind(Data, "neg_Gov_wage"=-1*Data[,'Gov_wage']) )
+#'
+#' # Fit model
+#' fit = dsem( sem=sem, tsdata=Z )
+#' summary( fit )
+#' }
+#'
+#' @useDynLib dsem
+#' @export
+dsem <-
+function( sem,
+          tsdata,
+          family = rep("fixed",ncol(tsdata)),
+          quiet = FALSE,
+          run_model = TRUE,
+          ... ){
+
+  # (I-Rho)^-1 * Gamma * (I-Rho)^-1
+  out = make_ram( sem, tsdata=tsdata, quiet=quiet )
+  ram = out$ram
+
+  #
+  if( FALSE ){
+    cpp_dir = R'(C:\Users\James.Thorson\Desktop\Git\dsem\src)'
+    setwd(cpp_dir)
+    dyn.unload(dynlib("dsem"))
+    compile("dsem.cpp")
+    dyn.load(dynlib("dsem"))
+  }
+
+  #
+  Data = list( "RAM" = as.matrix(na.omit(ram[,1:4])),
+               "RAMstart" = as.numeric(ram[,5]),
+               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1 ),
+               "y_tj" = tsdata )
+  Params = list( "beta_z" = 0.1*rnorm(max(ram[,4])),
+                 "lnsigma_j" = rep(0,ncol(tsdata)),
+                 "mu_j" = rep(0,ncol(tsdata)),
+                 "x_tj" = ifelse( is.na(tsdata), 0, Z ))
+  Random = c( "x_tj", "mu_j" )[1:2]
+  Map = list()
+  Map$x_tj = factor(ifelse( is.na(as.vector(Z)) | (Data$familycode_j[col(Z)] %in% c(1,2,3,4)), seq_len(prod(dim(Z))), NA ))
+  Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
+
+  # Initial run
+  obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
+  if(quiet==FALSE) list_parameters(obj)
+  out = list( "obj"=obj, "ram"=ram, "model"=out$model )
+
+  # Export stuff
+  if( run_model==FALSE ){
+    return( results )
+  }
+
+  # Fit
+  obj$env$beSilent()       # if(!is.null(Random))
+  out$opt = fit_tmb( obj, ... )
+
+  # output
+  class(out) = "dsem"
+  return(out)
+}
+
+#' summarize dsem
+#'
+#' @title Summarize dsem
+#'
+#' @param x Output from \code{\link{dsem}}
+#' @method summary dsem
+#' @export
+summary.dsem <-
+function( x ){
+
+  # Easy of use
+  model = x$model
+  ParHat = x$obj$env$parList()
+
+  #
+  coefs = data.frame( model, "Estimate"=c(NA,ParHat$beta_z)[ as.numeric(model[,'parameter'])+1 ] ) # parameter=0 outputs NA
+  coefs$Estimate = ifelse( is.na(coefs$Estimate), as.numeric(model[,4]), coefs$Estimate )
+  if( "SD" %in% names(x$opt) ){
+    SE = as.list( x$opt$SD, report=FALSE, what="Std. Error")
+    coefs = data.frame( coefs, "Std_Error"=c(NA,SE$beta_z)[ as.numeric(model[,'parameter'])+1 ] ) # parameter=0 outputs NA
+    coefs = data.frame( coefs, "z_value"=coefs[,'Estimate']/coefs[,'Std_Error'] )
+    coefs = data.frame( coefs, "p_value"=pnorm(-abs(coefs[,'z_value'])) * 2 )
+  }
+
+  return(coefs)
+}
