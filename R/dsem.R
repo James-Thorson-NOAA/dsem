@@ -63,6 +63,19 @@
 #' # Fit model
 #' fit = dsem( sem=sem, tsdata=Z )
 #' summary( fit )
+#'
+#' # Plot results
+#' library(ggplot2)
+#' library(ggpubr)
+#' library(phylopath)
+#' p1 = plot(as_fitted_DAG(fit), text_size=3, type="width", show.legend=FALSE)
+#' p1$layers[[1]]$mapping$edge_width = 0.5
+#' p2 = plot(as_fitted_DAG(fit, lag=-1), text_size=3, type="width", show.legend=FALSE)
+#' p2$layers[[1]]$mapping$edge_width = 0.25
+#' ggarrange(p1 + scale_x_continuous(expand = c(0.2, 0.0)),
+#'                     p2 + scale_x_continuous(expand = c(0.2, 0.0)),
+#'                     labels = c("Simultaneous effects", "Lag-1 effects"),
+#'                     ncol = 1, nrow = 2)
 #' }
 #'
 #' @useDynLib dsem
