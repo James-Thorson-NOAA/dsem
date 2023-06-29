@@ -84,8 +84,12 @@ dsem <-
 function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
+          estimate_delta0 = FALSE,
           quiet = FALSE,
           run_model = TRUE,
+          use_REML = TRUE,
+          parameters = NULL,
+          map = NULL,
           ... ){
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
@@ -106,28 +110,59 @@ function( sem,
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1 ),
                "y_tj" = tsdata )
-  Params = list( "beta_z" = 0.1*rnorm(max(ram[,4])),
-                 "lnsigma_j" = rep(0,ncol(tsdata)),
-                 "mu_j" = rep(0,ncol(tsdata)),
-                 "x_tj" = ifelse( is.na(tsdata), 0, Z ))
-  Random = c( "x_tj", "mu_j" )[1:2]
-  Map = list()
-  Map$x_tj = factor(ifelse( is.na(as.vector(Z)) | (Data$familycode_j[col(Z)] %in% c(1,2,3,4)), seq_len(prod(dim(Z))), NA ))
-  Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
+
+  # Construct parameters
+  if( is.null(parameters) ){
+    Params = list( "beta_z" = rnorm(max(ram[,4])),
+                   "lnsigma_j" = rep(0,ncol(tsdata)),
+                   "mu_j" = rep(0,ncol(tsdata)),
+                   "delta0_j" = rep(0,ncol(tsdata)),
+                   "x_tj" = ifelse( is.na(tsdata), 0, tsdata ))
+
+    # Turn off initial conditions
+    if( estimate_delta0==FALSE ){
+      Params$delta0_j = numeric(0)
+    }
+
+    # Scale starting values with higher value for two-headed than one-headed arrows
+    beta_type = tapply( ram[,1], INDEX=ram[,4], max)
+    Params$beta_z = ifelse(beta_type==1, 0, 1)
+  }else{
+    Params = parameters
+  }
+
+  # Construct map
+  if( is.null(map) ){
+    Map = list()
+    Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
+    Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
+  }else{
+    Map = map
+  }
 
   # Initial run
+  # delta0_j being random leads to weird behavior for wolf-moose example
+  if(isTRUE(use_REML)){
+    Random = c( "x_tj", "mu_j" )
+  }else{
+    Random = "x_tj"
+  }
   obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
   if(quiet==FALSE) list_parameters(obj)
-  out = list( "obj"=obj, "ram"=ram, "model"=out$model )
+  out = list( "obj"=obj, "ram"=ram, "model"=out$model,
+              "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map) )
 
   # Export stuff
   if( run_model==FALSE ){
-    return( results )
+    return( out )
   }
 
   # Fit
   obj$env$beSilent()       # if(!is.null(Random))
-  out$opt = fit_tmb( obj, ... )
+  out$opt = fit_tmb( obj,
+                     quiet = quiet,
+                     control = list(eval.max=10000, iter.max=10000, trace=ifelse(quiet==TRUE,0,1) ),
+                     ... )
 
   # output
   class(out) = "dsem"

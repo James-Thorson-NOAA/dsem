@@ -74,6 +74,7 @@ function( sem,
 
   # Global stuff
   Q_dimnames = dimnames(.preformat.ts(tsdata))
+  if(any(sapply(Q_dimnames,is.null))) stop("Check dimnames")
   Q_names = expand.grid(Q_dimnames)
   ram = NULL  # heads, to, from, parameter
   vars = Q_dimnames[[2]]
@@ -96,12 +97,13 @@ function( sem,
 
   # Loop through paths
   for( i in seq_len(nrow(model)) ){
-  for( t in 1:nrow(Z) ){
+  for( t in 1:nrow(tsdata) ){
     lag = as.numeric(model[i,2])
     par.no = par.nos[i]
     # Get index for "from"
     from = c( Q_dimnames[[1]][t], model[i,'first'] )
     from_index = match_row( Q_names, from )
+    from_index = ifelse( length(from_index)==0, NA, from_index )
     # Get index for "to"
     to = c( Q_dimnames[[1]][t-lag], model[i,'second'] )
     to_index = match_row( Q_names, to )

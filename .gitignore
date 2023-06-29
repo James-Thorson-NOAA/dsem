@@ -1,0 +1,8 @@
+*.o
+*.dll
+*.so
+inst/doc
+^.*\.Rproj$
+^\.Rproj\.user$
+.Rproj.user
+phylosem.Rproj

@@ -1,0 +1,80 @@
+---
+title: "Demonstration of selected features"
+author: "James T. Thorson"
+output: rmarkdown::html_vignette
+#output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Demonstration of selected features}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+# use devtools::build_rmd("vignettes/comparison.Rmd") to test build
+# library(rmarkdown); setwd( R'(C:\Users\James.Thorson\Desktop\Git\dsem\vignettes)' )
+# render( "demonstration.Rmd", pdf_document()) #  to build PDF, and perhaps tinytex::latexmk() to install dependencies
+```
+
+```{r setup, echo=TRUE}
+library(dsem)
+```
+
+`dsem` is an R package for fitting dynamic structural equation models (PSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure.   We here highlight a few features in particular.
+
+## Comparison with dynamic linear models
+
+We first demonstrate that `dsem` gives identical results to `dynlm` for a well-known econometric model, the Klein-1 model. We specifically exclude first year for all response variables to match the "casewise-complete" behavior of ordinary least squares:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+library(dynlm)
+
+data(KleinI, package="AER")
+KleinI = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
+
+# dynlm
+fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = KleinI)
+fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = KleinI)                 #
+fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = KleinI)
+
+# dsem
+sem = "
+  cprofits -> consumption, 0, a1
+  cprofits -> consumption, -1, a2
+  pwage -> consumption, 0, a3
+  gwage -> consumption, 0, a3
+
+  cprofits -> invest, 0, b1
+  cprofits -> invest, -1, b2
+  capital -> invest, 0, b3
+
+  gnp -> pwage, 0, c2
+  gnp -> pwage, -1, c3
+  time -> pwage, 0, c1
+"
+tsdata = KleinI[,c("time","gnp","pwage","cprofits",'consumption',"gwage","invest","capital")]
+tsdata[1,c('consumption','pwage','invest')] = NA
+fit = dsem( sem=sem, tsdata=tsdata, newtonsteps=0, quiet=TRUE )   #
+# summary(fit)
+
+# Compile
+m1 = rbind( summary(fm_cons)$coef[-1,], summary(fm_inv)$coef[-1,], summary(fm_pwage)$coef[-1,] )[,1:2]
+m2 = summary(fit$opt$SD)[1:9,]
+m = rbind(
+  data.frame("var"=rownames(m1),m1,"method"="OLS","eq"=rep(c("C","I","Wp"),each=3)),
+  data.frame("var"=rownames(m1),m2,"method"="GMRF","eq"=rep(c("C","I","Wp"),each=3))
+)
+m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
+
+# ggplot estimates
+library(ggplot2)
+ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
+  geom_point( position=position_dodge(0.9) ) +
+  geom_errorbar( aes(ymax=as.numeric(upper),ymin=as.numeric(lower)),
+                 width=0.25, position=position_dodge(0.9))  #
+```
+
+Results show that both packages provide (almost) identical estimates and standard errors.

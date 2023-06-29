@@ -7,99 +7,6 @@ bool isNA(Type x){
   return R_IsNA(asDouble(x));
 }
 
-// SparseMatrix for Ornstein-Uhlenbeck network correlations
-//template<class Type>
-//Eigen::SparseMatrix<Type> Q_network( Type log_alpha,
-//                                     int n_s,
-//                                     vector<int> parent_s,
-//                                     vector<int> child_s,
-//                                     vector<Type> dist_s ){
-//
-//  Eigen::SparseMatrix<Type> Q( n_s, n_s );
-//  Type alpha = exp( log_alpha );
-//  for(int s=0; s<n_s; s++){
-//    Q.coeffRef( s, s ) = Type(1.0);
-//  }
-//  for(int s=1; s<parent_s.size(); s++){
-//    if( exp(-dist_s(s))!=0 ){
-//      Q.coeffRef( parent_s(s), child_s(s) ) = -exp(-alpha*dist_s(s)) / (1-exp(-2*alpha*dist_s(s)));
-//      Q.coeffRef( child_s(s), parent_s(s) ) = Q.coeffRef( parent_s(s), child_s(s) );
-//      Q.coeffRef( parent_s(s), parent_s(s) ) += exp(-2*alpha*dist_s(s)) / (1-exp(-2*alpha*dist_s(s)));
-//      Q.coeffRef( child_s(s), child_s(s) ) += exp(-2*alpha*dist_s(s)) / (1-exp(-2*alpha*dist_s(s)));
-//    }
-//  }
-//  return Q;
-//}
-
-// ICAR for BM with sum-to-zero constraint
-//  See: C:\Users\James.Thorson\Desktop\Work files\AFSC\2022-09 -- ICAR specification
-
-// Precision of evolutionary covariance
-//template<class Type>
-//Eigen::SparseMatrix<Type> Q_sem( vector<Type> beta_z,
-//                                 matrix<int> RAM,
-//                                 int n_vars ){
-//
-//  // Define temporary objects
-//  Eigen::SparseMatrix<Type> Q_vv( n_vars, n_vars );
-//  // SEM
-//  Eigen::SparseMatrix<Type> Linv_vv(n_vars, n_vars);
-//  Eigen::SparseMatrix<Type> Rho_vv(n_vars, n_vars);
-//  Eigen::SparseMatrix<Type> Gamma_vv(n_vars, n_vars);
-//  Eigen::SparseMatrix<Type> Gammainv_vv(n_vars, n_vars);
-//  Eigen::SparseMatrix<Type> I_vv( n_vars, n_vars );
-//  Rho_vv.setZero();
-//  Gamma_vv.setZero();
-//  I_vv.setIdentity();
-//  for(int zI=0; zI<RAM.rows(); zI++){
-//    if(RAM(zI,0)==1) Rho_vv.coeffRef( RAM(zI,1)-1, RAM(zI,2)-1 ) = beta_z(RAM(zI,3)-1);
-//    if(RAM(zI,0)==2) Gamma_vv.coeffRef( RAM(zI,1)-1, RAM(zI,2)-1 ) = beta_z(RAM(zI,3)-1); // Cholesky of covariance, so -Inf to Inf;
-//  }
-//  Gammainv_vv = atomic::matinv( Gamma_vv );
-//  Linv_vv = Gammainv_vv * ( I_vv - Rho_vv );
-//  Q_vv = Linv_vv.transpose() * Linv_vv;
-//  return Q_vv;
-//}
-
-// Evolutionary covariance
-//template<class Type>
-//matrix<Type> V_sem( vector<Type> beta_z,
-//                                 matrix<int> RAM,
-//                                 vector<Type> RAMstart,
-//                                 int n_vars ){
-//
-//  // Define temporary objects
-//  matrix<Type> V_vv(n_vars, n_vars);
-//  // SEM
-//  matrix<Type> L_vv(n_vars, n_vars);
-//  matrix<Type> Rho_vv(n_vars, n_vars);
-//  matrix<Type> Gamma_vv(n_vars, n_vars);
-//  matrix<Type> I_vv( n_vars, n_vars );
-//  Rho_vv.setZero();
-//  Gamma_vv.setZero();
-//  I_vv.setIdentity();
-//  Type tmp;
-//  for(int r=0; r<RAM.rows(); r++){
-//    // Extract estimated or fixed value
-//    if(RAM(r,3)>=1){
-//      tmp = beta_z(RAM(r,3)-1);
-//    }else{
-//      tmp = RAMstart(r);
-//    }
-//    // Assign to proper matrix
-//    if(RAM(r,0)==1){
-//      Rho_vv( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
-//    }else{
-//      Gamma_vv( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
-//    }
-//  }
-//  L_vv = I_vv - Rho_vv;
-//  L_vv = atomic::matinv( L_vv );
-//  L_vv = L_vv * Gamma_vv;
-//  V_vv = L_vv * L_vv.transpose();
-//  return V_vv;
-//}
-
 template<class Type>
 Type objective_function<Type>::operator() ()
 {
@@ -116,6 +23,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR( beta_z );
   PARAMETER_VECTOR( lnsigma_j );
   PARAMETER_VECTOR( mu_j );
+  PARAMETER_VECTOR( delta0_j );
   PARAMETER_ARRAY( x_tj );
 
   // Indices
@@ -130,37 +38,6 @@ Type objective_function<Type>::operator() ()
   loglik_tj.setZero();
   vector<Type> sigma_j( n_j );
   sigma_j = exp( lnsigma_j );
-
-//  // Assemble covariance
-//  // SEM
-//  matrix<Type> V_kk( n_k, n_k );
-//  matrix<Type> L_kk(n_k, n_k);
-//  matrix<Type> Rho_kk(n_k, n_k);
-//  matrix<Type> Gamma_kk(n_k, n_k);
-//  matrix<Type> I_kk( n_k, n_k );
-//  Rho_kk.setZero();
-//  Gamma_kk.setZero();
-//  I_kk.setIdentity();
-//  Type tmp;
-//  for(int r=0; r<RAM.rows(); r++){
-//    // Extract estimated or fixed value
-//    //if(RAM(r,3)>=1){
-//      tmp = beta_z(RAM(r,3)-1);
-//    //}//else{
-//      // tmp = RAMstart(r);
-//    //}
-//    // Assign to proper matrix
-//    if(RAM(r,0)==1){
-//      Rho_kk( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
-//    }else{
-//      Gamma_kk( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
-//    }
-//  }
-//  L_kk = I_kk - Rho_kk;
-//  L_kk = atomic::matinv( L_kk );
-//  L_kk = L_kk * Gamma_kk;
-//  V_kk = L_kk * L_kk.transpose();
-//  jnll += MVNORM(V_kk)( x_j );
 
   // Assemble precision
   // Using Gamma_kk seems to crash when fixing values
@@ -194,13 +71,43 @@ Type objective_function<Type>::operator() ()
   Linv_kk = Gammainv_kk * ( I_kk - Rho_kk );
   Q_kk = Linv_kk.transpose() * Linv_kk;
 
+  // Calculate effect of initial condition -- SPARSE version
+  vector<Type> delta_k( n_k );
+  delta_k.setZero();
+  if( delta0_j.size() > 0 ){
+    // Compute delta_k
+    matrix<Type> delta0_k1( n_k, 1 );
+    delta0_k1.setZero();
+    int k;
+    for(int j=0; j<n_j; j++){
+      k = j * n_t;
+      delta0_k1(k,0) = delta0_j(j);
+    }
+
+    // DENSE version
+    //matrix<Type> Dense_kk = I_kk - Rho_kk;
+    //matrix<Type> invIminusRho_kk = atomic::matinv( Dense_kk );
+    //delta_k = (invIminusRho_kk * delta0_k1).array();
+
+    // SPARSE version
+    // See C:\Users\James.Thorson\Desktop\Work files\AFSC\2023-06 -- Sparse inverse-product\Kasper example\lu.cpp
+    Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
+    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > lu;
+    lu.compute(IminusRho_kk);
+    matrix<Type> x = lu.solve(delta0_k1);
+
+    REPORT( delta0_k1 );
+    delta_k = x.array();
+  }
+  REPORT( delta_k );
+
   // Centered GMRF
   array<Type> xhat_tj( n_t, n_j );
   for(int t=0; t<n_t; t++){
   for(int j=0; j<n_j; j++){
     xhat_tj(t,j) = mu_j(j);
   }}
-  jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj );
+  jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_k );
 
   // Distribution for data
   for(int t=0; t<n_t; t++){
