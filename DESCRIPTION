@@ -26,3 +26,4 @@ Description: Applies dynamic structural equation models to time-series data
 License: file LICENSE
 RoxygenNote: 7.2.3
 VignetteBuilder: knitr
+LazyData: true
