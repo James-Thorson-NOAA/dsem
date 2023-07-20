@@ -125,7 +125,8 @@ function( sem,
     }
 
     # Scale starting values with higher value for two-headed than one-headed arrows
-    beta_type = tapply( ram[,1], INDEX=ram[,4], max)
+    which_nonzero = which(ram[,4]>0)
+    beta_type = tapply( ram[which_nonzero,1], INDEX=ram[which_nonzero,4], max)
     Params$beta_z = ifelse(beta_type==1, 0, 1)
   }else{
     Params = parameters
@@ -136,6 +137,9 @@ function( sem,
     Map = list()
     Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
     Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
+
+    # Map off mean for latent variables
+    Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
   }else{
     Map = map
   }
