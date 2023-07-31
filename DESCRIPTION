@@ -4,11 +4,10 @@ Title: Fit dynamic structural equation models
 Version: 1.0
 Date: 2023-06-21
 Authors@R: 
-    c(person(given = "James",
-             family = "Thorson",
+    c(person(given = "Anon",
+             family = "Ymous",
              role = c("aut", "cre"),
-             email = "James.Thorson@noaa.gov",
-             comment = c(ORCID = "0000-0001-7415-1010"))
+             email = "blah@gmail.com")
     )
 Depends:
     R (>= 4.0.0),
