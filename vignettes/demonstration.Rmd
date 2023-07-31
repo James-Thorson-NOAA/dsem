@@ -1,6 +1,6 @@
 ---
 title: "Demonstration of selected features"
-author: "James T. Thorson"
+author: "Anonymous"
 output: rmarkdown::html_vignette
 #output: rmarkdown::pdf_document
 vignette: >
@@ -145,3 +145,238 @@ ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
 ```
 
 Results again show that `dsem` can estimate parameters for a vector autoregressive model (VAM), and it exactly matches results from `vars`, using `dynlm`, or using `MARSS`.
+
+## Multi-causal ecosystem synthesis
+
+We next replicate an analysis involving climate, forage fishes, stomach contents, and recruitment of a predatory fish.
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+data(bering_sea)
+Z = ts( bering_sea )
+family = rep('fixed', ncol(bering_sea))
+
+# Specify model
+sem = "
+  log_seaice -> log_CP, 0, seaice_to_CP
+  log_CP -> log_Cfall, 0, CP_to_Cfall
+  log_CP -> log_Esummer, 0, CP_to_E
+  log_PercentEuph -> log_RperS, 0, Seuph_to_RperS
+  log_PercentCop -> log_RperS, 0, Scop_to_RperS
+  log_Esummer -> log_PercentEuph, 0, Esummer_to_Suph
+  log_Cfall -> log_PercentCop, 0, Cfall_to_Scop
+  log_SSB -> log_RperS, 0, SSB_to_RperS
+
+  log_seaice <-> log_seaice, 0, var1, 0.001
+  log_CP <-> log_CP,0,  var2, 0.001
+  log_Cspring <-> log_Cspring, 0, var3, 0.001
+  log_Cfall <-> log_Cfall, 0, var4, 0.001
+  log_Esummer <-> log_Esummer, 0, var5, 0.001
+  log_SSB <-> log_SSB, 0, var6, 0.001
+  log_RperS <->  log_RperS, 0, var7, 0.001
+  log_PercentEuph <-> log_PercentEuph, 0, var8, 0.001
+  log_PercentCop <-> log_PercentCop, 0, var9, 0.001
+
+  log_seaice -> log_seaice, -1, AR1, 0.001
+  log_CP -> log_CP, -1,  AR2, 0.001
+  log_Cspring -> log_Cspring, -1, AR3, 0.001
+  log_Cfall -> log_Cfall, -1, AR4, 0.001
+  log_Esummer -> log_Esummer, -1, AR5, 0.001
+  log_SSB -> log_SSB, -1, AR6, 0.001
+  log_RperS ->  log_RperS, -1, AR7, 0.001
+  log_PercentEuph -> log_PercentEuph, -1, AR8, 0.001
+  log_PercentCop -> log_PercentCop, -1, AR9, 0.001
+"
+
+# Fit
+fit = dsem( sem=sem, tsdata=Z, family=family, use_REML=FALSE, quiet=TRUE )
+ParHat = fit$obj$env$parList()
+# summary( fit )
+
+# Timeseries plot
+par( mfcol=c(3,3), mar=c(2,2,2,0), mgp=c(2,0.5,0), tck=-0.02 )
+for(i in 1:ncol(bering_sea)){
+  tmp = bering_sea[,i,drop=FALSE]
+  tmp = cbind( tmp, "PSEM"=ParHat$x_tj[,i] )
+  SD = as.list(fit$opt$SD,what="Std.")$x_tj[,i]
+  tmp = cbind( tmp, outer(tmp[,2],c(1,1)) +
+               outer(ifelse(is.na(SD),0,SD),c(-1,1)) )
+  #
+  plot( x=rownames(bering_sea), y=tmp[,1], ylim=range(tmp,na.rm=TRUE),
+        type="p", main=colnames(bering_sea)[i], pch=20, cex=2 )
+  lines( x=rownames(bering_sea), y=tmp[,2], type="l", lwd=2,
+         col="blue", lty="solid" )
+  polygon( x=c(rownames(bering_sea),rev(rownames(bering_sea))),
+           y=c(tmp[,3],rev(tmp[,4])), col=rgb(0,0,1,0.2), border=NA )
+}
+
+#
+library(phylopath)
+library(ggplot2)
+library(ggpubr)
+p1 = plot( (as_fitted_DAG(fit)), edge.width=1, type="width",
+           text_size=4, show.legend=FALSE,
+           arrow = grid::arrow(type='closed', 18, grid::unit(10,'points')) )
+p1$layers[[1]]$mapping$edge_width = 1
+p2 = plot( (as_fitted_DAG(fit, what="p_value")), edge.width=1, type="width",
+           text_size=4, show.legend=FALSE, colors=c('black', 'black'),
+           arrow = grid::arrow(type='closed', 18, grid::unit(10,'points')) )
+p2$layers[[1]]$mapping$edge_width = 0.5
+
+ggarrange( p1 + scale_x_continuous(expand = c(0.4, 0.1)),
+           p2 + scale_x_continuous(expand = c(0.4, 0.1)),
+           labels = c("Simultaneous effects", "Two-sided p-value"),
+           ncol = 1, nrow = 2)
+```
+
+These results are further discussed in the paper describing dsem.
+
+## Site-replicated trophic cascade
+
+Finally, we replicate an analysis involving a trophic cascade involving sea stars predators, sea urchin consumers, and kelp producers.
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+data(sea_otter)
+Z = ts( sea_otter[,-1] )
+
+# Specify model
+sem = "
+  Pycno_CANNERY_DC -> log_Urchins_CANNERY_DC, 0, x2
+  log_Urchins_CANNERY_DC -> log_Kelp_CANNERY_DC, 0, x3
+  log_Otter_Count_CANNERY_DC -> log_Kelp_CANNERY_DC, 0, x4
+
+  Pycno_CANNERY_UC -> log_Urchins_CANNERY_UC, 0, x2
+  log_Urchins_CANNERY_UC -> log_Kelp_CANNERY_UC, 0, x3
+  log_Otter_Count_CANNERY_UC -> log_Kelp_CANNERY_UC, 0, x4
+
+  Pycno_HOPKINS_DC -> log_Urchins_HOPKINS_DC, 0, x2
+  log_Urchins_HOPKINS_DC -> log_Kelp_HOPKINS_DC, 0, x3
+  log_Otter_Count_HOPKINS_DC -> log_Kelp_HOPKINS_DC, 0, x4
+
+  Pycno_HOPKINS_UC -> log_Urchins_HOPKINS_UC, 0, x2
+  log_Urchins_HOPKINS_UC -> log_Kelp_HOPKINS_UC, 0, x3
+  log_Otter_Count_HOPKINS_UC -> log_Kelp_HOPKINS_UC, 0, x4
+
+  Pycno_LOVERS_DC -> log_Urchins_LOVERS_DC, 0, x2
+  log_Urchins_LOVERS_DC -> log_Kelp_LOVERS_DC, 0, x3
+  log_Otter_Count_LOVERS_DC -> log_Kelp_LOVERS_DC, 0, x4
+
+  Pycno_LOVERS_UC -> log_Urchins_LOVERS_UC, 0, x2
+  log_Urchins_LOVERS_UC -> log_Kelp_LOVERS_UC, 0, x3
+  log_Otter_Count_LOVERS_UC -> log_Kelp_LOVERS_UC, 0, x4
+
+  Pycno_MACABEE_DC -> log_Urchins_MACABEE_DC, 0, x2
+  log_Urchins_MACABEE_DC -> log_Kelp_MACABEE_DC, 0, x3
+  log_Otter_Count_MACABEE_DC -> log_Kelp_MACABEE_DC, 0, x4
+
+  Pycno_MACABEE_UC -> log_Urchins_MACABEE_UC, 0, x2
+  log_Urchins_MACABEE_UC -> log_Kelp_MACABEE_UC, 0, x3
+  log_Otter_Count_MACABEE_UC -> log_Kelp_MACABEE_UC, 0, x4
+
+  Pycno_OTTER_PT_DC -> log_Urchins_OTTER_PT_DC, 0, x2
+  log_Urchins_OTTER_PT_DC -> log_Kelp_OTTER_PT_DC, 0, x3
+  log_Otter_Count_OTTER_PT_DC -> log_Kelp_OTTER_PT_DC, 0, x4
+
+  Pycno_OTTER_PT_UC -> log_Urchins_OTTER_PT_UC, 0, x2
+  log_Urchins_OTTER_PT_UC -> log_Kelp_OTTER_PT_UC, 0, x3
+  log_Otter_Count_OTTER_PT_UC -> log_Kelp_OTTER_PT_UC, 0, x4
+
+  Pycno_PINOS_CEN -> log_Urchins_PINOS_CEN, 0, x2
+  log_Urchins_PINOS_CEN -> log_Kelp_PINOS_CEN, 0, x3
+  log_Otter_Count_PINOS_CEN -> log_Kelp_PINOS_CEN, 0, x4
+
+  Pycno_SIREN_CEN -> log_Urchins_SIREN_CEN, 0, x2
+  log_Urchins_SIREN_CEN -> log_Kelp_SIREN_CEN, 0, x3
+  log_Otter_Count_SIREN_CEN -> log_Kelp_SIREN_CEN, 0, x4
+
+  # AR1
+  Pycno_CANNERY_DC -> Pycno_CANNERY_DC, -1, ar1
+  log_Urchins_CANNERY_DC -> log_Urchins_CANNERY_DC, -1, ar2
+  log_Otter_Count_CANNERY_DC -> log_Otter_Count_CANNERY_DC, -1, ar3
+  log_Kelp_CANNERY_DC -> log_Kelp_CANNERY_DC, -1, ar4
+
+  Pycno_CANNERY_UC -> Pycno_CANNERY_UC, -1, ar1
+  log_Urchins_CANNERY_UC -> log_Urchins_CANNERY_UC, -1, ar2
+  log_Otter_Count_CANNERY_UC -> log_Otter_Count_CANNERY_UC, -1, ar3
+  log_Kelp_CANNERY_UC -> log_Kelp_CANNERY_UC, -1, ar4
+
+  Pycno_HOPKINS_DC -> Pycno_HOPKINS_DC, -1, ar1
+  log_Urchins_HOPKINS_DC -> log_Urchins_HOPKINS_DC, -1, ar2
+  log_Otter_Count_HOPKINS_DC -> log_Otter_Count_HOPKINS_DC, -1, ar3
+  log_Kelp_HOPKINS_DC -> log_Kelp_HOPKINS_DC, -1, ar4
+
+  Pycno_HOPKINS_UC -> Pycno_HOPKINS_UC, -1, ar1
+  log_Urchins_HOPKINS_UC -> log_Urchins_HOPKINS_UC, -1, ar2
+  log_Otter_Count_HOPKINS_UC -> log_Otter_Count_HOPKINS_UC, -1, ar3
+  log_Kelp_HOPKINS_UC -> log_Kelp_HOPKINS_UC, -1, ar4
+
+  Pycno_LOVERS_DC -> Pycno_LOVERS_DC, -1, ar1
+  log_Urchins_LOVERS_DC -> log_Urchins_LOVERS_DC, -1, ar2
+  log_Otter_Count_LOVERS_DC -> log_Otter_Count_LOVERS_DC, -1, ar3
+  log_Kelp_LOVERS_DC -> log_Kelp_LOVERS_DC, -1, ar4
+
+  Pycno_LOVERS_UC -> Pycno_LOVERS_UC, -1, ar1
+  log_Urchins_LOVERS_UC -> log_Urchins_LOVERS_UC, -1, ar2
+  log_Otter_Count_LOVERS_UC -> log_Otter_Count_LOVERS_UC, -1, ar3
+  log_Kelp_LOVERS_UC -> log_Kelp_LOVERS_UC, -1, ar4
+
+  Pycno_MACABEE_DC -> Pycno_MACABEE_DC, -1, ar1
+  log_Urchins_MACABEE_DC -> log_Urchins_MACABEE_DC, -1, ar2
+  log_Otter_Count_MACABEE_DC -> log_Otter_Count_MACABEE_DC, -1, ar3
+  log_Kelp_MACABEE_DC -> log_Kelp_MACABEE_DC, -1, ar4
+
+  Pycno_MACABEE_UC -> Pycno_MACABEE_UC, -1, ar1
+  log_Urchins_MACABEE_UC -> log_Urchins_MACABEE_UC, -1, ar2
+  log_Otter_Count_MACABEE_UC -> log_Otter_Count_MACABEE_UC, -1, ar3
+  log_Kelp_MACABEE_UC -> log_Kelp_MACABEE_UC, -1, ar4
+
+  Pycno_OTTER_PT_DC -> Pycno_OTTER_PT_DC, -1, ar1
+  log_Urchins_OTTER_PT_DC -> log_Urchins_OTTER_PT_DC, -1, ar2
+  log_Otter_Count_OTTER_PT_DC -> log_Otter_Count_OTTER_PT_DC, -1, ar3
+  log_Kelp_OTTER_PT_DC -> log_Kelp_OTTER_PT_DC, -1, ar4
+
+  Pycno_OTTER_PT_UC -> Pycno_OTTER_PT_UC, -1, ar1
+  log_Urchins_OTTER_PT_UC -> log_Urchins_OTTER_PT_UC, -1, ar2
+  log_Otter_Count_OTTER_PT_UC -> log_Otter_Count_OTTER_PT_UC, -1, ar3
+  log_Kelp_OTTER_PT_UC -> log_Kelp_OTTER_PT_UC, -1, ar4
+
+  Pycno_PINOS_CEN -> Pycno_PINOS_CEN, -1, ar1
+  log_Urchins_PINOS_CEN -> log_Urchins_PINOS_CEN, -1, ar2
+  log_Otter_Count_PINOS_CEN -> log_Otter_Count_PINOS_CEN, -1, ar3
+  log_Kelp_PINOS_CEN -> log_Kelp_PINOS_CEN, -1, ar4
+
+  Pycno_SIREN_CEN -> Pycno_SIREN_CEN, -1, ar1
+  log_Urchins_SIREN_CEN -> log_Urchins_SIREN_CEN, -1, ar2
+  log_Otter_Count_SIREN_CEN -> log_Otter_Count_SIREN_CEN, -1, ar3
+  log_Kelp_SIREN_CEN -> log_Kelp_SIREN_CEN, -1, ar4
+"
+
+# Fit model
+fit = dsem( sem=sem, tsdata=Z, use_REML=FALSE, quiet=TRUE )
+# summary( fit )
+
+#
+library(phylopath)
+library(ggplot2)
+library(ggpubr)
+get_part = function(x){
+  vars = c("log_Kelp","log_Otter","log_Urchin","Pycno")
+  index = sapply( vars, FUN=\(y) grep(y,rownames(x$coef))[1] )
+  x$coef = x$coef[index,index]
+  dimnames(x$coef) = list( vars, vars )
+  return(x)
+}
+p1 = plot( get_part(as_fitted_DAG(fit)), type="width", show.legend=FALSE)
+p1$layers[[1]]$mapping$edge_width = 0.5
+p2 = plot( get_part(as_fitted_DAG(fit, what="p_value" )), type="width",
+           show.legend=FALSE, colors=c('black', 'black'))
+p2$layers[[1]]$mapping$edge_width = 0.1
+
+ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
+                    p2 + scale_x_continuous(expand = c(0.3, 0)),
+                    labels = c("Simultaneous effects", "Two-sided p-value"),
+                    ncol = 1, nrow = 2)
+```
+
+Again, these results are further discussed in the paper describing dsem.
+
+
