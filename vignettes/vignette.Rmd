@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 )
 # use devtools::build_rmd("vignettes/comparison.Rmd") to test build
 # library(rmarkdown)
-# render( "demonstration.Rmd", pdf_document()) #  to build PDF, and perhaps tinytex::latexmk() to install dependencies
+# render( "vignette.Rmd", pdf_document()) #  to build PDF, and perhaps tinytex::latexmk() to install dependencies
 ```
 
 ```{r setup, echo=TRUE}
