@@ -8,7 +8,7 @@
 #' @param sem structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
 #'        or \code{\link[sem]{specifyEquations}} and then parsed to control
 #'        the set of path coefficients and variance-covariance parameters
-#' @param tsdata phylogenetic structure, using class \code{\link[ape]{as.phylo}}
+#' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}
 #' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
 #'        each element must be \code{fixed} or \code{normal}.
 #'        \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
@@ -128,6 +128,11 @@ function( sem,
     which_nonzero = which(ram[,4]>0)
     beta_type = tapply( ram[which_nonzero,1], INDEX=ram[which_nonzero,4], max)
     Params$beta_z = ifelse(beta_type==1, 0, 1)
+
+    # Override starting values if supplied
+    which_nonzero = which(ram[,4]>0)
+    start_z = tapply( as.numeric(ram[which_nonzero,5]), INDEX=ram[which_nonzero,4], mean )
+    Params$beta_z = ifelse( is.na(start_z), Params$beta_z, start_z)
   }else{
     Params = parameters
   }

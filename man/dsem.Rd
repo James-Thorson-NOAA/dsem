@@ -8,8 +8,12 @@ dsem(
   sem,
   tsdata,
   family = rep("fixed", ncol(tsdata)),
+  estimate_delta0 = FALSE,
   quiet = FALSE,
   run_model = TRUE,
+  use_REML = TRUE,
+  parameters = NULL,
+  map = NULL,
   ...
 )
 }
@@ -18,7 +22,7 @@ dsem(
 or \code{\link[sem]{specifyEquations}} and then parsed to control
 the set of path coefficients and variance-covariance parameters}
 
-\item{tsdata}{phylogenetic structure, using class \code{\link[ape]{as.phylo}}}
+\item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
 
 \item{family}{Character-vector listing the distribution used for each column of \code{tsdata}, where
 each element must be \code{fixed} or \code{normal}.
