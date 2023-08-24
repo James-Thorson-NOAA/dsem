@@ -2,9 +2,6 @@
 #'
 #' Fits a dynamic structural equation model
 #'
-#' @inheritParams sem::specifyModel
-#' @inheritParams fit_tmb
-#'
 #' @param sem structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
 #'        or \code{\link[sem]{specifyEquations}} and then parsed to control
 #'        the set of path coefficients and variance-covariance parameters
@@ -13,15 +10,44 @@
 #'        each element must be \code{fixed} or \code{normal}.
 #'        \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
 #'        Other options correspond to different specifications of measurement error.
+#' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
+#'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
+#'        the stationary distribution
 #' @param run_model Boolean indicating whether to estimate parameters (the default), or
 #'        instead to return the model inputs and compiled TMB object without running;
+#' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
+#' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
+#'        either to motigate bias in estimated variance parameters or improve efficiency for
+#'        parameter estimation given correlated fixed and random effects
+#' @param parameters list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
+#'        by hand (only helpful for advanced users to change starting values or restart at intended values)
+#' @param map list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
+#'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
 #' @param ... Additional parameters passed to \code{\link{fit_tmb}}
 #'
-#' @examples
-#' \dontrun{
-#' # Load data set
-#' library(phylopath)
+#' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
+#' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm
 #'
+#' @return
+#' An object (list) of class `dsem`. Elements include:
+#' \describe{
+#' \item{obj}{TMB object from \code{\link[TMB]{MakeADFun}}}
+#' \item{ram}{RAM parsed by \code{make_ram}}
+#' \item{model}{SEM model parsed from \code{sem} using \code{\link[sem]{specifyModel}} or \code{\link[sem]{specifyEquations}}}
+#' \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
+#' \item{opt}{The output from \code{\link{fit_tmb}}}
+#' }
+#'
+#' @references
+#'
+#' **Introducing the package, its features, and comparison with other software
+#' (to cite when using dsem):**
+#'
+#' Thorson, J. T., Andrews, A., Essington, T., Large, S. (In review).
+#' Dynamic structural equation models synthesize
+#' ecosystem dynamics constrained by ecological mechanisms.
+#'
+#' @examples
 #' # Define model
 #' sem = "
 #'   Profits -> Consumption, 0, a2
@@ -54,10 +80,14 @@
 #' "
 #'
 #' # Load data
-#' data("KleinI", package = "AER")
+#' data(KleinI, package="AER")
 #' Data = as.data.frame(KleinI)
 #' Data = cbind( Data, "time" = seq(1,22)-11 )
-#' colnames(Data) = sapply( colnames(Data), FUN=switch, "consumption"="Consumption", "invest"="Investment", "cprofits"="Profits", "capital"="Capital_stock", "gwage"="Gov_wage", "pwage"="Priv_wage", "gexpenditure"="Gov_expense", "taxes"="Taxes", "time"="Time", "gnp"="GNP")
+#' colnames(Data) = sapply( colnames(Data), FUN=switch,
+#'            "consumption"="Consumption", "invest"="Investment",
+#'            "cprofits"="Profits", "capital"="Capital_stock", "gwage"="Gov_wage",
+#'            "pwage"="Priv_wage", "gexpenditure"="Gov_expense", "taxes"="Taxes",
+#'            "time"="Time", "gnp"="GNP")
 #' Z = ts( cbind(Data, "neg_Gov_wage"=-1*Data[,'Gov_wage']) )
 #'
 #' # Fit model
@@ -76,9 +106,8 @@
 #'                     p2 + scale_x_continuous(expand = c(0.2, 0.0)),
 #'                     labels = c("Simultaneous effects", "Lag-1 effects"),
 #'                     ncol = 1, nrow = 2)
-#' }
 #'
-#' @useDynLib dsem
+#' @useDynLib dsem, .registration = TRUE
 #' @export
 dsem <-
 function( sem,
@@ -97,15 +126,6 @@ function( sem,
   ram = out$ram
 
   #
-  if( FALSE ){
-    cpp_dir = R'(C:\Users\James.Thorson\Desktop\Git\dsem\src)'
-    setwd(cpp_dir)
-    dyn.unload(dynlib("dsem"))
-    compile("dsem.cpp")
-    dyn.load(dynlib("dsem"))
-  }
-
-  #
   Data = list( "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1 ),
@@ -113,7 +133,7 @@ function( sem,
 
   # Construct parameters
   if( is.null(parameters) ){
-    Params = list( "beta_z" = rnorm(max(ram[,4])),
+    Params = list( "beta_z" = rep(0,max(ram[,4])),
                    "lnsigma_j" = rep(0,ncol(tsdata)),
                    "mu_j" = rep(0,ncol(tsdata)),
                    "delta0_j" = rep(0,ncol(tsdata)),
@@ -127,7 +147,7 @@ function( sem,
     # Scale starting values with higher value for two-headed than one-headed arrows
     which_nonzero = which(ram[,4]>0)
     beta_type = tapply( ram[which_nonzero,1], INDEX=ram[which_nonzero,4], max)
-    Params$beta_z = ifelse(beta_type==1, 0, 1)
+    Params$beta_z = ifelse(beta_type==1, 0.01, 1)
 
     # Override starting values if supplied
     which_nonzero = which(ram[,4]>0)
@@ -150,7 +170,6 @@ function( sem,
   }
 
   # Initial run
-  # delta0_j being random leads to weird behavior for wolf-moose example
   if(isTRUE(use_REML)){
     Random = c( "x_tj", "mu_j" )
   }else{
@@ -158,7 +177,9 @@ function( sem,
   }
   obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
   if(quiet==FALSE) list_parameters(obj)
-  out = list( "obj"=obj, "ram"=ram, "model"=out$model,
+  out = list( "obj"=obj,
+              "ram"=ram,
+              "model"=out$model,
               "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map) )
 
   # Export stuff
@@ -182,25 +203,56 @@ function( sem,
 #'
 #' @title Summarize dsem
 #'
-#' @param x Output from \code{\link{dsem}}
+#' @param object Output from \code{\link{dsem}}
+#' @param ... Note used
+#'
 #' @method summary dsem
 #' @export
 summary.dsem <-
-function( x ){
+function( object, ... ){
 
   # Easy of use
-  model = x$model
-  ParHat = x$obj$env$parList()
+  model = object$model
+  ParHat = object$obj$env$parList()
 
   #
   coefs = data.frame( model, "Estimate"=c(NA,ParHat$beta_z)[ as.numeric(model[,'parameter'])+1 ] ) # parameter=0 outputs NA
   coefs$Estimate = ifelse( is.na(coefs$Estimate), as.numeric(model[,4]), coefs$Estimate )
-  if( "SD" %in% names(x$opt) ){
-    SE = as.list( x$opt$SD, report=FALSE, what="Std. Error")
+  if( "SD" %in% names(object$opt) ){
+    SE = as.list( object$opt$SD, report=FALSE, what="Std. Error")
     coefs = data.frame( coefs, "Std_Error"=c(NA,SE$beta_z)[ as.numeric(model[,'parameter'])+1 ] ) # parameter=0 outputs NA
     coefs = data.frame( coefs, "z_value"=coefs[,'Estimate']/coefs[,'Std_Error'] )
     coefs = data.frame( coefs, "p_value"=pnorm(-abs(coefs[,'z_value'])) * 2 )
   }
 
   return(coefs)
+}
+
+#' Convert dsem to phylopath output
+#'
+#' @title Convert output from package dsem to phylopath
+#'
+#' @param fit Output from \code{\link{dsem}}
+#' @param lag which lag to output
+#' @param what whether to output estimates \code{what="Estimate"} or standard errors \code{what="Std_Error"}
+#'
+#' @return Convert output to format supplied by \code{\link[phylopath]{est_DAG}}
+#'
+#' @export
+as_fitted_DAG <-
+function( fit,
+          lag = 0,
+          what = "Estimate" ){
+
+  coefs = summary( fit )
+  coefs = coefs[ which(coefs[,2]==lag), ]
+  coefs = coefs[ which(coefs[,'direction']==1), ]
+
+  #
+  vars = unique( c(coefs[,'first'],coefs[,'second']) )
+  out = list( "coef"=array(0, dim=rep(length(vars),2), dimnames=list(vars,vars)) )
+  out$coef[as.matrix(coefs[,c('first','second')])] = coefs[,what]
+
+  class(out) = "fitted_DAG"
+  return(out)
 }

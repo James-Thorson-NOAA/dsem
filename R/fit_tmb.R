@@ -38,7 +38,7 @@
 #' @return the standard output from \code{\link[stats]{nlminb}}, except with additional diagnostics and timing info,
 #'         and a new slot containing the output from \code{\link[TMB]{sdreport}}
 #'
-#' @references For more details see \url{https://doi.org/10.1016/j.fishres.2015.11.016}
+#' @references For more details see \doi{10.1016/j.fishres.2015.11.016}
 #' @export
 fit_tmb <-
 function( obj,
@@ -131,7 +131,7 @@ function( obj,
   parameter_estimates[["AIC"]] = TMBAIC( opt=parameter_estimates )
   if( n!=Inf ){
     parameter_estimates[["AICc"]] = TMBAIC( opt=parameter_estimates, n=n )
-    parameter_estimates[["BIC"]] = TMBAIC( opt=parameter_estimates, p=log(n) )
+    parameter_estimates[["BIC"]] = TMBAIC( opt=parameter_estimates, k=log(n) )
   }
   parameter_estimates[["diagnostics"]] = data.frame( "Param"=names(startpar), "starting_value"=startpar, "Lower"=lower, "MLE"=parameter_estimates$par, "Upper"=upper, "final_gradient"=as.vector(gr(parameter_estimates$par)) )
 
@@ -143,9 +143,6 @@ function( obj,
     # Check for problems
     if( is.character(try(chol(h),silent=TRUE)) ){
       warning("Hessian is not positive definite, so standard errors are not available")
-      if( !is.null(savedir) ){
-        capture.output( parameter_estimates, file=file.path(savedir,"parameter_estimates.txt"))
-      }
       return( list("opt"=parameter_estimates, "h"=h) )
     }
     # Compute standard errors
@@ -153,7 +150,7 @@ function( obj,
       if( !is.null(BS.control[["nsplit"]]) ) {
         if( BS.control[["nsplit"]] == 1 ) BS.control[["nsplit"]] = NULL
       }
-      parameter_estimates[["SD"]] = TMB::sdreport( obj=obj, par.fixed=parameter_estimates$par, hessian.fixed=h, bias.correct=bias.correct,
+      parameter_estimates[["SD"]] = sdreport( obj=obj, par.fixed=parameter_estimates$par, hessian.fixed=h, bias.correct=bias.correct,
         bias.correct.control=BS.control[c("sd","split","nsplit")], getReportCovariance=getReportCovariance,
         getJointPrecision=getJointPrecision, ... )
     }else{
@@ -161,7 +158,7 @@ function( obj,
         Which = as.vector(unlist( obj$env$ADreportIndex()[ BS.control[["vars_to_correct"]] ] ))
       }else{
         # Run first time to get indices
-        parameter_estimates[["SD"]] = TMB::sdreport( obj=obj, par.fixed=parameter_estimates$par, hessian.fixed=h, bias.correct=FALSE,
+        parameter_estimates[["SD"]] = sdreport( obj=obj, par.fixed=parameter_estimates$par, hessian.fixed=h, bias.correct=FALSE,
            getReportCovariance=FALSE, getJointPrecision=FALSE, ... )
         # Determine indices
         Which = which( rownames(summary(parameter_estimates[["SD"]],"report")) %in% BS.control[["vars_to_correct"]] )
@@ -174,7 +171,7 @@ function( obj,
       if(length(Which)==0) Which = NULL
       # Repeat SD with indexing
       message( paste0("Bias correcting ", length(Which), " derived quantities") )
-      parameter_estimates[["SD"]] = TMB::sdreport( obj=obj, par.fixed=parameter_estimates$par, hessian.fixed=h, bias.correct=TRUE,
+      parameter_estimates[["SD"]] = sdreport( obj=obj, par.fixed=parameter_estimates$par, hessian.fixed=h, bias.correct=TRUE,
         bias.correct.control=list(sd=BS.control[["sd"]], split=Which, nsplit=NULL), getReportCovariance=getReportCovariance,
         getJointPrecision=getJointPrecision, ... )
     }
@@ -187,12 +184,6 @@ function( obj,
     }
   }
   parameter_estimates[["time_for_run"]] = Sys.time() - start_time + start_time_elapsed
-
-  # Save results
-  if( !is.null(savedir) ){
-    save( parameter_estimates, file=file.path(savedir,"parameter_estimates.RData"))
-    capture.output( parameter_estimates, file=file.path(savedir,"parameter_estimates.txt"))
-  }
 
   # Print warning to screen
   if( quiet==FALSE & parameter_estimates[["Convergence_check"]] != "There is no evidence that the model is not converged" ){

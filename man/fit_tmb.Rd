@@ -92,5 +92,5 @@ the standard output from \code{\link[stats]{nlminb}}, except with additional dia
 \code{fit_tmb} runs a TMB model and generates standard diagnostics
 }
 \references{
-For more details see \url{https://doi.org/10.1016/j.fishres.2015.11.016}
+For more details see \doi{10.1016/j.fishres.2015.11.016}
 }

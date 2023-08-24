@@ -8,9 +8,11 @@ list_parameters(Obj, verbose = TRUE)
 }
 \arguments{
 \item{Obj}{Compiled TMB object}
+
+\item{verbose}{Boolean, whether to print messages to terminal}
 }
 \value{
-Return Tagged-list of fixed and random effects (returned invisibly)
+Tagged-list of fixed and random effects, returned invisibly and printed to screen
 }
 \description{
 \code{list_parameters} lists all fixed and random effects

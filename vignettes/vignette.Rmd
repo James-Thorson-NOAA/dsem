@@ -99,7 +99,7 @@ sem = "
   moose <-> moose, 0, sdM
   wolves <-> wolves, 0, SDW
 "
-fit = dsem( sem=sem, tsdata=data, estimate_delta0=TRUE, upper=0.99, quiet=TRUE )
+fit = dsem( sem=sem, tsdata=data, estimate_delta0=TRUE, upper=0.99, lower=-0.99, quiet=TRUE )
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #
@@ -122,12 +122,15 @@ SE <- MARSSparamCIs( kem.1 )
 library(vars)
 var = VAR( data, type="const" )
 
-# Compile
+## Compile
+library(TMB) # needed to do summary for m2
 m1 = rbind( summary(fm_wolf)$coef[-1,], summary(fm_moose)$coef[-1,] )[,1:2]
 m2 = summary(fit$opt$SD)[1:4,]
 m3 = cbind( SE$parMean[c(1,3,2,4)], SE$par.se$B[c(1,3,2,4)] )
 colnames(m3) = colnames(m2)
 m4 = rbind( summary(var$varresult$wolves)$coef[-3,], summary(var$varresult$moose)$coef[-3,] )[,1:2]
+
+# Bundle
 m = rbind(
   data.frame("var"=rownames(m1),m1,"method"="dynlm","eq"=rep(c("Wolf","Moose"),each=2)),
   data.frame("var"=rownames(m1),m2,"method"="dsem","eq"=rep(c("Wolf","Moose"),each=2)),
@@ -135,8 +138,8 @@ m = rbind(
   data.frame("var"=rownames(m1),m4,"method"="vars","eq"=rep(c("Wolf","Moose"),each=2))
 )
 m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
-
-# ggplot estimates
+#
+# ggplot estimates ... interaction(x,y) causes an error sometimes
 library(ggplot2)
 ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
   geom_point( position=position_dodge(0.9) ) +

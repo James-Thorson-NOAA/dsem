@@ -1,4 +1,17 @@
-#' Make RAM
+#' Make a RAM (Reticular Action Model)
+#'
+#' \code{make_ram} converts SEM arrow notation to \code{ram} describing SEM parameters
+#'
+#' @inheritParams dsem
+#' @param remove_na Boolean indicating whether to remove NA values from RAM (default) or not.
+#'            \code{remove_NA=FALSE} might be useful for exploration and diagnostics for
+#'            advanced users
+#'
+#' Copied and then modified with permission from John Fox under licence GPL (>= 2)
+#'
+#' @return the standard output from \code{\link[stats]{nlminb}}, except with additional diagnostics and timing info,
+#'         and a new slot containing the output from \code{\link[TMB]{sdreport}}
+#'
 #' @export
 make_ram <-
 function( sem,
@@ -27,14 +40,14 @@ function( sem,
       model.2
   }
   need.variance <- function() {
-      all.vars <- sem:::classifyVariables(model)
+      all.vars <- classify_variables(model)
       exo.vars <- all.vars$exogenous
       end.vars <- all.vars$endogenous
       variables <- logical(0)
       for (i in seq_len(nrow(model))) {
           paths = model[i,1]
           lag = model[i,2]
-          vars <- sem:::strip.white(paths)
+          vars <- gsub(pattern=" ", replacement="", x=paths)
           vars <- sub("-*>", "->", sub("<-*", "<-", vars))
           vars <- sub("<->|<-", "->", vars)
           vars <- strsplit(vars, "->")[[1]]
@@ -91,7 +104,7 @@ function( sem,
   # Add incidence to model
   model = cbind( model, first=NA, second=NA, direction=NA )
   for( i in seq_len(nrow(model)) ){
-    path = sem:::parse.path(model[i,1])
+    path = parse_path(model[i,1])
     model[i,c('first','second','direction')] = unlist( path[c('first','second','direction')] )
   }
 

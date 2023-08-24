@@ -1,11 +1,6 @@
 
+#define TMB_LIB_INIT R_init_dsem
 #include <TMB.hpp>
-
-// Function for detecting NAs
-template<class Type>
-bool isNA(Type x){
-  return R_IsNA(asDouble(x));
-}
 
 template<class Type>
 Type objective_function<Type>::operator() ()
@@ -112,7 +107,7 @@ Type objective_function<Type>::operator() ()
   // Distribution for data
   for(int t=0; t<n_t; t++){
   for(int j=0; j<n_j; j++){
-    if( !isNA(y_tj(t,j)) ){
+    if( !R_IsNA(asDouble(y_tj(t,j))) ){
       // familycode = 0 :  don't include likelihood
       // familycode = 1 :  normal
       if( familycode_j(j)==1 ){

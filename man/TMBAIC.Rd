@@ -4,12 +4,12 @@
 \alias{TMBAIC}
 \title{Calculate marginal AIC for a fitted model}
 \usage{
-TMBAIC(opt, p = 2, n = Inf)
+TMBAIC(opt, k = 2, n = Inf)
 }
 \arguments{
 \item{opt}{the output from \code{nlminb} or \code{optim}}
 
-\item{p}{the penalty on additional fixed effects (default=2, for AIC)}
+\item{k}{the penalty on additional fixed effects (default=2, for AIC)}
 
 \item{n}{the sample size, for use in AICc calculation (default=Inf, for which AICc=AIC)}
 }

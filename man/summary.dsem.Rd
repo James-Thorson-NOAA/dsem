@@ -4,10 +4,12 @@
 \alias{summary.dsem}
 \title{Summarize dsem}
 \usage{
-\method{summary}{dsem}(x)
+\method{summary}{dsem}(object, ...)
 }
 \arguments{
-\item{x}{Output from \code{\link{dsem}}}
+\item{object}{Output from \code{\link{dsem}}}
+
+\item{...}{Note used}
 }
 \description{
 summarize dsem

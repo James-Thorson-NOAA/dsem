@@ -29,22 +29,41 @@ each element must be \code{fixed} or \code{normal}.
 \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
 Other options correspond to different specifications of measurement error.}
 
-\item{quiet}{if \code{FALSE}, the default, then the number of input lines is reported and
-    a message is printed suggesting that \code{specifyEquations} or \code{cfa} be used.}
+\item{estimate_delta0}{Boolean indicating whether to estimate deviations from equilibrium in initial year
+as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
+the stationary distribution}
+
+\item{quiet}{Boolean indicating whether to run model printing messages to terminal or not;}
 
 \item{run_model}{Boolean indicating whether to estimate parameters (the default), or
 instead to return the model inputs and compiled TMB object without running;}
 
+\item{use_REML}{Boolean indicating whether to treat non-variance fixed effects as random,
+either to motigate bias in estimated variance parameters or improve efficiency for
+parameter estimation given correlated fixed and random effects}
+
+\item{parameters}{list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
+by hand (only helpful for advanced users to change starting values or restart at intended values)}
+
+\item{map}{list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
+to override this default and then pass to \code{\link[TMB]{MakeADFun}}}
+
 \item{...}{Additional parameters passed to \code{\link{fit_tmb}}}
+}
+\value{
+An object (list) of class `dsem`. Elements include:
+\describe{
+\item{obj}{TMB object from \code{\link[TMB]{MakeADFun}}}
+\item{ram}{RAM parsed by \code{make_ram}}
+\item{model}{SEM model parsed from \code{sem} using \code{\link[sem]{specifyModel}} or \code{\link[sem]{specifyEquations}}}
+\item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
+\item{opt}{The output from \code{\link{fit_tmb}}}
+}
 }
 \description{
 Fits a dynamic structural equation model
 }
 \examples{
-\dontrun{
-# Load data set
-library(phylopath)
-
 # Define model
 sem = "
   Profits -> Consumption, 0, a2
@@ -77,10 +96,14 @@ sem = "
 "
 
 # Load data
-data("KleinI", package = "AER")
+data(KleinI, package="AER")
 Data = as.data.frame(KleinI)
 Data = cbind( Data, "time" = seq(1,22)-11 )
-colnames(Data) = sapply( colnames(Data), FUN=switch, "consumption"="Consumption", "invest"="Investment", "cprofits"="Profits", "capital"="Capital_stock", "gwage"="Gov_wage", "pwage"="Priv_wage", "gexpenditure"="Gov_expense", "taxes"="Taxes", "time"="Time", "gnp"="GNP")
+colnames(Data) = sapply( colnames(Data), FUN=switch,
+           "consumption"="Consumption", "invest"="Investment",
+           "cprofits"="Profits", "capital"="Capital_stock", "gwage"="Gov_wage",
+           "pwage"="Priv_wage", "gexpenditure"="Gov_expense", "taxes"="Taxes",
+           "time"="Time", "gnp"="GNP")
 Z = ts( cbind(Data, "neg_Gov_wage"=-1*Data[,'Gov_wage']) )
 
 # Fit model
@@ -99,6 +122,13 @@ ggarrange(p1 + scale_x_continuous(expand = c(0.2, 0.0)),
                     p2 + scale_x_continuous(expand = c(0.2, 0.0)),
                     labels = c("Simultaneous effects", "Lag-1 effects"),
                     ncol = 1, nrow = 2)
-}
 
+}
+\references{
+**Introducing the package, its features, and comparison with other software
+(to cite when using dsem):**
+
+Thorson, J. T., Andrews, A., Essington, T., Large, S. (In review).
+Dynamic structural equation models synthesize
+ecosystem dynamics constrained by ecological mechanisms.
 }

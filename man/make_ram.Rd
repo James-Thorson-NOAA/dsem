@@ -2,10 +2,29 @@
 % Please edit documentation in R/make_ram.R
 \name{make_ram}
 \alias{make_ram}
-\title{Make RAM}
+\title{Make a RAM (Reticular Action Model)}
 \usage{
 make_ram(sem, tsdata, quiet = FALSE, remove_na = TRUE)
 }
+\arguments{
+\item{sem}{structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
+or \code{\link[sem]{specifyEquations}} and then parsed to control
+the set of path coefficients and variance-covariance parameters}
+
+\item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
+
+\item{quiet}{Boolean indicating whether to run model printing messages to terminal or not;}
+
+\item{remove_na}{Boolean indicating whether to remove NA values from RAM (default) or not.
+           \code{remove_NA=FALSE} might be useful for exploration and diagnostics for
+           advanced users
+
+Copied and then modified with permission from John Fox under licence GPL (>= 2)}
+}
+\value{
+the standard output from \code{\link[stats]{nlminb}}, except with additional diagnostics and timing info,
+        and a new slot containing the output from \code{\link[TMB]{sdreport}}
+}
 \description{
-Make RAM
+\code{make_ram} converts SEM arrow notation to \code{ram} describing SEM parameters
 }

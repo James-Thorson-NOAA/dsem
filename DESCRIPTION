@@ -1,6 +1,6 @@
 Package: dsem
 Type: Package
-Title: Fit dynamic structural equation models
+Title: Fit Dynamic Structural Equation Models
 Version: 1.0
 Date: 2023-06-21
 Authors@R: 
@@ -9,20 +9,30 @@ Authors@R:
              role = c("aut", "cre"),
              email = "blah@gmail.com")
     )
+Imports:
+    TMB,
 Depends:
     R (>= 4.0.0),
-    TMB,
-    Matrix
 Suggests:
     knitr,
+    AER,
+    phylopath,
     rmarkdown,
+    dynlm,
+    MARSS,
+    ggplot2,
+    ggpubr,
+    grid,
+    vars,
+    testthat
 LinkingTo:
     TMB, 
     RcppEigen
 Description: Applies dynamic structural equation models to time-series data
 	with generic and simplified specification for simultaneous and lagged
 	effects.   
-License: file LICENSE
+License: GPL-3
+Encoding: UTF-8
 RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 LazyData: true
