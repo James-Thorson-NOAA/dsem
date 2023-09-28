@@ -8,6 +8,7 @@
 #' @param model SEM model
 #'
 #' @return Tagged-list defining exogenous and endogenous variables
+#' @export
 classify_variables <-
 function( model ){
 

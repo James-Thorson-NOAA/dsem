@@ -14,9 +14,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-# use devtools::build_rmd("vignettes/comparison.Rmd") to test build
-# library(rmarkdown)
-# render( "vignette.Rmd", pdf_document()) #  to build PDF, and perhaps tinytex::latexmk() to install dependencies
+# Build
+#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd")
+# PDF
+#  library(rmarkdown); render( "vignettes/vignette.Rmd", pdf_document())
 ```
 
 ```{r setup, echo=TRUE}
@@ -33,12 +34,12 @@ We first demonstrate that `dsem` gives identical results to `dynlm` for a well-k
 library(dynlm)
 
 data(KleinI, package="AER")
-KleinI = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
+TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
 # dynlm
-fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = KleinI)
-fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = KleinI)                 #
-fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = KleinI)
+fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
+fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)                 #
+fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = TS)
 
 # dsem
 sem = "
@@ -55,9 +56,13 @@ sem = "
   gnp -> pwage, -1, c3
   time -> pwage, 0, c1
 "
-tsdata = KleinI[,c("time","gnp","pwage","cprofits",'consumption',"gwage","invest","capital")]
-tsdata[1,c('consumption','pwage','invest')] = NA
-fit = dsem( sem=sem, tsdata=tsdata, newtonsteps=0, quiet=TRUE )   #
+tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
+               "gwage","invest","capital")]
+fit = dsem( sem=sem,
+            tsdata = tsdata,
+            newtonsteps = 0,
+            quiet = TRUE,
+            estimate_delta0 = TRUE )
 
 # Compile
 m1 = rbind( summary(fm_cons)$coef[-1,], summary(fm_inv)$coef[-1,], summary(fm_pwage)$coef[-1,] )[,1:2]
@@ -70,10 +75,27 @@ m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
 
 # ggplot estimates
 library(ggplot2)
-ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
+library(reshape)
+library(gridExtra)
+library(phylopath)
+
+longform = melt( as.data.frame(KleinI) )
+  longform$year = rep( time(KleinI), 9 )
+p1 = ggplot( data=longform, aes(x=year, y=value) ) +
+  facet_grid( rows=vars(variable), scales="free" ) +
+  geom_line( )
+
+p2 = ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
   geom_point( position=position_dodge(0.9) ) +
   geom_errorbar( aes(ymax=as.numeric(upper),ymin=as.numeric(lower)),
                  width=0.25, position=position_dodge(0.9))  #
+
+p3 = plot( as_fitted_DAG(fit) ) +
+     expand_limits(x = c(-0.2,1) )
+p4 = plot( as_fitted_DAG(fit, lag=-1) ) +
+     expand_limits(x = c(-0.2,1), y = c(-0.2,0) )
+
+grid.arrange( arrangeGrob(p1, arrangeGrob(p2, p3, p4), ncol=2) )
 ```
 
 Results show that both packages provide (almost) identical estimates and standard errors.
@@ -90,16 +112,21 @@ Here, we compare fits using `dsem` with `dynlm`, as well as a vector autoregress
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
+family = c("fixed","fixed")
 
 sem = "
   wolves -> wolves, -1, arW
   moose -> wolves, -1, MtoW
   wolves -> moose, -1, WtoM
   moose -> moose, -1, arM
-  moose <-> moose, 0, sdM
-  wolves <-> wolves, 0, SDW
 "
-fit = dsem( sem=sem, tsdata=data, estimate_delta0=TRUE, upper=0.99, lower=-0.99, quiet=TRUE )
+# initial first without delta0 (to improve starting values)
+fit0 = dsem( sem=sem, tsdata=data, estimate_delta0=FALSE,
+            quiet=TRUE, getsd=FALSE, family=family )
+# Refit with delta0
+fit = dsem( sem=sem, tsdata=data, estimate_delta0=TRUE,
+            quiet=TRUE, parameters=fit0$obj$env$parList(),
+            family=family, getJointPrecision = TRUE )
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #
@@ -122,29 +149,46 @@ SE <- MARSSparamCIs( kem.1 )
 library(vars)
 var = VAR( data, type="const" )
 
-## Compile
-library(TMB) # needed to do summary for m2
+### Compile
 m1 = rbind( summary(fm_wolf)$coef[-1,], summary(fm_moose)$coef[-1,] )[,1:2]
 m2 = summary(fit$opt$SD)[1:4,]
+#m2 = cbind( "Estimate"=fit$opt$par, "Std. Error"=fit$opt$SD$par.fixed )[1:4,]
 m3 = cbind( SE$parMean[c(1,3,2,4)], SE$par.se$B[c(1,3,2,4)] )
 colnames(m3) = colnames(m2)
 m4 = rbind( summary(var$varresult$wolves)$coef[-3,], summary(var$varresult$moose)$coef[-3,] )[,1:2]
 
 # Bundle
 m = rbind(
-  data.frame("var"=rownames(m1),m1,"method"="dynlm","eq"=rep(c("Wolf","Moose"),each=2)),
-  data.frame("var"=rownames(m1),m2,"method"="dsem","eq"=rep(c("Wolf","Moose"),each=2)),
-  data.frame("var"=rownames(m1),m3,"method"="MARSS","eq"=rep(c("Wolf","Moose"),each=2)),
-  data.frame("var"=rownames(m1),m4,"method"="vars","eq"=rep(c("Wolf","Moose"),each=2))
+  data.frame("var"=rownames(m1), m1, "method"="dynlm", "eq"=rep(c("Wolf","Moose"),each=2)),
+  data.frame("var"=rownames(m1), m2, "method"="dsem", "eq"=rep(c("Wolf","Moose"),each=2)),
+  data.frame("var"=rownames(m1), m3, "method"="MARSS", "eq"=rep(c("Wolf","Moose"),each=2)),
+  data.frame("var"=rownames(m1), m4, "method"="vars", "eq"=rep(c("Wolf","Moose"),each=2))
 )
+#knitr::kable( m1, digits=3)
+#knitr::kable( m2, digits=3)
+
 m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
-#
+
 # ggplot estimates ... interaction(x,y) causes an error sometimes
 library(ggplot2)
-ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
+library(ggpubr)
+library(ggraph)
+longform = reshape( isle_royale, idvar = "year", direction="long", varying=list(2:3), v.names="abundance", timevar="species", times=c("wolves","moose") )
+p1 = ggplot( data=longform, aes(x=year, y=abundance) ) +
+  facet_grid( rows=vars(species), scales="free" ) +
+  geom_point( )
+
+p2 = ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
   geom_point( position=position_dodge(0.9) ) +
   geom_errorbar( aes(ymax=as.numeric(upper),ymin=as.numeric(lower)),
                  width=0.25, position=position_dodge(0.9))  #
+p3 = plot( as_fitted_DAG(fit, lag=-1), rotation=0 ) +
+     geom_edge_loop( aes( label=round(weight,2), direction=0)) + #arrow=arrow(), , angle_calc="along", label_dodge=grid::unit(10,"points") )
+     expand_limits(x = c(-0.1,0) )
+
+ggarrange( p1, p2, p3,
+           labels = c("Time-series data", "Estimated effects", "Fitted path digram"),
+           ncol = 1, nrow = 3)
 ```
 
 Results again show that `dsem` can estimate parameters for a vector autoregressive model (VAM), and it exactly matches results from `vars`, using `dynlm`, or using `MARSS`.
@@ -169,15 +213,15 @@ sem = "
   log_Cfall -> log_PercentCop, 0, Cfall_to_Scop
   log_SSB -> log_RperS, 0, SSB_to_RperS
 
-  log_seaice <-> log_seaice, 0, var1, 0.001
-  log_CP <-> log_CP,0,  var2, 0.001
-  log_Cspring <-> log_Cspring, 0, var3, 0.001
-  log_Cfall <-> log_Cfall, 0, var4, 0.001
-  log_Esummer <-> log_Esummer, 0, var5, 0.001
-  log_SSB <-> log_SSB, 0, var6, 0.001
-  log_RperS <->  log_RperS, 0, var7, 0.001
-  log_PercentEuph <-> log_PercentEuph, 0, var8, 0.001
-  log_PercentCop <-> log_PercentCop, 0, var9, 0.001
+  #log_seaice <-> log_seaice, 0, var1, 0.001
+  #log_CP <-> log_CP,0,  var2, 0.001
+  #log_Cspring <-> log_Cspring, 0, var3, 0.001
+  #log_Cfall <-> log_Cfall, 0, var4, 0.001
+  #log_Esummer <-> log_Esummer, 0, var5, 0.001
+  #log_SSB <-> log_SSB, 0, var6, 0.001
+  #log_RperS <->  log_RperS, 0, var7, 0.001
+  #log_PercentEuph <-> log_PercentEuph, 0, var8, 0.001
+  #log_PercentCop <-> log_PercentCop, 0, var9, 0.001
 
   log_seaice -> log_seaice, -1, AR1, 0.001
   log_CP -> log_CP, -1,  AR2, 0.001
@@ -216,19 +260,30 @@ for(i in 1:ncol(bering_sea)){
 library(phylopath)
 library(ggplot2)
 library(ggpubr)
+library(reshape)
+library(gridExtra)
+longform = melt( bering_sea )
+  longform$year = rep( 1963:2023, ncol(bering_sea) )
+p0 = ggplot( data=longform, aes(x=year, y=value) ) +
+  facet_grid( rows=vars(variable), scales="free" ) +
+  geom_point( )
+
 p1 = plot( (as_fitted_DAG(fit)), edge.width=1, type="width",
            text_size=4, show.legend=FALSE,
-           arrow = grid::arrow(type='closed', 18, grid::unit(10,'points')) )
+           arrow = grid::arrow(type='closed', 18, grid::unit(10,'points')) ) +
+     scale_x_continuous(expand = c(0.4, 0.1))
 p1$layers[[1]]$mapping$edge_width = 1
 p2 = plot( (as_fitted_DAG(fit, what="p_value")), edge.width=1, type="width",
            text_size=4, show.legend=FALSE, colors=c('black', 'black'),
-           arrow = grid::arrow(type='closed', 18, grid::unit(10,'points')) )
+           arrow = grid::arrow(type='closed', 18, grid::unit(10,'points')) ) +
+     scale_x_continuous(expand = c(0.4, 0.1))
 p2$layers[[1]]$mapping$edge_width = 0.5
 
-ggarrange( p1 + scale_x_continuous(expand = c(0.4, 0.1)),
-           p2 + scale_x_continuous(expand = c(0.4, 0.1)),
-           labels = c("Simultaneous effects", "Two-sided p-value"),
-           ncol = 1, nrow = 2)
+#grid.arrange( arrangeGrob( p0+ggtitle("timeseries"),
+#              arrangeGrob( p1+ggtitle("Estimated path diagram"),
+#                           p2+ggtitle("Estimated p-values"), nrow=2), ncol=2 ) )
+ggarrange(p1, p2, labels = c("Simultaneous effects", "Two-sided p-value"),
+                    ncol = 1, nrow = 2)
 ```
 
 These results are further discussed in the paper describing dsem.
@@ -373,6 +428,17 @@ p1$layers[[1]]$mapping$edge_width = 0.5
 p2 = plot( get_part(as_fitted_DAG(fit, what="p_value" )), type="width",
            show.legend=FALSE, colors=c('black', 'black'))
 p2$layers[[1]]$mapping$edge_width = 0.1
+
+longform = melt( sea_otter[,-1], as.is=TRUE )
+longform$X1 = 1999:2019[longform$X1]
+longform$Site = gsub( "log_Kelp_", "",
+                gsub( "log_Urchins_", "",
+                gsub( "Pycno_", "",
+                gsub( "log_Otter_Count_", "", longform$X2))))
+longform$Species = sapply( seq_len(nrow(longform)), FUN=\(i)gsub(longform$Site[i],"",longform$X2[i]) )
+p3 = ggplot( data=longform, aes(x=X1, y=value, col=Species) ) +
+  facet_grid( rows=vars(Site), scales="free" ) +
+  geom_line( )
 
 ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
                     p2 + scale_x_continuous(expand = c(0.3, 0)),

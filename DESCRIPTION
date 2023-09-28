@@ -7,7 +7,7 @@ Authors@R:
     c(person(given = "Anon",
              family = "Ymous",
              role = c("aut", "cre"),
-             email = "blah@gmail.com")
+             email = "James.Thorson@noaa.gov")
     )
 Imports:
     TMB,

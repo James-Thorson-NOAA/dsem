@@ -8,6 +8,7 @@ dsem(
   sem,
   tsdata,
   family = rep("fixed", ncol(tsdata)),
+  covs = colnames(tsdata),
   estimate_delta0 = FALSE,
   quiet = FALSE,
   run_model = TRUE,

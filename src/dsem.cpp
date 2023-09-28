@@ -2,6 +2,13 @@
 #define TMB_LIB_INIT R_init_dsem
 #include <TMB.hpp>
 
+// get sign of double, only for REPORT use
+template<class Type>
+Type sign(Type x){
+  return x / pow(pow(x,2),0.5);
+}
+
+
 template<class Type>
 Type objective_function<Type>::operator() ()
 {
@@ -9,6 +16,7 @@ Type objective_function<Type>::operator() ()
   using namespace density;
 
   // Data
+  //DATA_INTEGER( resimulate_gmrf );
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
   DATA_IVECTOR( familycode_j );
@@ -66,6 +74,7 @@ Type objective_function<Type>::operator() ()
   Linv_kk = Gammainv_kk * ( I_kk - Rho_kk );
   Q_kk = Linv_kk.transpose() * Linv_kk;
 
+
   // Calculate effect of initial condition -- SPARSE version
   vector<Type> delta_k( n_k );
   delta_k.setZero();
@@ -103,28 +112,72 @@ Type objective_function<Type>::operator() ()
     xhat_tj(t,j) = mu_j(j);
   }}
   jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_k );
+  //SIMULATE{
+  //  if( resimulate_gmrf >= 1 ){
+  //    //x_tj = GMRF(Q_kk).simulate(x_tj);
+  //    //x_tj += xhat_tj + delta_k;
+  //  }
+  //  REPORT( x_tj );
+  //}
 
   // Distribution for data
+  array<Type> devresid_tj( n_t, n_j );
+  array<Type> mu_tj( n_t, n_j );
   for(int t=0; t<n_t; t++){
   for(int j=0; j<n_j; j++){
-    if( !R_IsNA(asDouble(y_tj(t,j))) ){
-      // familycode = 0 :  don't include likelihood
-      // familycode = 1 :  normal
-      if( familycode_j(j)==1 ){
-        loglik_tj(t,j) = dnorm( y_tj(t,j), x_tj(t,j), sigma_j(j), true );
+    // familycode = 0 :  don't include likelihood
+    if( familycode_j(j)==0 ){
+      mu_tj(t,j) = x_tj(t,j);
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        SIMULATE{
+          y_tj(t,j) = mu_tj(t,j);
+        }
       }
-      // familycode = 2 :  binomial
-      if( familycode_j(j)==2 ){
-        loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), invlogit(x_tj(t,j)), true );
+      devresid_tj(t,j) = 0;
+    }
+    // familycode = 1 :  normal
+    if( familycode_j(j)==1 ){
+      mu_tj(t,j) = x_tj(t,j);
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
+        SIMULATE{
+          y_tj(t,j) = rnorm( mu_tj(t,j), sigma_j(j) );
+        }
       }
-      // familycode = 3 :  Poisson
-      if( familycode_j(j)==3 ){
-        loglik_tj(t,j) = dpois( y_tj(t,j), exp(x_tj(t,j)), true );
+      devresid_tj(t,j) = y_tj(t,j) - mu_tj(t,j);
+    }
+    // familycode = 2 :  binomial
+    if( familycode_j(j)==2 ){
+      mu_tj(t,j) = invlogit(x_tj(t,j));
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
+        SIMULATE{
+          y_tj(t,j) = rbinom( Type(1), mu_tj(t,j) );
+        }
       }
-      // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
-      if( familycode_j(j)==4 ){
-        loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), exp(x_tj(t,j))*pow(sigma_j(j),2), true );
+      devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(-2*(((1-y_tj(t,j))*log(1-mu_tj(t,j)) + y_tj(t,j)*log(mu_tj(t,j)))), 0.5);
+    }
+    // familycode = 3 :  Poisson
+    if( familycode_j(j)==3 ){
+      mu_tj(t,j) = exp(x_tj(t,j));
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
+        SIMULATE{
+          y_tj(t,j) = rpois( mu_tj(t,j) );
+        }
       }
+      devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2*(y_tj(t,j)*log((Type(1e-10) + y_tj(t,j))/mu_tj(t,j)) - (y_tj(t,j)-mu_tj(t,j))), 0.5);
+    }
+    // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
+    if( familycode_j(j)==4 ){
+      mu_tj(t,j) = exp(x_tj(t,j));
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
+        SIMULATE{
+          y_tj(t,j) = rgamma( pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2) );
+        }
+      }
+      devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2 * ( (y_tj(t,j)-mu_tj(t,j))/mu_tj(t,j) - log(y_tj(t,j)/mu_tj(t,j)) ), 0.5);
     }
   }}
   jnll -= loglik_tj.sum();
@@ -133,10 +186,17 @@ Type objective_function<Type>::operator() ()
   // Reporting
   //REPORT( V_kk );
   REPORT( Q_kk );
+  REPORT( xhat_tj ); // needed to simulate new GMRF in R
+  REPORT( delta_k ); // needed to simulate new GMRF in R
   REPORT( Rho_kk );
+  REPORT( mu_tj );
+  REPORT( devresid_tj );
   //REPORT( Gammainv_kk );
   REPORT( jnll );
   REPORT( loglik_tj );
   REPORT( jnll_gmrf );
+  SIMULATE{
+    REPORT( y_tj );
+  }
   return jnll;
 }

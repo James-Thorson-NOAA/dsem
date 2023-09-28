@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
 
-\item{...}{Note used}
+\item{...}{Not used}
 }
 \description{
 summarize dsem

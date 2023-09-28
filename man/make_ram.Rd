@@ -4,7 +4,7 @@
 \alias{make_ram}
 \title{Make a RAM (Reticular Action Model)}
 \usage{
-make_ram(sem, tsdata, quiet = FALSE, remove_na = TRUE)
+make_ram(sem, tsdata, covs = NULL, quiet = FALSE, remove_na = TRUE)
 }
 \arguments{
 \item{sem}{structural equation model structure, passed to either \code{\link[sem]{specifyModel}}

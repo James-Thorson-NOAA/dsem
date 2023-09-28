@@ -16,6 +16,7 @@
 make_ram <-
 function( sem,
           tsdata,
+          covs = NULL,
           quiet = FALSE,
           remove_na = TRUE ){
 
@@ -80,6 +81,26 @@ function( sem,
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
   model <- cbind( model$path, model$lag, model$par, model$start)
+
+  if( !is.null(covs) ){
+    for (cov in covs) {
+      vars <- strsplit(cov, "[ ,]+")[[1]]
+      nvar <- length(vars)
+      for (i in 1:nvar) {
+      for (j in i:nvar) {
+        p1 = paste(vars[i], "<->", vars[j])
+        p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
+        p3 = NA
+        row <- c(p1, 0, p2, p3)
+        if( any((row[1]==model[,1]) & (row[2]==model[,2])) ){
+          next
+        }else{
+          model <- rbind(model, row, deparse.level = 0)
+        }
+      }}
+    }
+  }
+
   exog.variances = endog.variances = TRUE
   model = add.variances()
 

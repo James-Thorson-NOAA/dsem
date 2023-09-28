@@ -113,6 +113,7 @@ dsem <-
 function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
+          covs = colnames(tsdata),
           estimate_delta0 = FALSE,
           quiet = FALSE,
           run_model = TRUE,
@@ -122,8 +123,16 @@ function( sem,
           ... ){
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
-  out = make_ram( sem, tsdata=tsdata, quiet=quiet )
+  out = make_ram( sem, tsdata=tsdata, quiet=quiet, covs=covs )
   ram = out$ram
+
+  # Error checks
+  if( any((out$model[,'direction']==2) & (out$model[,2]!=0)) ){
+    stop("All two-headed arrows should have lag=0")
+  }
+  if( !all(c(out$model[,'first'],out$model[,'second']) %in% colnames(tsdata)) ){
+    stop("Some variable in `sem` is not in `tsdata`")
+  }
 
   #
   Data = list( "RAM" = as.matrix(na.omit(ram[,1:4])),
@@ -179,8 +188,9 @@ function( sem,
   if(quiet==FALSE) list_parameters(obj)
   out = list( "obj"=obj,
               "ram"=ram,
-              "model"=out$model,
-              "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map) )
+              "sem_full"=out$model,
+              "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map),
+              "call" = match.call() )
 
   # Export stuff
   if( run_model==FALSE ){
@@ -204,7 +214,7 @@ function( sem,
 #' @title Summarize dsem
 #'
 #' @param object Output from \code{\link{dsem}}
-#' @param ... Note used
+#' @param ... Not used
 #'
 #' @method summary dsem
 #' @export
@@ -228,13 +238,290 @@ function( object, ... ){
   return(coefs)
 }
 
+#' Simulate dsem
+#'
+#' @title Simulate from a fitted \code{dsem} model
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param nsim number of simulated data sets
+#' @param variance whether to ignore uncertainty in fixed and
+#'        random effects, include estimation uncertainty in random effects,
+#'        or include estimation uncertainty in both fixed and random effects
+#' @param resimulate_gmrf whether to resimulate the GMRF based on estimated or
+#'        simulated random effects (determined by argument \code{variance})
+#' @param seed random seed
+#' @param ... Not used
+#'
+#' @description
+#' This function conducts a parametric bootstrap, i.e., simulates new data
+#' conditional upon estimated values for fixed and random effects.  The user
+#' can optionally simulate new random effects conditional upon their estimated
+#' covariance, or simulate new fixed and random effects conditional upon their imprecision.
+#'
+#' Note that \code{simulate} will have no effect on states \code{x_tj} for which there
+#' is a measurement and when those measurements are fitted using \code{family="fixed"}
+#'
+#' @method simulate dsem
+#' @export
+simulate.dsem <-
+function( object,
+          nsim = 1,
+          seed = NULL,
+          variance = c("none", "random", "both"),
+          resimulate_gmrf = FALSE,
+          ... ){
+
+  set.seed(seed)
+  variance = match.arg(variance)
+
+  # Sample from GMRF using sparse precision
+  rmvnorm_prec <- function(mu, prec, nsim) {
+    z <- matrix(rnorm(length(mu) * nsim), ncol=nsim)
+    L <- Matrix::Cholesky(prec, super=TRUE)
+    z <- Matrix::solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
+    z <- Matrix::solve(L, z, system = "Pt") ## z = Pt    %*% z
+    z <- as.matrix(z)
+    return(mu + z)
+  }
+
+  #
+  obj = object$obj
+  parfull = obj$env$parList()
+
+  par_zr = outer( obj$env$last.par.best, rep(1,nsim) )
+  if( variance=="random" ){
+    tmp = rmvnorm_prec( rep(0,length(obj$env$random)), obj$env$spHess(random=TRUE), nsim=nsim )
+    par_zr[obj$env$random,] = par_zr[obj$env$random,,drop=FALSE] + tmp
+  }
+  if( variance=="both" ){
+    if(is.null(object$opt$SD$jointPrecision)){
+      stop("Please re-run `dsem` with `getsd=TRUE` and `getJointPrecision=TRUE`, or confirm that the model is converged")
+    }
+    tmp = rmvnorm_prec( rep(0,length(obj$env$last.par)), object$opt$SD$jointPrecision, nsim=nsim )
+    par_zr = par_zr + tmp
+  }
+
+  out = NULL
+  for( r in seq_len(nsim) ){
+    if( resimulate_gmrf==TRUE ){
+      # Simulate new fields
+      newrep = obj$report( par=par_zr[,r] )
+      newparfull = obj$env$parList()
+      Q_kk = newrep$Q_kk
+      tmp = rmvnorm_prec( newrep$delta_k + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
+      # Modify call
+      newcall = object$call
+      newcall$parameters = newparfull
+      newcall$parameters$x_tj[] = tmp
+      # Rebuild model with new GMRF values
+      newcall$run_model = FALSE
+      newfit = eval(newcall)
+      out[[r]] = newfit$obj$simulate()$y_tj
+    }else{
+      out[[r]] = obj$simulate( par_zr[,r] )
+    }
+  }
+
+  #out = lapply( 1:nsim, FUN=\(x) obj$env$simulate(par=par_zr[,x],complete=TRUE)$y_tj )
+  #mean( obj$env$simulate(par=par_zr[,1],complete=TRUE)$y_tj )
+  #mean( obj$env$simulate(par=par_zr[,2]+1,complete=TRUE)$y_tj )
+  #sapply(out, mean)
+  #apply(par_zr, MARGIN=2, mean)
+
+  return(out)
+}
+
+#' Extract Variance-Covariance Matrix
+#'
+#' extract the covariance of fixed effects, or both fixed and random effects.
+#'
+#' @param object output from \code{dsem}
+#' @param which whether to extract the covariance among fixed effects, random effects, or both
+#' @param ... ignored, for method compatibility
+#' @importFrom stats vcov
+#' @method vcov dsem
+#' @export
+vcov.dsem <-
+function( object,
+          which = c("fixed", "random", "both"),
+          ...) {
+
+  which = match.arg(which)
+
+  if( which=="fixed" ){
+    V = object$opt$SD$cov.fixed
+    if(is.null(V)){
+      warning("Please re-run `dsem` with `getsd=TRUE`, or confirm that the model is converged")
+    }
+  }
+  if( which=="random" ){
+    V = solve(object$obj$env$spHess(random=TRUE))
+  }
+  if( which=="both" ){
+    H = object$opt$SD$jointPrecision
+    if(is.null(H)){
+      warning("Please re-run `dsem` with `getsd=TRUE` and `getJointPrecision=TRUE`, or confirm that the model is converged")
+      V = NULL
+    }else{
+      V = solve(H)
+    }
+  }
+
+  return( V )
+}
+
+#' Calculate residuals
+#'
+#' @title Calculate residuals for dsem
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param type which type of residuals to compute (only option is \code{"deviance"} or \code{"response"} for now)
+#' @param ... Note used
+#'
+#' @method residuals dsem
+#' @export
+residuals.dsem <-
+function( object,
+          type = c("deviance","response"),
+          ... ){
+
+  # https://stats.stackexchange.com/questions/1432/what-do-the-residuals-in-a-logistic-regression-mean
+  # Normal deviance residuals
+  if( FALSE ){
+    x = rnorm(10)
+    y = x + rnorm(10)
+    Glm = glm( y ~ 1 + x, family="gaussian")
+    mu = predict(Glm,type="response")
+    r1 = y - mu
+    r1 - resid(Glm)
+  }
+  # Poisson deviance residuals
+  if( FALSE ){
+    x = rnorm(10)
+    y = rpois(10, exp(x))
+    Glm = glm( y ~ 1 + x, family="poisson")
+    mu = predict(Glm,type="response")
+    # https://stats.stackexchange.com/questions/398098/formula-for-deviance-residuals-for-poisson-model-with-identity-link-function
+    r1 = sign(y - mu) * sqrt(2*(y*log((y+1e-10)/mu) - (y-mu)))
+    r1 - resid(Glm)
+  }
+  # Binomial deviance residuals
+  if( FALSE ){
+    p = 0.5
+    y = rbinom(10, prob=p, size=1)
+    Glm = glm( y ~ 1, family="binomial")
+    mu = predict(Glm, type="response")
+    r1 = sign(y - mu) * sqrt(-2*(((1-y)*log(1-mu) + y*log(mu))))
+    r1 - resid(Glm)
+  }
+  # Gamma deviance residuals
+  if( FALSE ){
+    mu = 1
+    cv = 0.8
+    y = rgamma( n=10, shape=1/cv^2, scale=mu*cv^2 )
+    Glm = glm( y ~ 1, family=Gamma(link='log'))
+    mu = predict(Glm, type="response")
+    r1 = sign(y - mu) * sqrt(2 * ( (y-mu)/mu - log(y/mu) ))
+    r1 - resid(Glm)
+  }
+
+  # Poisson: sign(y - mu) * sqrt(2*(ifelse(y==0, 0, y*log(y/mu)) - (y-mu)))
+  # Binomial:  -2 * ((1-y)*log(1-mu) + y*log(mu))
+  # Gamma: 2 * ( (y-mu)/mu - log(y/mu) )
+
+  # Easy of use
+  x_tj = object$obj$env$parList()$x_tj
+  y_tj = object$tmb_inputs$data$y_tj
+  familycode_j = object$tmb_inputs$data$familycode_j
+  report = object$obj$report()
+
+  #
+  type = match.arg(type)
+  if( type == "deviance" ){
+    resid_tj = report$devresid_tj
+  }
+  if( type == "response" ){
+    resid_tj = y_tj - report$mu_tj
+  }
+
+  return(resid_tj)
+}
+
+#' predictions using dsem
+#'
+#' @title Predict variables given new (counterfactual) values of data, or for future or past times
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param newdata optionally, a data frame in which to look for variables with which to predict.
+#'        If omitted, the fitted data are used to create predictions. If desiring predictions after the fitted data,
+#'        the user must append rows with NAs for those future times.  Similarly, if desiring predictions given counterfactual
+#'        values for time-series data, then those individual observations can be edited while keeping other observations at their
+#'        original fitted values.
+#' @param type the type of prediction required. The default is on the scale of the linear predictors;
+#'        the alternative "response" is on the scale of the response variable.
+#'        Thus for a Poisson-distributed variable the default predictions are of log-intensity and type = "response" gives the predicted intensity.
+#' @param ... Note used
+#'
+#' @method predict dsem
+#' @export
+predict.dsem <-
+function( object,
+          newdata = NULL,
+          type = c("link", "response"),
+          ... ){
+  #
+  # newdata = eval(object$call$tsdata)
+  # newdata = ts( newdata[1:40,] )
+
+  # Easy of use
+  parfull = object$obj$env$parList()
+  type = match.arg(type)
+  report = object$obj$report()
+
+  #
+  if( is.null(newdata) ){
+    if(type=="link") out = parfull$x_tj
+    if(type=="response") out = report$mu_tj
+  }else{
+    newcall = object$call
+    newcall$tsdata = newdata
+    # Rebuild model with new data
+    newcall$run_model = FALSE
+    newfit = eval(newcall)
+    # Optimize random effects given original MLE and newdata
+    newfit$obj$fn( object$opt$par )
+    # Return predictor
+    if(type=="link") out = newfit$obj$env$parList()$x_tj
+    if(type=="response") out = newfit$obj$report()$mu_tj
+  }
+
+  return(out)
+}
+
+# Extract the log-likelihood of a dsem model
+#
+# @return object of class \code{logLik} with attributes
+#   \item{val}{log-likelihood}
+#   \item{df}{number of parameters}
+#' @importFrom stats logLik
+#' @export
+logLik.dsem <- function(object, ...) {
+  val = -1 * object$opt$objective
+  df = length( object$opt$par )
+  out = structure( val,
+             df = df,
+             class = "logLik")
+  return(out)
+}
+
 #' Convert dsem to phylopath output
 #'
 #' @title Convert output from package dsem to phylopath
 #'
 #' @param fit Output from \code{\link{dsem}}
 #' @param lag which lag to output
-#' @param what whether to output estimates \code{what="Estimate"} or standard errors \code{what="Std_Error"}
+#' @param what whether to output estimates \code{what="Estimate"}, standard errors \code{what="Std_Error"}
+#'        or p-values \code{what="Std_Error"}
 #'
 #' @return Convert output to format supplied by \code{\link[phylopath]{est_DAG}}
 #'

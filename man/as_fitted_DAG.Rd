@@ -11,7 +11,8 @@ as_fitted_DAG(fit, lag = 0, what = "Estimate")
 
 \item{lag}{which lag to output}
 
-\item{what}{whether to output estimates \code{what="Estimate"} or standard errors \code{what="Std_Error"}}
+\item{what}{whether to output estimates \code{what="Estimate"}, standard errors \code{what="Std_Error"}
+or p-values \code{what="Std_Error"}}
 }
 \value{
 Convert output to format supplied by \code{\link[phylopath]{est_DAG}}
