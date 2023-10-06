@@ -21,7 +21,7 @@ dsem(
 \arguments{
 \item{sem}{structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
 or \code{\link[sem]{specifyEquations}} and then parsed to control
-the set of path coefficients and variance-covariance parameters}
+the set of path coefficients and variance-covariance parameters.}
 
 \item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
 
@@ -64,6 +64,19 @@ An object (list) of class `dsem`. Elements include:
 \description{
 Fits a dynamic structural equation model
 }
+\details{
+A DSEM involves at a minimum a user-supplied specification for the path coefficients, and a
+time-series with named variables that correspond to the user-supplied paths. Users can specify
+a distribution for measurement errors (or assume that variables are measured without error) using
+argument \code{family}.
+\code{dsem} then estimates all specified coefficients via maximizing a log-marginal likelihood, while
+also imputing the value of any variable that is specified as NA in the time-series inputs.
+\code{summary.dsem} then assembles estimates and standard errors in an easy-to-read format.
+Standard errors for fixed effects (path coefficients, exogenoux variance parameters, and measurement error parameters)
+are estimated from the matrix of second derivatives of the log-marginal likelihod,
+and standard errors for random effects (i.e., missing or state-space variables) are estimated
+from a generalization of this method (see \code{?TMB::sdreport} for details).
+}
 \examples{
 # Define model
 sem = "
@@ -71,14 +84,11 @@ sem = "
   Profits -> Consumption, -1, a3
   Priv_wage -> Consumption, 0, a4
   Gov_wage -> Consumption, 0, a4
-  Consumption <-> Consumption, 0, v1
   Consumption -> Consumption, -1, ar1
   Consumption -> Consumption, -2, ar2
   Profits -> Investment, 0, b2
   Profits -> Investment, -1, b3
   Capital_stock -> Investment, -1, b4
-  Investment <-> Investment, 0, v2
-  neg_Gov_wage <-> neg_Gov_wage, 0, v3
   GNP -> Priv_wage, 0, c2
   Taxes -> Priv_wage, 0, c2
   neg_Gov_wage -> Priv_wage, 0, c2
@@ -86,14 +96,6 @@ sem = "
   Taxes -> Priv_wage, -1, c3
   neg_Gov_wage -> Priv_wage, -1, c3
   Time -> Priv_wage, 0, c4
-  Priv_wage <-> Priv_wage, 0, v4
-  GNP <-> GNP, 0, v5
-  Profits <-> Profits, 0, v6
-  Capital_stock <-> Capital_stock, 0, v7
-  Taxes <-> Taxes, 0, v8
-  Time <-> Time, 0, v9
-  Gov_wage <-> Gov_wage, 0, v10
-  Gov_expense <-> Gov_expense, 0, v11
 "
 
 # Load data

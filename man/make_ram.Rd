@@ -9,7 +9,7 @@ make_ram(sem, tsdata, covs = NULL, quiet = FALSE, remove_na = TRUE)
 \arguments{
 \item{sem}{structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
 or \code{\link[sem]{specifyEquations}} and then parsed to control
-the set of path coefficients and variance-covariance parameters}
+the set of path coefficients and variance-covariance parameters.}
 
 \item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
 

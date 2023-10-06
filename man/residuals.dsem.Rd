@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsem.R
 \name{residuals.dsem}
 \alias{residuals.dsem}
-\title{Calculate residuals for dsem}
+\title{Calculate deviance or response residuals for dsem}
 \usage{
 \method{residuals}{dsem}(object, type = c("deviance", "response"), ...)
 }

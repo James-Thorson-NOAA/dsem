@@ -4,7 +4,7 @@
 \alias{as_fitted_DAG}
 \title{Convert output from package dsem to phylopath}
 \usage{
-as_fitted_DAG(fit, lag = 0, what = "Estimate")
+as_fitted_DAG(fit, lag = 0, what = "Estimate", direction = 1)
 }
 \arguments{
 \item{fit}{Output from \code{\link{dsem}}}
@@ -13,6 +13,8 @@ as_fitted_DAG(fit, lag = 0, what = "Estimate")
 
 \item{what}{whether to output estimates \code{what="Estimate"}, standard errors \code{what="Std_Error"}
 or p-values \code{what="Std_Error"}}
+
+\item{direction}{whether to include one-sided arrows \code{direction=1}, or both one- and two-sided arrows \code{direction=c(1,2)}}
 }
 \value{
 Convert output to format supplied by \code{\link[phylopath]{est_DAG}}
