@@ -1,13 +1,15 @@
 
-#' Parse path
+#' @title Parse path
 #'
-#' \code{parse_path} is copied from \code{sem::parse.path}
+#' @description \code{parse_path} is copied from \code{sem::parse.path}
 #'
-#' Copied with permission from John Fox under licence GPL (>= 2)
+#' @details
+#' Copied from package `sem` under licence GPL (>= 2) with permission from John Fox
 #'
 #' @return Tagged-list defining variables and direction for a specified path coefficient
 #'
 #' @param path text to parse
+#' @export
 parse_path <-
 function( path ){
   path.1 <- gsub("-", "", gsub(" ", "", path))

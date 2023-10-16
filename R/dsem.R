@@ -125,7 +125,7 @@ function( sem,
           ... ){
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
-  out = make_ram( sem, tsdata=tsdata, quiet=quiet, covs=covs )
+  out = make_ram( sem, times=as.character(time(tsdata)), variables=colnames(tsdata), quiet=quiet, covs=covs )
   ram = out$ram
 
   # Error checks
@@ -471,6 +471,18 @@ function( object,
   return(resid_tj)
 }
 
+#' @title Print fitted dsem object
+#'
+#' @description Prints output from fitted dsem model
+#'
+#' @method print dsem
+#' @export
+print.dsem <-
+function( x,
+          ... ){
+  print(x$opt)
+}
+
 #' predictions using dsem
 #'
 #' @title Predict variables given new (counterfactual) values of data, or for future or past times
@@ -562,7 +574,8 @@ function( fit,
   coefs = coefs[ which(coefs[,'direction'] %in% direction), ]
 
   #
-  vars = unique( c(coefs[,'first'],coefs[,'second']) )
+  #vars = unique( c(coefs[,'first'],coefs[,'second']) )
+  vars = colnames(fit$tmb_inputs$data$y_tj)
   out = list( "coef"=array(0, dim=rep(length(vars),2), dimnames=list(vars,vars)) )
   out$coef[as.matrix(coefs[,c('first','second')])] = coefs[,what]
 
@@ -579,24 +592,44 @@ function( fit,
 #' @return Convert output to format supplied by \code{\link[sem]{sem}}
 #'
 #' @export
-#as_sem <-
-#function( object ){
-#
-#  Rho = as_fitted_DAG( object, what="Estimate", direction=1, lag=0 )$coef
-#  Gamma = as_fitted_DAG( object, what="Estimate", direction=2, lag=0 )$coef
-#  Gammainv = diag(1/diag(Gamma))
-#  Linv = Gammainv %*% (diag(nrow(Rho))-Rho)
-#  Sinv = t(Linv) %*% Linv
-#  Sprime = solve(Sinv)
-#  Sprime = 0.5*Sprime + 0.5*t(Sprime)
-#
-#  model = object$sem_full
-#  model = model[model[,2]==0,c(1,3,4)]
-#  out = sem::sem( model,
-#             S = Sprime,
-#             N = nrow(eval(object$call$tsdata)) )
-#
-#  # pass out
-#  return(out)
-#}
-#
+as_sem <-
+function( object,
+          lag = 0 ){
+
+  Rho = t(as_fitted_DAG( object, what="Estimate", direction=1, lag=lag )$coef)
+  Gamma = as_fitted_DAG( object, what="Estimate", direction=2, lag=lag )$coef
+  Gammainv = diag(1/diag(Gamma))
+  Linv = Gammainv %*% (diag(nrow(Rho))-Rho)
+  Sinv = t(Linv) %*% Linv
+  Sprime = solve(Sinv)
+  Sprime = 0.5*Sprime + 0.5*t(Sprime)
+
+  model = object$sem_full
+  model = model[model[,2]==0,c(1,3,4)]
+  out = sem::sem( model,
+             S = Sprime,
+             N = nrow(eval(object$call$tsdata)) )
+
+  # pass out
+  return(out)
+
+  if( FALSE ){
+    x = rnorm(10)
+    y = x + rnorm(10)
+
+    object = dsem( sem="x->y, 0, beta", tsdata=ts(cbind(x,y)) )
+    mysem = as_sem(object)
+    myplot = semPlot::semPlotModel( mysem )
+    semPlot::semPaths( myplot,
+                       whatLabels = "est",
+                       edge.label.cex = 1.5,
+                       node.width = 4,
+                       node.height = 2,
+                       shapeMan = "rectangle",
+                       edge.width = 4,
+                       nodeLabels = myplot@Vars$name,
+                       nDigits=4 )
+  }
+}
+
+

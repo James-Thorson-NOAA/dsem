@@ -9,19 +9,26 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r, include = FALSE, warning=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+# Install locally
+#  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
 #  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd")
 # PDF
 #  library(rmarkdown); render( "vignettes/vignette.Rmd", pdf_document())
 ```
 
-```{r setup, echo=TRUE}
+```{r setup, echo=TRUE, message=FALSE}
 library(dsem)
+library(dynlm)
+library(ggplot2)
+library(reshape)
+library(gridExtra)
+library(phylopath)
 ```
 
 `dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure.   We here highlight a few features in particular.
@@ -31,8 +38,6 @@ library(dsem)
 We first demonstrate that `dsem` gives identical results to `dynlm` for a well-known econometric model, the Klein-1 model.
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
-library(dynlm)
-
 data(KleinI, package="AER")
 TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
@@ -65,7 +70,9 @@ fit = dsem( sem=sem,
             estimate_delta0 = TRUE )
 
 # Compile
-m1 = rbind( summary(fm_cons)$coef[-1,], summary(fm_inv)$coef[-1,], summary(fm_pwage)$coef[-1,] )[,1:2]
+m1 = rbind( summary(fm_cons)$coef[-1,],
+            summary(fm_inv)$coef[-1,],
+            summary(fm_pwage)$coef[-1,] )[,1:2]
 m2 = summary(fit$opt$SD)[1:9,]
 m = rbind(
   data.frame("var"=rownames(m1),m1,"method"="OLS","eq"=rep(c("C","I","Wp"),each=3)),
@@ -74,10 +81,6 @@ m = rbind(
 m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
 
 # ggplot estimates
-library(ggplot2)
-library(reshape)
-library(gridExtra)
-library(phylopath)
 
 longform = melt( as.data.frame(KleinI) )
   longform$year = rep( time(KleinI), 9 )
@@ -92,10 +95,12 @@ p2 = ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
 
 p3 = plot( as_fitted_DAG(fit) ) +
      expand_limits(x = c(-0.2,1) )
-p4 = plot( as_fitted_DAG(fit, lag=-1) ) +
+p4 = plot( as_fitted_DAG(fit, lag=-1), text_size=4 ) +
      expand_limits(x = c(-0.2,1), y = c(-0.2,0) )
 
-grid.arrange( arrangeGrob(p1, arrangeGrob(p2, p3, p4), ncol=2) )
+p1
+p2
+grid.arrange( arrangeGrob(p3, p4, nrow=2) )
 ```
 
 Results show that both packages provide (almost) identical estimates and standard errors.

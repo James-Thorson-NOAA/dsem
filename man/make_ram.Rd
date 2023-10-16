@@ -4,27 +4,56 @@
 \alias{make_ram}
 \title{Make a RAM (Reticular Action Model)}
 \usage{
-make_ram(sem, tsdata, covs = NULL, quiet = FALSE, remove_na = TRUE)
+make_ram(sem, times, variables, covs = NULL, quiet = FALSE, remove_na = TRUE)
 }
 \arguments{
-\item{sem}{structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
-or \code{\link[sem]{specifyEquations}} and then parsed to control
-the set of path coefficients and variance-covariance parameters.}
+\item{sem}{See Details section in \code{\link[dsem]{make_ram}}}
 
-\item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
+\item{times}{A character vector listing the set of times in order}
 
-\item{quiet}{Boolean indicating whether to run model printing messages to terminal or not;}
+\item{variables}{A character vector listing the set of variables}
+
+\item{quiet}{Boolean indicating whether to print messages to terminal}
 
 \item{remove_na}{Boolean indicating whether to remove NA values from RAM (default) or not.
-           \code{remove_NA=FALSE} might be useful for exploration and diagnostics for
-           advanced users
-
-Copied and then modified with permission from John Fox under licence GPL (>= 2)}
+\code{remove_NA=FALSE} might be useful for exploration and diagnostics for
+advanced users}
 }
 \value{
-the standard output from \code{\link[stats]{nlminb}}, except with additional diagnostics and timing info,
-        and a new slot containing the output from \code{\link[TMB]{sdreport}}
+A reticular action module (RAM) describing dependencies
 }
 \description{
 \code{make_ram} converts SEM arrow notation to \code{ram} describing SEM parameters
+}
+\details{
+Each line of the RAM specification for \code{\link[dsem]{make_ram}} consists of four (unquoted) entries,
+separated by commas:
+
+\describe{
+  \item{1. Arrow specification:}{This is a simple formula, of the form
+    \code{A -> B} or, equivalently, \code{B <- A} for a regression
+    coefficient (i.e., a single-headed or directional arrow);
+    \code{A <-> A} for a variance or \code{A <-> B} for a covariance
+    (i.e., a double-headed or bidirectional arrow). Here, \code{A} and
+    \code{B} are variable names in the model. If a name does not correspond
+    to an observed variable, then it is assumed to be a latent variable.
+    Spaces can appear freely in an arrow specification, and
+    there can be any number of hyphens in the arrows, including zero: Thus,
+    e.g., \code{A->B}, \code{A --> B}, and \code{A>B} are all legitimate
+    and equivalent.}
+  \item{2. Lag (using negative values):}{An integer specifying whether the linkage
+    is simultaneous (\code{lag=0}) or lagged (e.g., \code{lag=-1}), where
+    only one-headed arrows can be lagged.}
+  \item{3. Parameter name:}{The name of the regression coefficient, variance,
+    or covariance specified by the arrow. Assigning the same name to two or
+    more arrows results in an equality constraint. Specifying the parameter name
+    as \code{NA} produces a fixed parameter.}
+  \item{4. Value:}{start value for a free parameter or value of a fixed parameter.
+    If given as \code{NA} (or simply omitted), \code{sem} will compute the start value.}
+}
+
+  Lines may end in a comment following \code{#}.#'
+Lines may end in a comment following #.
+
+Copied from package `sem` under licence GPL (>= 2) with permission from John Fox
 }
