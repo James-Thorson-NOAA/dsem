@@ -3,7 +3,6 @@
 #' @description \code{make_ram} converts SEM arrow notation to \code{ram} describing SEM parameters
 #'
 #' @inheritParams dsem
-#' @param sem See Details section in \code{\link[dsem]{make_ram}}
 #' @param times A character vector listing the set of times in order
 #' @param variables A character vector listing the set of variables
 #' @param quiet Boolean indicating whether to print messages to terminal
@@ -38,7 +37,6 @@
 #'     If given as \code{NA} (or simply omitted), \code{sem} will compute the start value.}
 #' }
 #'
-#'   Lines may end in a comment following \code{#}.#'
 #' Lines may end in a comment following #.
 #'
 #' Copied from package `sem` under licence GPL (>= 2) with permission from John Fox

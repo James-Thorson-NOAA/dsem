@@ -19,9 +19,9 @@ dsem(
 )
 }
 \arguments{
-\item{sem}{structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
-or \code{\link[sem]{specifyEquations}} and then parsed to control
-the set of path coefficients and variance-covariance parameters.}
+\item{sem}{Specification for time-series structural equation model structure
+including lagged or simultaneous effects.  See Details section in
+'code{\link[dsem]{make_ram}} for details}
 
 \item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
 
@@ -56,7 +56,7 @@ An object (list) of class `dsem`. Elements include:
 \describe{
 \item{obj}{TMB object from \code{\link[TMB]{MakeADFun}}}
 \item{ram}{RAM parsed by \code{make_ram}}
-\item{model}{SEM model parsed from \code{sem} using \code{\link[sem]{specifyModel}} or \code{\link[sem]{specifyEquations}}}
+\item{model}{SEM structure parsed by \code{make_ram} as intermediate description of model linkages}
 \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
 \item{opt}{The output from \code{\link{fit_tmb}}}
 }

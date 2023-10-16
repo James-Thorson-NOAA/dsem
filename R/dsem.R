@@ -2,9 +2,9 @@
 #'
 #' @description Fits a dynamic structural equation model
 #'
-#' @param sem structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
-#'        or \code{\link[sem]{specifyEquations}} and then parsed to control
-#'        the set of path coefficients and variance-covariance parameters.
+#' @param sem Specification for time-series structural equation model structure
+#'        including lagged or simultaneous effects.  See Details section in
+#'        'code{\link[dsem]{make_ram}} for details
 #' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}
 #' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
 #'        each element must be \code{fixed} or \code{normal}.
@@ -29,7 +29,7 @@
 #' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm
 #'
 #' @details
-#' A DSEM involves at a minimum a user-supplied specification for the path coefficients, and a
+#' A DSEM involves (at a minimum) a user-supplied specification for the path coefficients, and a
 #' time-series with named variables that correspond to the user-supplied paths. Users can specify
 #' a distribution for measurement errors (or assume that variables are measured without error) using
 #' argument \code{family}.
@@ -46,7 +46,7 @@
 #' \describe{
 #' \item{obj}{TMB object from \code{\link[TMB]{MakeADFun}}}
 #' \item{ram}{RAM parsed by \code{make_ram}}
-#' \item{model}{SEM model parsed from \code{sem} using \code{\link[sem]{specifyModel}} or \code{\link[sem]{specifyEquations}}}
+#' \item{model}{SEM structure parsed by \code{make_ram} as intermediate description of model linkages}
 #' \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
 #' \item{opt}{The output from \code{\link{fit_tmb}}}
 #' }

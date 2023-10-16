@@ -7,7 +7,9 @@
 make_ram(sem, times, variables, covs = NULL, quiet = FALSE, remove_na = TRUE)
 }
 \arguments{
-\item{sem}{See Details section in \code{\link[dsem]{make_ram}}}
+\item{sem}{Specification for time-series structural equation model structure
+including lagged or simultaneous effects.  See Details section in
+'code{\link[dsem]{make_ram}} for details}
 
 \item{times}{A character vector listing the set of times in order}
 
@@ -52,7 +54,6 @@ separated by commas:
     If given as \code{NA} (or simply omitted), \code{sem} will compute the start value.}
 }
 
-  Lines may end in a comment following \code{#}.#'
 Lines may end in a comment following #.
 
 Copied from package `sem` under licence GPL (>= 2) with permission from John Fox
