@@ -65,7 +65,7 @@ An object (list) of class `dsem`. Elements include:
 Fits a dynamic structural equation model
 }
 \details{
-A DSEM involves at a minimum a user-supplied specification for the path coefficients, and a
+A DSEM involves (at a minimum) a user-supplied specification for the path coefficients, and a
 time-series with named variables that correspond to the user-supplied paths. Users can specify
 a distribution for measurement errors (or assume that variables are measured without error) using
 argument \code{family}.

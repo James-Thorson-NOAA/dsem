@@ -43,9 +43,11 @@ separated by commas:
     there can be any number of hyphens in the arrows, including zero: Thus,
     e.g., \code{A->B}, \code{A --> B}, and \code{A>B} are all legitimate
     and equivalent.}
-  \item{2. Lag (using negative values):}{An integer specifying whether the linkage
-    is simultaneous (\code{lag=0}) or lagged (e.g., \code{lag=-1}), where
-    only one-headed arrows can be lagged.}
+  \item{2. Lag (using positive values):}{An integer specifying whether the linkage
+    is simultaneous (\code{lag=0}) or lagged (e.g., \code{X -> Y, 1, XtoY}
+    indicates that X in time T affects Y in time T+1), where
+    only one-headed arrows can be lagged. This then matches the notational convention
+    used in package \code{dynlm}.}
   \item{3. Parameter name:}{The name of the regression coefficient, variance,
     or covariance specified by the arrow. Assigning the same name to two or
     more arrows results in an equality constraint. Specifying the parameter name
