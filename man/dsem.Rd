@@ -21,7 +21,7 @@ dsem(
 \arguments{
 \item{sem}{Specification for time-series structural equation model structure
 including lagged or simultaneous effects.  See Details section in
-'code{\link[dsem]{make_ram}} for details}
+\code{\link[dsem]{make_ram}} for more description}
 
 \item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
 

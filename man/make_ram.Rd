@@ -9,7 +9,7 @@ make_ram(sem, times, variables, covs = NULL, quiet = FALSE, remove_na = TRUE)
 \arguments{
 \item{sem}{Specification for time-series structural equation model structure
 including lagged or simultaneous effects.  See Details section in
-'code{\link[dsem]{make_ram}} for details}
+\code{\link[dsem]{make_ram}} for more description}
 
 \item{times}{A character vector listing the set of times in order}
 
@@ -28,6 +28,8 @@ A reticular action module (RAM) describing dependencies
 \code{make_ram} converts SEM arrow notation to \code{ram} describing SEM parameters
 }
 \details{
+\strong{RAM specification using arrow-and-lag notation}
+
 Each line of the RAM specification for \code{\link[dsem]{make_ram}} consists of four (unquoted) entries,
 separated by commas:
 
@@ -46,17 +48,124 @@ separated by commas:
   \item{2. Lag (using positive values):}{An integer specifying whether the linkage
     is simultaneous (\code{lag=0}) or lagged (e.g., \code{X -> Y, 1, XtoY}
     indicates that X in time T affects Y in time T+1), where
-    only one-headed arrows can be lagged. This then matches the notational convention
-    used in package \code{dynlm}.}
+    only one-headed arrows can be lagged. Using positive values to indicate lags
+     then matches the notational convention used in package \pkg{dynlm}.}
   \item{3. Parameter name:}{The name of the regression coefficient, variance,
     or covariance specified by the arrow. Assigning the same name to two or
     more arrows results in an equality constraint. Specifying the parameter name
     as \code{NA} produces a fixed parameter.}
   \item{4. Value:}{start value for a free parameter or value of a fixed parameter.
-    If given as \code{NA} (or simply omitted), \code{sem} will compute the start value.}
+    If given as \code{NA} (or simply omitted), the model is provide a default
+    starting value.}
 }
 
-Lines may end in a comment following #.
+Lines may end in a comment following #. The function extends code copied from package
+`sem` under licence GPL (>= 2) with permission from John Fox.
 
-Copied from package `sem` under licence GPL (>= 2) with permission from John Fox
+\strong{Simultaneous autoregressive process for simultaneous and lagged effects}
+
+This text then specifies linkages in a multivariate time-series model for variables \eqn{\mathbf X}
+with dimensions \eqn{T \times C} for \eqn{T} times and \eqn{C} variables.
+\code{make_ram} then parses this text to build a path matrix \eqn{\mathbf \Rho} with
+dimensions \eqn{TC \times TC}, where \eqn{\rho_{k_2,k_1}}
+represents the impact of \eqn{x_{t_1,c_1}} on \eqn{x_{t_2,c_2}}, where \eqn{k_1=T c_1+t_1}
+and \eqn{k_2=T c_2+t_2}.  This path matrix defines a simultaneous equation
+
+\deqn{ \mathrm{vec}(\mathbf X) = \mathbf \Rho \mathrm{vec}(\mathbf X) + \mathrm{vec}(\mathbf \Delta)}
+
+where \eqn{\mathbf \Delta} is a matrix of exogenous errors with covariance \eqn{\mathbf{V = L L}^t},
+where \eqn{\mathbf L} is the Cholesky of exogenous covariance.  This
+simultaneous autoregressive (SAR) process then results in \eqn{\mathbf X} having covariance:
+
+\deqn{ \mathrm{Cov}(\mathbf X) = \mathbf{ (I - \Rho)^{-1} L L^t ((I - \Rho)}^{-1})^t }
+
+\strong{Example: univariate and first-order autoregressive model}
+
+This simultaneous autoregressive (SAR) process across variables and times
+allows the user to specify both simutanous effects (effects among variables within
+year \eqn{T}) and lagged effects (effects among variables among years \eqn{T}).
+As one example, consider a univariate and first-order autoregressive process where \eqn{T=4}.
+with independent errors.  This is specified by passing \code{ sem = X -> X, 1, rho; X <-> X, 0, sigma } to \code{make_ram}.
+This is then parsed to a RAM:
+
+\tabular{rrrrr}{
+  \strong{heads} \tab \strong{to} \tab \strong{from} \tab \strong{paarameter} \tab \strong{start} \cr
+  1 \tab 2 \tab 1 \tab 1 \tab <NA>\cr
+  1 \tab 3 \tab 2 \tab 1 \tab <NA>\cr
+  1 \tab 4 \tab 3 \tab  1 \tab <NA>\cr
+  2 \tab 1 \tab 1 \tab 2 \tab <NA>\cr
+  2 \tab 2 \tab 2 \tab  2 \tab <NA>\cr
+  2 \tab 3 \tab 3 \tab 2 \tab <NA>\cr
+  2 \tab 4 \tab 4 \tab 2 \tab <NA>
+}
+
+Rows of this RAM where \code{heads=1} are then interpreted to construct the path matrix \eqn{\mathbf \Rho}:
+
+    \deqn{ \mathbf \Rho = \begin{bmatrix}
+    0 & 0 & 0 & 0 \\
+    \rho & 0 & 0 & 0 \\
+    0 & \rho & 0 & 0 \\
+    0 & 0 & \rho & 0\\
+    \end{bmatrix} }
+
+While rows where \code{heads=2} are interpreted to construct the Cholesky of exogenous covariance \eqn{\mathbf L}:
+
+    \deqn{ \mathbf L = \begin{bmatrix}
+    \sigma & 0 & 0 & 0 \\
+    0 & \sigma & 0 & 0 \\
+    0 & 0 & \sigma & 0 \\
+    0 & 0 & 0 & \sigma\\
+    \end{bmatrix} }
+
+with two estimated parameters \eqn{\mathbf \beta = (\rho, \sigma) }. This then results in covariance:
+
+    \deqn{ \mathrm{Cov}(\mathbf X) = \sigma^2 \begin{bmatrix}
+    1 & \rho^1 & \rho^2 & \rho^3 \\
+    \rho^1 & 1 & \rho^1 & \rho^2 \\
+    \rho^2 & \rho^1 & 1 & \rho^1 \\
+    \rho^3 & \rho^2 & \rho^1 & 1\\
+    \end{bmatrix} }
+
+Similarly, the arrow-and-lag notation can be used to specify a SAR representing
+a conventional structural equation model (SEM), cross-lagged (a.k.a. vector autoregressive)
+models (VAR), dynamic factor analysis (DFA), or many other time-series models.
+}
+\examples{
+# Univariate AR1
+sem = "
+  X -> X, 1, rho
+  X <-> X, 0, sigma
+"
+make_ram( sem=sem, variables="X", times=1:4 )
+
+# Univariate AR2
+sem = "
+  X -> X, 1, rho1
+  X -> X, 2, rho2
+  X <-> X, 0, sigma
+"
+make_ram( sem=sem, variables="X", times=1:4 )
+
+# Bivariate VAR
+sem = "
+  X -> X, 1, XtoX
+  X -> Y, 1, XtoY
+  Y -> X, 1, YtoX
+  Y -> Y, 1, YtoY
+  X <-> X, 0, sdX
+  Y <-> Y, 0, sdY
+"
+make_ram( sem=sem, variables=c("X","Y"), times=1:4 )
+
+# Dynamic factor analysis with one factor and two manifest variables
+# (specifies a random-walk for the factor, and miniscule residual SD)
+sem = "
+  factor -> X, 0, loadings1
+  factor -> Y, 0, loadings2
+  factor -> factor, 1, NA, 1
+  X <-> X, 0, NA, 0.01
+  Y <-> Y, 0, NA, 0.01
+"
+make_ram( sem=sem, variables=c("X","Y","factor"), times=1:4 )
+
 }

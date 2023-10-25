@@ -4,7 +4,7 @@
 #'
 #' @param sem Specification for time-series structural equation model structure
 #'        including lagged or simultaneous effects.  See Details section in
-#'        'code{\link[dsem]{make_ram}} for details
+#'        \code{\link[dsem]{make_ram}} for more description
 #' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}
 #' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
 #'        each element must be \code{fixed} or \code{normal}.
