@@ -1,6 +1,6 @@
 #' @title Make a RAM (Reticular Action Model)
 #'
-#' @description \code{make_ram} converts SEM arrow notation to \code{ram} describing SEM parameters
+#' @description \code{make_dsem_ram} converts SEM arrow notation to \code{ram} describing SEM parameters
 #'
 #' @inheritParams dsem
 #' @param times A character vector listing the set of times in order
@@ -13,7 +13,7 @@
 #' @details
 #' \strong{RAM specification using arrow-and-lag notation}
 #'
-#' Each line of the RAM specification for \code{\link[dsem]{make_ram}} consists of four (unquoted) entries,
+#' Each line of the RAM specification for \code{\link[dsem]{make_dsem_ram}} consists of four (unquoted) entries,
 #' separated by commas:
 #'
 #' \describe{
@@ -49,18 +49,22 @@
 #'
 #' This text then specifies linkages in a multivariate time-series model for variables \eqn{\mathbf X}
 #' with dimensions \eqn{T \times C} for \eqn{T} times and \eqn{C} variables.
-#' \code{make_ram} then parses this text to build a path matrix \eqn{\mathbf \Rho} with
+#' \code{make_dsem_ram} then parses this text to build a path matrix \eqn{\mathbf{\Rho}} with
 #' dimensions \eqn{TC \times TC}, where \eqn{\rho_{k_2,k_1}}
 #' represents the impact of \eqn{x_{t_1,c_1}} on \eqn{x_{t_2,c_2}}, where \eqn{k_1=T c_1+t_1}
 #' and \eqn{k_2=T c_2+t_2}.  This path matrix defines a simultaneous equation
 #'
 #' \deqn{ \mathrm{vec}(\mathbf X) = \mathbf \Rho \mathrm{vec}(\mathbf X) + \mathrm{vec}(\mathbf \Delta)}
 #'
-#' where \eqn{\mathbf \Delta} is a matrix of exogenous errors with covariance \eqn{\mathbf{V = L L}^t},
-#' where \eqn{\mathbf L} is the Cholesky of exogenous covariance.  This
+#' where \eqn{\mathbf \Delta} is a matrix of exogenous errors with covariance \eqn{\mathbf{V = \Gamma \Gamma}^t},
+#' where \eqn{\mathbf \Gamma} is the Cholesky of exogenous covariance.  This
 #' simultaneous autoregressive (SAR) process then results in \eqn{\mathbf X} having covariance:
 #'
-#' \deqn{ \mathrm{Cov}(\mathbf X) = \mathbf{ (I - \Rho)^{-1} L L^t ((I - \Rho)}^{-1})^t }
+#' \deqn{ \mathrm{Cov}(\mathbf X) = \mathbf{(I - \Rho)}^{-1} \mathbf{\Gamma \Gamma}^t \mathbf{((I - \Rho)}^{-1})^t }
+#'
+#' Usefully, it is also easy to compute the inverse-covariance (precision) matrix \eqn{\mathbf{Q = V}^{-1}}:
+#'
+#' \deqn{ \mathbf{Q} = (\mathbf{\Gamma}^{-1} \mathbf{(I - \Rho)})^t \mathbf{\Gamma}^{-1} \mathbf{(I - \Rho)} }
 #'
 #' \strong{Example: univariate and first-order autoregressive model}
 #'
@@ -68,7 +72,7 @@
 #' allows the user to specify both simutanous effects (effects among variables within
 #' year \eqn{T}) and lagged effects (effects among variables among years \eqn{T}).
 #' As one example, consider a univariate and first-order autoregressive process where \eqn{T=4}.
-#' with independent errors.  This is specified by passing \code{ sem = X -> X, 1, rho; X <-> X, 0, sigma } to \code{make_ram}.
+#' with independent errors.  This is specified by passing \code{ sem = X -> X, 1, rho; X <-> X, 0, sigma } to \code{make_dsem_ram}.
 #' This is then parsed to a RAM:
 #'
 #' \tabular{rrrrr}{
@@ -91,9 +95,9 @@
 #'     0 & 0 & \rho & 0\\
 #'     \end{bmatrix} }
 #'
-#' While rows where \code{heads=2} are interpreted to construct the Cholesky of exogenous covariance \eqn{\mathbf L}:
+#' While rows where \code{heads=2} are interpreted to construct the Cholesky of exogenous covariance \eqn{\mathbf \Gamma}:
 #'
-#'     \deqn{ \mathbf L = \begin{bmatrix}
+#'     \deqn{ \mathbf \Gamma = \begin{bmatrix}
 #'     \sigma & 0 & 0 & 0 \\
 #'     0 & \sigma & 0 & 0 \\
 #'     0 & 0 & \sigma & 0 \\
@@ -121,7 +125,7 @@
 #'   X -> X, 1, rho
 #'   X <-> X, 0, sigma
 #' "
-#' make_ram( sem=sem, variables="X", times=1:4 )
+#' make_dsem_ram( sem=sem, variables="X", times=1:4 )
 #'
 #' # Univariate AR2
 #' sem = "
@@ -129,7 +133,7 @@
 #'   X -> X, 2, rho2
 #'   X <-> X, 0, sigma
 #' "
-#' make_ram( sem=sem, variables="X", times=1:4 )
+#' make_dsem_ram( sem=sem, variables="X", times=1:4 )
 #'
 #' # Bivariate VAR
 #' sem = "
@@ -140,7 +144,7 @@
 #'   X <-> X, 0, sdX
 #'   Y <-> Y, 0, sdY
 #' "
-#' make_ram( sem=sem, variables=c("X","Y"), times=1:4 )
+#' make_dsem_ram( sem=sem, variables=c("X","Y"), times=1:4 )
 #'
 #' # Dynamic factor analysis with one factor and two manifest variables
 #' # (specifies a random-walk for the factor, and miniscule residual SD)
@@ -148,22 +152,41 @@
 #'   factor -> X, 0, loadings1
 #'   factor -> Y, 0, loadings2
 #'   factor -> factor, 1, NA, 1
-#'   X <-> X, 0, NA, 0.01
-#'   Y <-> Y, 0, NA, 0.01
+#'   X <-> X, 0, NA, 0
+#'   Y <-> Y, 0, NA, 0
 #' "
-#' make_ram( sem=sem, variables=c("X","Y","factor"), times=1:4 )
+#' make_dsem_ram( sem=sem, variables=c("X","Y","factor"), times=1:4 )
+#'
+#' # ARIMA(1,1,0)
+#' sem = "
+#'   factor -> factor, 1, rho1 # AR1 component
+#'   X -> X, 1, NA, 1          # Integrated component
+#'   factor -> X, 0, NA, 1
+#'   X <-> X, 0, NA, 0
+#' "
+#' make_dsem_ram( sem=sem, variables=c("X","factor"), times=1:4 )
+#'
+#' # ARIMA(0,0,1)
+#' sem = "
+#'   factor -> X, 0, NA, 1
+#'   factor -> X, 1, rho1     # MA1 component
+#'   X <-> X, 0, NA, 0
+#' "
+#' make_dsem_ram( sem=sem, variables=c("X","factor"), times=1:4 )
 #'
 #' @export
-make_ram <-
+make_dsem_ram <-
 function( sem,
           times,
           variables,
-          covs = NULL,
           quiet = FALSE,
           remove_na = TRUE ){
   # Docs : https://roxygen2.r-lib.org/articles/formatting.html
 
-  ####### Define location functions
+  ####### Error checks
+  if( !is.numeric(times) ) stop("`times` must be numeric in `make_dsem_ram`")
+
+  ####### Define local functions
   # helper function
   match_row = function( df, x ) which( df[1]==x[1] & df[2]==x[2] )
   #
@@ -223,26 +246,26 @@ function( sem,
                 quiet = quiet)
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
-  model <- cbind( model$path, model$lag, model$par, model$start)
+  model <- cbind( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
 
-  if( !is.null(covs) ){
-    for (cov in covs) {
-      vars <- strsplit(cov, "[ ,]+")[[1]]
-      nvar <- length(vars)
-      for (i in 1:nvar) {
-      for (j in i:nvar) {
-        p1 = paste(vars[i], "<->", vars[j])
-        p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
-        p3 = NA
-        row <- c(p1, 0, p2, p3)
-        if( any((row[1]==model[,1]) & (row[2]==model[,2])) ){
-          next
-        }else{
-          model <- rbind(model, row, deparse.level = 0)
-        }
-      }}
-    }
-  }
+  #if( !is.null(covs) ){
+  #  for (cov in covs) {
+  #    vars <- strsplit(cov, "[ ,]+")[[1]]
+  #    nvar <- length(vars)
+  #    for (i in 1:nvar) {
+  #    for (j in i:nvar) {
+  #      p1 = paste(vars[i], "<->", vars[j])
+  #      p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
+  #      p3 = NA
+  #      row <- c(p1, 0, p2, p3)
+  #      if( any((row[1]==model[,1]) & (row[2]==model[,2])) ){
+  #        next
+  #      }else{
+  #        model <- rbind(model, row, deparse.level = 0)
+  #      }
+  #    }}
+  #  }
+  #}
 
   exog.variances = endog.variances = TRUE
   model = add.variances()
@@ -250,12 +273,8 @@ function( sem,
   ####### Step 2 -- Make RAM
 
   # Global stuff
-  #Q_dimnames = dimnames(.preformat.ts(tsdata))
-  Q_dimnames = list( times, variables )
-  if(any(sapply(Q_dimnames,is.null))) stop("Check dimnames")
-  Q_names = expand.grid(Q_dimnames)
+  Q_names = expand.grid( times, variables )
   ram = NULL  # heads, to, from, parameter
-  vars = Q_dimnames[[2]]
 
   # Deal with fixed values
   par.names = model[, 3]
@@ -279,11 +298,11 @@ function( sem,
     lag = as.numeric(model[i,2])
     par.no = par.nos[i]
     # Get index for "from"
-    from = c( Q_dimnames[[1]][t], model[i,'first'] )
+    from = c( times[t], model[i,'first'] )
     from_index = match_row( Q_names, from )
     from_index = ifelse( length(from_index)==0, NA, from_index )
     # Get index for "to"
-    to = c( Q_dimnames[[1]][t+lag], model[i,'second'] )
+    to = c( times[t+lag], model[i,'second'] )
     to_index = match_row( Q_names, to )
     to_index = ifelse( length(to_index)==0, NA, to_index )
     ram_new = data.frame( "heads"=abs(as.numeric(model[i,'direction'])), "to"=to_index, "from"=from_index, "parameter"=par.no, "start"=startvalues[i] )
@@ -298,6 +317,10 @@ function( sem,
   }
 
   #
-  out = list( "model"=model, "ram"=ram)
+  out = list( "model"=model,
+              "ram"=ram,
+              "variables" = variables,
+              "times" = times )
+  class(out) = "dsem_ram"
   return(out)
 }

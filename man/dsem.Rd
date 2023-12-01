@@ -8,7 +8,6 @@ dsem(
   sem,
   tsdata,
   family = rep("fixed", ncol(tsdata)),
-  covs = colnames(tsdata),
   estimate_delta0 = FALSE,
   quiet = FALSE,
   run_model = TRUE,
@@ -21,7 +20,7 @@ dsem(
 \arguments{
 \item{sem}{Specification for time-series structural equation model structure
 including lagged or simultaneous effects.  See Details section in
-\code{\link[dsem]{make_ram}} for more description}
+\code{\link[dsem]{make_dsem_ram}} for more description}
 
 \item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
 
@@ -55,8 +54,8 @@ to override this default and then pass to \code{\link[TMB]{MakeADFun}}}
 An object (list) of class `dsem`. Elements include:
 \describe{
 \item{obj}{TMB object from \code{\link[TMB]{MakeADFun}}}
-\item{ram}{RAM parsed by \code{make_ram}}
-\item{model}{SEM structure parsed by \code{make_ram} as intermediate description of model linkages}
+\item{ram}{RAM parsed by \code{make_dsem_ram}}
+\item{model}{SEM structure parsed by \code{make_dsem_ram} as intermediate description of model linkages}
 \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
 \item{opt}{The output from \code{\link{fit_tmb}}}
 }
@@ -65,66 +64,66 @@ An object (list) of class `dsem`. Elements include:
 Fits a dynamic structural equation model
 }
 \details{
-A DSEM involves (at a minimum) a user-supplied specification for the path coefficients, and a
-time-series with named variables that correspond to the user-supplied paths. Users can specify
+A DSEM involves (at a minimum):
+\describe{
+  \item{Time series}{a matrix \eqn{\mathbf X} where column \eqn{\mathbf x_c} for variable c is
+        a time-series;}
+  \item{Path diagram}{a user-supplied specification for the path coefficients, which
+        define the precision (inverse covariance) \eqn{\mathbf Q} for a matrix of state-variables
+        and see \code{\link{make_dsem_ram}} for more details on the math involved.}
+}
+The model also estimates the time-series mean \eqn{ \mathbf{\mu}_c } for each variable.
+The mean and precision matrix therefore define a Gaussian Markov random field for \eqn{\mathbf X}:
+
+\deqn{ \mathrm{vec}(\mathbf X) \sim \mathrm{MVN}( \mathrm{vec}(\mathbf{I_T} \otimes \mathbf{\mu}), \mathbf{Q}^{-1}) }
+
+Users can the specify
 a distribution for measurement errors (or assume that variables are measured without error) using
-argument \code{family}.
-\code{dsem} then estimates all specified coefficients via maximizing a log-marginal likelihood, while
-also imputing the value of any variable that is specified as NA in the time-series inputs.
+argument \code{family}.  This defines the link-function \eqn{g_c(.)} and distribution \eqn{f_c(.)}
+for each time-series \eqn{c}:
+
+\deqn{ y_{t,c} \sim f_c( g_c^{-1}( x_{t,c} ), \theta_c )}
+
+\code{dsem} then estimates all specified coefficients, time-series means \eqn{\mu_c}, and distribution
+measurement errors \eqn{\theta_c} via maximizing a log-marginal likelihood, while
+also estimating state-variables \eqn{x_{t,c}}.
 \code{summary.dsem} then assembles estimates and standard errors in an easy-to-read format.
 Standard errors for fixed effects (path coefficients, exogenoux variance parameters, and measurement error parameters)
 are estimated from the matrix of second derivatives of the log-marginal likelihod,
 and standard errors for random effects (i.e., missing or state-space variables) are estimated
-from a generalization of this method (see \code{?TMB::sdreport} for details).
+from a generalization of this method (see \code{\link[TMB]{sdreport}} for details).
 }
 \examples{
 # Define model
 sem = "
-  Profits -> Consumption, 0, a2
-  Profits -> Consumption, -1, a3
-  Priv_wage -> Consumption, 0, a4
-  Gov_wage -> Consumption, 0, a4
-  Consumption -> Consumption, -1, ar1
-  Consumption -> Consumption, -2, ar2
-  Profits -> Investment, 0, b2
-  Profits -> Investment, -1, b3
-  Capital_stock -> Investment, -1, b4
-  GNP -> Priv_wage, 0, c2
-  Taxes -> Priv_wage, 0, c2
-  neg_Gov_wage -> Priv_wage, 0, c2
-  GNP -> Priv_wage, -1, c3
-  Taxes -> Priv_wage, -1, c3
-  neg_Gov_wage -> Priv_wage, -1, c3
-  Time -> Priv_wage, 0, c4
+  # Link, lag, param_name
+  cprofits -> consumption, 0, a1
+  cprofits -> consumption, 1, a2
+  pwage -> consumption, 0, a3
+  gwage -> consumption, 0, a3
+  cprofits -> invest, 0, b1
+  cprofits -> invest, 1, b2
+  capital -> invest, 0, b3
+  gnp -> pwage, 0, c2
+  gnp -> pwage, 1, c3
+  time -> pwage, 0, c1
 "
 
 # Load data
 data(KleinI, package="AER")
-Data = as.data.frame(KleinI)
-Data = cbind( Data, "time" = seq(1,22)-11 )
-colnames(Data) = sapply( colnames(Data), FUN=switch,
-           "consumption"="Consumption", "invest"="Investment",
-           "cprofits"="Profits", "capital"="Capital_stock", "gwage"="Gov_wage",
-           "pwage"="Priv_wage", "gexpenditure"="Gov_expense", "taxes"="Taxes",
-           "time"="Time", "gnp"="GNP")
-Z = ts( cbind(Data, "neg_Gov_wage"=-1*Data[,'Gov_wage']) )
+TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
+tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
+               "gwage","invest","capital")]
 
 # Fit model
-fit = dsem( sem=sem, tsdata=Z )
+fit = dsem( sem=sem,
+            tsdata = tsdata,
+            newtonsteps = 0,
+            quiet = TRUE,
+            estimate_delta0 = TRUE )
 summary( fit )
-
-# Plot results
-library(ggplot2)
-library(ggpubr)
-library(phylopath)
-p1 = plot(as_fitted_DAG(fit), text_size=3, type="width", show.legend=FALSE)
-p1$layers[[1]]$mapping$edge_width = 0.5
-p2 = plot(as_fitted_DAG(fit, lag=-1), text_size=3, type="width", show.legend=FALSE)
-p2$layers[[1]]$mapping$edge_width = 0.25
-ggarrange(p1 + scale_x_continuous(expand = c(0.2, 0.0)),
-                    p2 + scale_x_continuous(expand = c(0.2, 0.0)),
-                    labels = c("Simultaneous effects", "Lag-1 effects"),
-                    ncol = 1, nrow = 2)
+plot( fit )
+plot( fit, edge_label="value" )
 
 }
 \references{

@@ -6,6 +6,11 @@
 \usage{
 \method{print}{dsem}(x, ...)
 }
+\arguments{
+\item{x}{Output from \code{\link{dsem}}}
+
+\item{...}{Not used}
+}
 \description{
 Prints output from fitted dsem model
 }

@@ -26,3 +26,4 @@ function( path ){
   out = list(first = path.1[1], second = path.1[length(path.1)], direction = direction)
   return(out)
 }
+

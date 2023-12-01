@@ -11,7 +11,7 @@
 
 \item{type}{which type of residuals to compute (only option is \code{"deviance"} or \code{"response"} for now)}
 
-\item{...}{Note used}
+\item{...}{Not used}
 }
 \description{
 Calculate residuals

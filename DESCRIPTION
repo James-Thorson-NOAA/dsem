@@ -2,7 +2,7 @@ Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
 Version: 1.0
-Date: 2023-06-21
+Date: 2023-11-26
 Authors@R: 
     c(person(given = "Anon",
              family = "Ymous",
@@ -10,7 +10,10 @@ Authors@R:
              email = "James.Thorson@noaa.gov")
     )
 Imports:
-    TMB,
+    TMB (>= 1.9.7),
+    Matrix (>= 1.6.3),
+    sem,
+    igraph
 Depends:
     R (>= 4.0.0),
 Suggests:
@@ -18,10 +21,13 @@ Suggests:
     AER,
     phylopath,
     rmarkdown,
+    reshape,
+    gridExtra,
     dynlm,
     MARSS,
     ggplot2,
     ggpubr,
+    ggraph,
     grid,
     vars,
     testthat

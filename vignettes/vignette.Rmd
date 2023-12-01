@@ -17,9 +17,7 @@ knitr::opts_chunk$set(
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
-#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd")
-# PDF
-#  library(rmarkdown); render( "vignettes/vignette.Rmd", pdf_document())
+#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd"); rmarkdown::render( "vignettes/vignette.Rmd", pdf_document())
 ```
 
 ```{r setup, echo=TRUE, message=FALSE}
@@ -118,7 +116,6 @@ Here, we compare fits using `dsem` with `dynlm`, as well as a vector autoregress
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
-family = c("fixed","fixed")
 
 sem = "
   # Link, lag, param_name
@@ -129,11 +126,10 @@ sem = "
 "
 # initial first without delta0 (to improve starting values)
 fit0 = dsem( sem=sem, tsdata=data, estimate_delta0=FALSE,
-            quiet=TRUE, getsd=FALSE, family=family )
+            quiet=TRUE, getsd=FALSE )
 # Refit with delta0
 fit = dsem( sem=sem, tsdata=data, estimate_delta0=TRUE,
-            quiet=TRUE, parameters=fit0$obj$env$parList(),
-            family=family, getJointPrecision = TRUE )
+            quiet=TRUE, parameters=fit0$obj$env$parList() )
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #

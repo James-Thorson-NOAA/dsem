@@ -8,6 +8,8 @@ as_sem(object, lag = 0)
 }
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
+
+\item{lag}{what lag to extract and visualize}
 }
 \value{
 Convert output to format supplied by \code{\link[sem]{sem}}

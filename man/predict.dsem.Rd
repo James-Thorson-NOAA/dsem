@@ -19,7 +19,7 @@ original fitted values.}
 the alternative "response" is on the scale of the response variable.
 Thus for a Poisson-distributed variable the default predictions are of log-intensity and type = "response" gives the predicted intensity.}
 
-\item{...}{Note used}
+\item{...}{Not used}
 }
 \description{
 predictions using dsem
