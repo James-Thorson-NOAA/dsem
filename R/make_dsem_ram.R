@@ -49,22 +49,22 @@
 #'
 #' This text then specifies linkages in a multivariate time-series model for variables \eqn{\mathbf X}
 #' with dimensions \eqn{T \times C} for \eqn{T} times and \eqn{C} variables.
-#' \code{make_dsem_ram} then parses this text to build a path matrix \eqn{\mathbf{\Rho}} with
+#' \code{make_dsem_ram} then parses this text to build a path matrix \eqn{\mathbf{\rho}} with
 #' dimensions \eqn{TC \times TC}, where \eqn{\rho_{k_2,k_1}}
 #' represents the impact of \eqn{x_{t_1,c_1}} on \eqn{x_{t_2,c_2}}, where \eqn{k_1=T c_1+t_1}
 #' and \eqn{k_2=T c_2+t_2}.  This path matrix defines a simultaneous equation
 #'
-#' \deqn{ \mathrm{vec}(\mathbf X) = \mathbf \Rho \mathrm{vec}(\mathbf X) + \mathrm{vec}(\mathbf \Delta)}
+#' \deqn{ \mathrm{vec}(\mathbf X) = \mathbf \rho \mathrm{vec}(\mathbf X) + \mathrm{vec}(\mathbf \Delta)}
 #'
 #' where \eqn{\mathbf \Delta} is a matrix of exogenous errors with covariance \eqn{\mathbf{V = \Gamma \Gamma}^t},
 #' where \eqn{\mathbf \Gamma} is the Cholesky of exogenous covariance.  This
 #' simultaneous autoregressive (SAR) process then results in \eqn{\mathbf X} having covariance:
 #'
-#' \deqn{ \mathrm{Cov}(\mathbf X) = \mathbf{(I - \Rho)}^{-1} \mathbf{\Gamma \Gamma}^t \mathbf{((I - \Rho)}^{-1})^t }
+#' \deqn{ \mathrm{Cov}(\mathbf X) = \mathbf{(I - \rho)}^{-1} \mathbf{\Gamma \Gamma}^t \mathbf{((I - \rho)}^{-1})^t }
 #'
 #' Usefully, it is also easy to compute the inverse-covariance (precision) matrix \eqn{\mathbf{Q = V}^{-1}}:
 #'
-#' \deqn{ \mathbf{Q} = (\mathbf{\Gamma}^{-1} \mathbf{(I - \Rho)})^t \mathbf{\Gamma}^{-1} \mathbf{(I - \Rho)} }
+#' \deqn{ \mathbf{Q} = (\mathbf{\Gamma}^{-1} \mathbf{(I - \rho)})^t \mathbf{\Gamma}^{-1} \mathbf{(I - \rho)} }
 #'
 #' \strong{Example: univariate and first-order autoregressive model}
 #'
@@ -86,9 +86,9 @@
 #'   2 \tab 4 \tab 4 \tab 2 \tab <NA>
 #' }
 #'
-#' Rows of this RAM where \code{heads=1} are then interpreted to construct the path matrix \eqn{\mathbf \Rho}:
+#' Rows of this RAM where \code{heads=1} are then interpreted to construct the path matrix \eqn{\mathbf \rho}:
 #'
-#'     \deqn{ \mathbf \Rho = \begin{bmatrix}
+#'     \deqn{ \mathbf \rho = \begin{bmatrix}
 #'     0 & 0 & 0 & 0 \\
 #'     \rho & 0 & 0 & 0 \\
 #'     0 & \rho & 0 & 0 \\

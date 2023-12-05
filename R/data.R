@@ -31,7 +31,7 @@ NULL
 #' Wolves and Moose of Isle Royale project.
 #'
 #' @references
-#' Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. \url{www.isleroyalewolf.org}
+#' Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. \url{https://www.isleroyalewolf.org}
 #'
 #' @name isle_royale
 #' @docType data

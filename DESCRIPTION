@@ -1,11 +1,11 @@
 Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
-Version: 1.0
-Date: 2023-11-26
+Version: 1.0.0
+Date: 2023-12-04
 Authors@R: 
-    c(person(given = "Anon",
-             family = "Ymous",
+    c(person(given = "James",
+             family = "Thorson",
              role = c("aut", "cre"),
              email = "James.Thorson@noaa.gov")
     )
@@ -31,6 +31,9 @@ Suggests:
     grid,
     vars,
     testthat
+Enhances:
+    rstan,
+    tmbstan
 LinkingTo:
     TMB, 
     RcppEigen

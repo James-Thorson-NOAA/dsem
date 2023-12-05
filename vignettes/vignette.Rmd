@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
-#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd"); rmarkdown::render( "vignettes/vignette.Rmd", pdf_document())
+#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd"); rmarkdown::render( "vignettes/vignette.Rmd", rmarkdown::pdf_document())
 ```
 
 ```{r setup, echo=TRUE, message=FALSE}
@@ -104,9 +104,43 @@ grid.arrange( arrangeGrob(p3, p4, nrow=2) )
 
 Results show that both packages provide (almost) identical estimates and standard errors.
 
+We can also compare results using the Laplace approximation against those obtained via numerical integration of random effects using MCMC.  In this example, MCMC results in somewhat higher estimates of exogenous variance parameters (presumably because those follow a chi-squared distribution with positive skewness), but otherwise the two produce similar estimates.
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5, eval=FALSE}
+library(tmbstan)
+
+# MCMC for both fixed and random effects
+mcmc = tmbstan( fit$obj, init="last.par.best" )
+summary_mcmc = summary(mcmc)
+```
+```{r, echo=FALSE, message=FALSE, fig.width=7, fig.height=5, eval=FALSE}
+saveRDS( summary_mcmc, file=file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\inst\tmbstan)',"summary_mcmc.RDS") )
+```
+```{r, echo=FALSE, message=FALSE, fig.width=6, fig.height=4, out.width = "100%", eval=TRUE}
+summary_mcmc = readRDS( file.path(system.file("tmbstan",package="dsem"),"summary_mcmc.RDS") )
+```
+```{r, echo=TRUE, message=FALSE, fig.width=6, fig.height=4, out.width = "100%", eval=TRUE}
+# long-form data frame
+m1 = summary_mcmc$summary[1:17,c('mean','sd')]
+rownames(m1) = paste0( "b", seq_len(nrow(m1)) )
+m2 = summary(fit$opt$SD)[1:17,c('Estimate','Std. Error')]
+m = rbind(
+  data.frame('mean'=m1[,1], 'sd'=m1[,2], 'par'=rownames(m1), "method"="MCMC"),
+  data.frame('mean'=m2[,1], 'sd'=m2[,2], 'par'=rownames(m1), "method"="LA")
+)
+m$lower = m$mean - m$sd
+m$upper = m$mean + m$sd
+
+# plot
+ggplot(data=m, aes(x=par, y=mean, col=method)) +
+  geom_point( position=position_dodge(0.9) ) +
+  geom_errorbar( aes(ymax=as.numeric(upper),ymin=as.numeric(lower)),
+                 width=0.25, position=position_dodge(0.9))  #
+```
+
 ## Comparison with vector autoregressive models
 
-We next demonstrate that `dsem` gives similar results to a vector autoregressive model (VAM).  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website (Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. URL: www.isleroyalewolf.org).
+We next demonstrate that `dsem` gives similar results to a vector autoregressive (VAR) model.  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website (Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. URL: www.isleroyalewolf.org).
 
 This dataset was previously analyzed by in Chapter 14 of the User Manual for the R-package MARSS (Holmes, E. E., M. D. Scheuerell, and E. J. Ward (2023) Analysis of multivariate time-series using the MARSS package. Version 3.11.8. NOAA Fisheries,
   Northwest Fisheries Science Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI: 10.5281/zenodo.5781847).
