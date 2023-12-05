@@ -49,30 +49,30 @@
 #'
 #' This text then specifies linkages in a multivariate time-series model for variables \eqn{\mathbf X}
 #' with dimensions \eqn{T \times C} for \eqn{T} times and \eqn{C} variables.
-#' \code{make_dsem_ram} then parses this text to build a path matrix \eqn{\mathbf{\rho}} with
-#' dimensions \eqn{TC \times TC}, where \eqn{\rho_{k_2,k_1}}
+#' \code{make_dsem_ram} then parses this text to build a path matrix \eqn{\mathbf{P}} with
+#' dimensions \eqn{TC \times TC}, where element \eqn{\rho_{k_2,k_1}}
 #' represents the impact of \eqn{x_{t_1,c_1}} on \eqn{x_{t_2,c_2}}, where \eqn{k_1=T c_1+t_1}
 #' and \eqn{k_2=T c_2+t_2}.  This path matrix defines a simultaneous equation
 #'
-#' \deqn{ \mathrm{vec}(\mathbf X) = \mathbf \rho \mathrm{vec}(\mathbf X) + \mathrm{vec}(\mathbf \Delta)}
+#' \deqn{ \mathrm{vec}(\mathbf X) = \mathbf P \mathrm{vec}(\mathbf X) + \mathrm{vec}(\mathbf \Delta)}
 #'
 #' where \eqn{\mathbf \Delta} is a matrix of exogenous errors with covariance \eqn{\mathbf{V = \Gamma \Gamma}^t},
 #' where \eqn{\mathbf \Gamma} is the Cholesky of exogenous covariance.  This
 #' simultaneous autoregressive (SAR) process then results in \eqn{\mathbf X} having covariance:
 #'
-#' \deqn{ \mathrm{Cov}(\mathbf X) = \mathbf{(I - \rho)}^{-1} \mathbf{\Gamma \Gamma}^t \mathbf{((I - \rho)}^{-1})^t }
+#' \deqn{ \mathrm{Cov}(\mathbf X) = \mathbf{(I - P)}^{-1} \mathbf{\Gamma \Gamma}^t \mathbf{((I - P)}^{-1})^t }
 #'
-#' Usefully, it is also easy to compute the inverse-covariance (precision) matrix \eqn{\mathbf{Q = V}^{-1}}:
+#' Usefully, computing the inverse-covariance (precision) matrix \eqn{\mathbf{Q = V}^{-1}} does not require inverting \eqn{\mathbf{(I - P)}}:
 #'
-#' \deqn{ \mathbf{Q} = (\mathbf{\Gamma}^{-1} \mathbf{(I - \rho)})^t \mathbf{\Gamma}^{-1} \mathbf{(I - \rho)} }
+#' \deqn{ \mathbf{Q} = (\mathbf{\Gamma}^{-1} \mathbf{(I - P)})^t \mathbf{\Gamma}^{-1} \mathbf{(I - P)} }
 #'
-#' \strong{Example: univariate and first-order autoregressive model}
+#' \strong{Example: univariate first-order autoregressive model}
 #'
 #' This simultaneous autoregressive (SAR) process across variables and times
 #' allows the user to specify both simutanous effects (effects among variables within
 #' year \eqn{T}) and lagged effects (effects among variables among years \eqn{T}).
 #' As one example, consider a univariate and first-order autoregressive process where \eqn{T=4}.
-#' with independent errors.  This is specified by passing \code{ sem = X -> X, 1, rho; X <-> X, 0, sigma } to \code{make_dsem_ram}.
+#' with independent errors.  This is specified by passing \code{ sem = "X -> X, 1, rho \n X <-> X, 0, sigma" } to \code{make_dsem_ram}.
 #' This is then parsed to a RAM:
 #'
 #' \tabular{rrrrr}{
@@ -86,16 +86,19 @@
 #'   2 \tab 4 \tab 4 \tab 2 \tab <NA>
 #' }
 #'
-#' Rows of this RAM where \code{heads=1} are then interpreted to construct the path matrix \eqn{\mathbf \rho}:
+#' Rows of this RAM where \code{heads=1} are then interpreted to construct the path matrix \eqn{\mathbf P}, where column "from"
+#' in the RAM indicates column number in the matrix, column "to" in the RAM indicates row number in the matrix:
 #'
-#'     \deqn{ \mathbf \rho = \begin{bmatrix}
+#'     \deqn{ \mathbf P = \begin{bmatrix}
 #'     0 & 0 & 0 & 0 \\
 #'     \rho & 0 & 0 & 0 \\
 #'     0 & \rho & 0 & 0 \\
 #'     0 & 0 & \rho & 0\\
 #'     \end{bmatrix} }
 #'
-#' While rows where \code{heads=2} are interpreted to construct the Cholesky of exogenous covariance \eqn{\mathbf \Gamma}:
+#' While rows where \code{heads=2} are interpreted to construct the Cholesky of exogenous covariance \eqn{\mathbf \Gamma}
+#' and column "parameter" in the RAM associates each nonzero element of those
+#' two matrices with an element of a vector of estimated parameters:
 #'
 #'     \deqn{ \mathbf \Gamma = \begin{bmatrix}
 #'     \sigma & 0 & 0 & 0 \\
@@ -107,11 +110,22 @@
 #' with two estimated parameters \eqn{\mathbf \beta = (\rho, \sigma) }. This then results in covariance:
 #'
 #'     \deqn{ \mathrm{Cov}(\mathbf X) = \sigma^2 \begin{bmatrix}
+#'     1      & \rho^1              & \rho^2                        & \rho^3                  \\
+#'     \rho^1 & 1 + \rho^2          & \rho^1 (1 + \rho^2)           & \rho^2 (1 + \rho^2)     \\
+#'     \rho^2 & \rho^1 (1 + \rho^2) & 1 + \rho^2 + \rho^4           & \rho^1 (1 + \rho^2 + \rho^4)                 \\
+#'     \rho^3 & \rho^2 (1 + \rho^2) & \rho^1 (1 + \rho^2 + \rho^4)  & 1 + \rho^2 + \rho^4 + \rho^6 \\
+#'     \end{bmatrix} }
+#'
+#' Which converges on the stationary covariance for an AR1 process for times \eqn{t>>1}:
+#'
+#'     \deqn{ \mathrm{Cov}(\mathbf X) = \frac{\sigma^2}{1+\rho^2} \begin{bmatrix}
 #'     1 & \rho^1 & \rho^2 & \rho^3 \\
 #'     \rho^1 & 1 & \rho^1 & \rho^2 \\
 #'     \rho^2 & \rho^1 & 1 & \rho^1 \\
 #'     \rho^3 & \rho^2 & \rho^1 & 1\\
 #'     \end{bmatrix} }
+#'
+#' except having a lower pointwise variance for the initial times, which arises as a "boundary effect".
 #'
 #' Similarly, the arrow-and-lag notation can be used to specify a SAR representing
 #' a conventional structural equation model (SEM), cross-lagged (a.k.a. vector autoregressive)
@@ -152,8 +166,8 @@
 #'   factor -> X, 0, loadings1
 #'   factor -> Y, 0, loadings2
 #'   factor -> factor, 1, NA, 1
-#'   X <-> X, 0, NA, 0
-#'   Y <-> Y, 0, NA, 0
+#'   X <-> X, 0, NA, 0.01       # Fix at negligible value
+#'   Y <-> Y, 0, NA, 0.01       # Fix at negligible value
 #' "
 #' make_dsem_ram( sem=sem, variables=c("X","Y","factor"), times=1:4 )
 #'
@@ -162,7 +176,7 @@
 #'   factor -> factor, 1, rho1 # AR1 component
 #'   X -> X, 1, NA, 1          # Integrated component
 #'   factor -> X, 0, NA, 1
-#'   X <-> X, 0, NA, 0
+#'   X <-> X, 0, NA, 0.01      # Fix at negligible value
 #' "
 #' make_dsem_ram( sem=sem, variables=c("X","factor"), times=1:4 )
 #'
@@ -170,7 +184,7 @@
 #' sem = "
 #'   factor -> X, 0, NA, 1
 #'   factor -> X, 1, rho1     # MA1 component
-#'   X <-> X, 0, NA, 0
+#'   X <-> X, 0, NA, 0.01     # Fix at negligible value
 #' "
 #' make_dsem_ram( sem=sem, variables=c("X","factor"), times=1:4 )
 #'
@@ -182,6 +196,25 @@ function( sem,
           quiet = FALSE,
           remove_na = TRUE ){
   # Docs : https://roxygen2.r-lib.org/articles/formatting.html
+
+  # MATH CHECK IN ROXYGEN DOCS ABOVE
+  if( FALSE ){
+    rho = 0.8
+    sigma = 0.5
+    Rho = Gamma = matrix(0, nrow=4, ncol=4)
+    Rho[cbind(2:4,1:3)] = rho
+    Gamma = I = diag(4)
+    diag(Gamma)[] = sigma
+    # DSEM covariance
+    solve(I-Rho) %*% Gamma %*% t(Gamma) %*% t(solve(I-Rho))
+    # Stated covariance
+    sigma^2 * rbind(
+      c(1, rho, rho^2, rho^3),
+      c(rho, 1+rho^2, rho*(1+rho^2), rho^2*(1+rho^2) ),
+      c(rho^2, rho*(1+rho^2), 1+rho^2+rho^4, rho*(1+rho^2+rho^4) ),
+      c(rho^3, rho^2*(1+rho^2), rho*(1+rho^2+rho^4), 1+rho^2+rho^4+rho^6 )
+    )
+  }
 
   ####### Error checks
   if( !is.numeric(times) ) stop("`times` must be numeric in `make_dsem_ram`")
