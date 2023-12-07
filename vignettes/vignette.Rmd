@@ -65,8 +65,8 @@ tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
 fit = dsem( sem=sem,
             tsdata = tsdata,
             newtonsteps = 0,
-            quiet = TRUE,
-            estimate_delta0 = TRUE )
+            estimate_delta0 = TRUE,
+            control = dsem_control(quiet = TRUE) )
 
 # Compile
 m1 = rbind( summary(fm_cons)$coef[-1,],
@@ -159,11 +159,17 @@ sem = "
   moose -> moose, 1, arM
 "
 # initial first without delta0 (to improve starting values)
-fit0 = dsem( sem=sem, tsdata=data, estimate_delta0=FALSE,
-            quiet=TRUE, getsd=FALSE )
+fit0 = dsem( sem = sem,
+             tsdata = data,
+             estimate_delta0 = FALSE,
+             control = dsem_control(quiet=TRUE),
+             getsd=FALSE )
 # Refit with delta0
-fit = dsem( sem=sem, tsdata=data, estimate_delta0=TRUE,
-            quiet=TRUE, parameters=fit0$obj$env$parList() )
+fit = dsem( sem = sem,
+            tsdata = data,
+            estimate_delta0 = TRUE,
+            control = dsem_control( quiet=TRUE,
+                                    parameters = fit0$obj$env$parList()) )
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #
@@ -263,7 +269,10 @@ sem = "
 "
 
 # Fit
-fit = dsem( sem=sem, tsdata=Z, family=family, use_REML=FALSE, quiet=TRUE )
+fit = dsem( sem = sem,
+            tsdata = Z,
+            family = family,
+            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
 ParHat = fit$obj$env$parList()
 # summary( fit )
 
@@ -439,7 +448,9 @@ sem = "
 "
 
 # Fit model
-fit = dsem( sem=sem, tsdata=Z, use_REML=FALSE, quiet=TRUE )
+fit = dsem( sem = sem,
+            tsdata = Z,
+            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
 # summary( fit )
 
 #

@@ -9,11 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
-  quiet = FALSE,
-  run_model = TRUE,
-  use_REML = TRUE,
-  parameters = NULL,
-  map = NULL,
+  control = dsem_control(),
   ...
 )
 }
@@ -33,20 +29,8 @@ Other options correspond to different specifications of measurement error.}
 as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 the stationary distribution}
 
-\item{quiet}{Boolean indicating whether to run model printing messages to terminal or not;}
-
-\item{run_model}{Boolean indicating whether to estimate parameters (the default), or
-instead to return the model inputs and compiled TMB object without running;}
-
-\item{use_REML}{Boolean indicating whether to treat non-variance fixed effects as random,
-either to motigate bias in estimated variance parameters or improve efficiency for
-parameter estimation given correlated fixed and random effects}
-
-\item{parameters}{list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
-by hand (only helpful for advanced users to change starting values or restart at intended values)}
-
-\item{map}{list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
-to override this default and then pass to \code{\link[TMB]{MakeADFun}}}
+\item{control}{Output from \code{\link{dsem_control}}, used to define user
+settings, and see documentation for that function for details.}
 
 \item{...}{Additional parameters passed to \code{\link{fit_tmb}}}
 }
@@ -119,8 +103,8 @@ tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
 fit = dsem( sem=sem,
             tsdata = tsdata,
             newtonsteps = 0,
-            quiet = TRUE,
-            estimate_delta0 = TRUE )
+            estimate_delta0 = TRUE,
+            control = dsem_control(quiet=TRUE) )
 summary( fit )
 plot( fit )
 plot( fit, edge_label="value" )

@@ -6,6 +6,11 @@
 \usage{
 \method{logLik}{dsem}(object, ...)
 }
+\arguments{
+\item{object}{Output from \code{\link{dsem}}}
+
+\item{...}{Not used}
+}
 \value{
 object of class \code{logLik} with attributes
   \item{val}{log-likelihood}

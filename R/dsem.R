@@ -13,16 +13,8 @@
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
-#' @param run_model Boolean indicating whether to estimate parameters (the default), or
-#'        instead to return the model inputs and compiled TMB object without running;
-#' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
-#' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
-#'        either to motigate bias in estimated variance parameters or improve efficiency for
-#'        parameter estimation given correlated fixed and random effects
-#' @param parameters list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
-#'        by hand (only helpful for advanced users to change starting values or restart at intended values)
-#' @param map list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
-#'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
+#' @param control Output from \code{\link{dsem_control}}, used to define user
+#'        settings, and see documentation for that function for details.
 #' @param ... Additional parameters passed to \code{\link{fit_tmb}}
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
@@ -30,6 +22,7 @@
 #' @importFrom Matrix solve Cholesky
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame
+#' @importFrom methods is
 #'
 #' @details
 #' A DSEM involves (at a minimum):
@@ -106,8 +99,8 @@
 #' fit = dsem( sem=sem,
 #'             tsdata = tsdata,
 #'             newtonsteps = 0,
-#'             quiet = TRUE,
-#'             estimate_delta0 = TRUE )
+#'             estimate_delta0 = TRUE,
+#'             control = dsem_control(quiet=TRUE) )
 #' summary( fit )
 #' plot( fit )
 #' plot( fit, edge_label="value" )
@@ -119,18 +112,17 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
-          quiet = FALSE,
-          run_model = TRUE,
-          use_REML = TRUE,
-          parameters = NULL,
-          map = NULL,
+          control = dsem_control(),
           ... ){
+
+  # General error checks
+  if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
   out = make_dsem_ram( sem,
                   times = as.numeric(time(tsdata)),
                   variables = colnames(tsdata),
-                  quiet = quiet )
+                  quiet = control$quiet )
   ram = out$ram
 
   # Error checks
@@ -148,7 +140,7 @@ function( sem,
                "y_tj" = tsdata )
 
   # Construct parameters
-  if( is.null(parameters) ){
+  if( is.null(control$parameters) ){
     Params = list( "beta_z" = rep(0,max(ram[,4])),
                    "lnsigma_j" = rep(0,ncol(tsdata)),
                    "mu_j" = rep(0,ncol(tsdata)),
@@ -170,11 +162,11 @@ function( sem,
     start_z = tapply( as.numeric(ram[which_nonzero,5]), INDEX=ram[which_nonzero,4], mean )
     Params$beta_z = ifelse( is.na(start_z), Params$beta_z, start_z)
   }else{
-    Params = parameters
+    Params = control$parameters
   }
 
   # Construct map
-  if( is.null(map) ){
+  if( is.null(control$map) ){
     Map = list()
     Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
     Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
@@ -182,17 +174,17 @@ function( sem,
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
   }else{
-    Map = map
+    Map = control$map
   }
 
   # Initial run
-  if(isTRUE(use_REML)){
+  if(isTRUE(control$use_REML)){
     Random = c( "x_tj", "mu_j" )
   }else{
     Random = "x_tj"
   }
   obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
-  if(quiet==FALSE) list_parameters(obj)
+  if(control$quiet==FALSE) list_parameters(obj)
   out = list( "obj"=obj,
               "ram"=ram,
               "sem_full"=out$model,
@@ -200,20 +192,59 @@ function( sem,
               "call" = match.call() )
 
   # Export stuff
-  if( run_model==FALSE ){
+  if( control$run_model==FALSE ){
     return( out )
   }
 
   # Fit
   obj$env$beSilent()       # if(!is.null(Random))
   out$opt = fit_tmb( obj,
-                     quiet = quiet,
-                     control = list(eval.max=10000, iter.max=10000, trace=ifelse(quiet==TRUE,0,1) ),
+                     quiet = control$quiet,
+                     control = list(eval.max=10000, iter.max=10000, trace=ifelse(control$quiet==TRUE,0,1) ),
                      ... )
 
   # output
   class(out) = "dsem"
   return(out)
+}
+
+#' @title Detailed control for dsem structure
+#'
+#' @description Define a list of control parameters.  Note that
+#' the format of this input is likely to change more rapidly than that of
+#' \code{\link{dsem}}
+#'
+#' @param run_model Boolean indicating whether to estimate parameters (the default), or
+#'        instead to return the model inputs and compiled TMB object without running;
+#' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
+#' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
+#'        either to motigate bias in estimated variance parameters or improve efficiency for
+#'        parameter estimation given correlated fixed and random effects
+#' @param parameters list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
+#'        by hand (only helpful for advanced users to change starting values or restart at intended values)
+#' @param map list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
+#'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
+#'
+#' @return
+#' An S3 object of class "dsem_control" that specifies detailed model settings,
+#' allowing user specification while also specifying default values
+#'
+#' @export
+dsem_control <-
+function( quiet = FALSE,
+          run_model = TRUE,
+          use_REML = TRUE,
+          parameters = NULL,
+          map = NULL ){
+
+  # Return
+  structure( list(
+    quiet = quiet,
+    run_model = run_model,
+    use_REML = use_REML,
+    parameters = parameters,
+    map = map
+  ), class = "dsem_control" )
 }
 
 #' @title summarize dsem
@@ -635,6 +666,9 @@ function( object,
 #' @title Marglinal log-likelihood
 #'
 #' @description Extract the (marginal) log-likelihood of a dsem model
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param ... Not used
 #'
 #' @return object of class \code{logLik} with attributes
 #'   \item{val}{log-likelihood}
