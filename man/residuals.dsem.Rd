@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsem.R
 \name{residuals.dsem}
 \alias{residuals.dsem}
-\title{Calculate deviance or response residuals for dsem}
+\title{Calculate residuals}
 \usage{
 \method{residuals}{dsem}(object, type = c("deviance", "response"), ...)
 }
@@ -13,6 +13,10 @@
 
 \item{...}{Not used}
 }
+\value{
+A matrix of residuals, with same order and dimensions as argument \code{tsdata}
+that was passed to \code{dsem}.
+}
 \description{
-Calculate residuals
+Calculate deviance or response residuals for dsem
 }

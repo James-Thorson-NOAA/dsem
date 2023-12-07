@@ -29,6 +29,10 @@ simulated random effects (determined by argument \code{variance})}
 
 \item{...}{Not used}
 }
+\value{
+Simulated data, either from \code{obj$simulate} where \code{obj} is the compiled
+TMB object, first simulating a new GMRF and then calling \code{obj$simulate}.
+}
 \description{
 Simulate from a fitted \code{dsem} model
 }

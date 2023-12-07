@@ -39,7 +39,9 @@ LinkingTo:
     RcppEigen
 Description: Applies dynamic structural equation models to time-series data
 	with generic and simplified specification for simultaneous and lagged
-	effects.   
+	effects. Methods are described in Thorson et al. (In revision)
+	"Dynamic structural equation models synthesize ecosystem dynamics 
+	constrained by ecological mechanisms."  
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.2.3

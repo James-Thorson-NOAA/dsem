@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsem.R
 \name{as_sem}
 \alias{as_sem}
-\title{Convert output from package dsem to sem}
+\title{Convert dsem to sem output}
 \usage{
 as_sem(object, lag = 0)
 }
@@ -15,5 +15,5 @@ as_sem(object, lag = 0)
 Convert output to format supplied by \code{\link[sem]{sem}}
 }
 \description{
-Convert dsem to sem output
+Convert output from package dsem to sem
 }

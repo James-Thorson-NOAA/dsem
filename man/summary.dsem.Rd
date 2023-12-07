@@ -11,6 +11,23 @@
 
 \item{...}{Not used}
 }
+\value{
+Returns a data.frame summarizing estimated path coefficients, containing columns:
+\describe{
+\item{path}{The parsed path coefficient}
+\item{lag}{The lag, where e.g. 1 means the predictor in time t effects the response in time t+1}
+\item{name}{Parameter name}
+\item{start}{Start value if supplied, and NA otherwise}
+\item{parameter}{Parameter number}
+\item{first}{Variable in path treated as predictor}
+\item{second}{Variable in path treated as response}
+\item{direction}{Whether the path is one-headed or two-headed}
+\item{Estimate}{Maximum likelihood estimate}
+\item{Std_Error}{Estimated standard error from the Hessian matrix}
+\item{z_value}{Estimate divided by Std_Error}
+\item{p_value}{P-value associated with z_value using a two-sided Wald test}
+}
+}
 \description{
 summarize parameters from a fitted dynamic structural equation model
 }

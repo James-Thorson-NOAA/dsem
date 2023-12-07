@@ -235,8 +235,11 @@ function( sem,
           paths[i] <- paste(variables[i], "<->", variables[i])
           par.names[i] <- paste("V[", variables[i], "]", sep = "")
       }
-      model.2 <- cbind(c(model[, 1], paths), c(model[,2], rep(0,nvars)), c(model[, 3],
-          par.names), c(model[, 4], rep(NA, length(paths))))
+      model.2 <- cbind(
+        'path' = c(model[, 1], paths),
+        'lag' = c(model[,2], rep(0,nvars)),
+        'name' = c(model[, 3], par.names),
+        'start' = c(model[, 4], rep(NA, length(paths))) )
       model.2
   }
   need.variance <- function() {

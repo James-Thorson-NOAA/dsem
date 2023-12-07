@@ -83,7 +83,7 @@ Usefully, computing the inverse-covariance (precision) matrix \eqn{\mathbf{Q = V
 
 \deqn{ \mathbf{Q} = (\mathbf{\Gamma}^{-1} \mathbf{(I - P)})^t \mathbf{\Gamma}^{-1} \mathbf{(I - P)} }
 
-\strong{Example: univariate and first-order autoregressive model}
+\strong{Example: univariate first-order autoregressive model}
 
 This simultaneous autoregressive (SAR) process across variables and times
 allows the user to specify both simutanous effects (effects among variables within

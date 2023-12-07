@@ -11,6 +11,10 @@
 
 \item{...}{Not used}
 }
+\value{
+No return value, called to provide clean terminal output when calling fitted
+object in terminal.
+}
 \description{
 Prints output from fitted dsem model
 }
