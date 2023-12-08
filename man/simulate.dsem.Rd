@@ -2,13 +2,14 @@
 % Please edit documentation in R/dsem.R
 \name{simulate.dsem}
 \alias{simulate.dsem}
-\title{Simulate from a fitted \code{dsem} model}
+\title{Simulate dsem}
 \usage{
 \method{simulate}{dsem}(
   object,
   nsim = 1,
   seed = NULL,
-  parametric_uncertainty = c("none", "random", "both"),
+  variance = c("none", "random", "both"),
+  resimulate_gmrf = FALSE,
   ...
 )
 }
@@ -19,18 +20,30 @@
 
 \item{seed}{random seed}
 
-\item{parametric_uncertainty}{whether to ignore uncertainty in fixed and
+\item{variance}{whether to ignore uncertainty in fixed and
 random effects, include estimation uncertainty in random effects,
 or include estimation uncertainty in both fixed and random effects}
 
+\item{resimulate_gmrf}{whether to resimulate the GMRF based on estimated or
+simulated random effects (determined by argument \code{variance})}
+
 \item{...}{Not used}
 }
+\value{
+Simulated data, either from \code{obj$simulate} where \code{obj} is the compiled
+TMB object, first simulating a new GMRF and then calling \code{obj$simulate}.
+}
 \description{
+Simulate from a fitted \code{dsem} model
+}
+\details{
 This function conducts a parametric bootstrap, i.e., simulates new data
 conditional upon estimated values for fixed and random effects.  The user
 can optionally simulate new random effects conditional upon their estimated
 covariance, or simulate new fixed and random effects conditional upon their imprecision.
-}
-\details{
-Simulate dsem
+
+Note that \code{simulate} will have no effect on states \code{x_tj} for which there
+is a measurement and when those measurements are fitted using \code{family="fixed"}, unless
+\code{resimulate_gmrf=TRUE}.  In this latter case, the GMRF is resimulated given
+estimated path coefficients
 }

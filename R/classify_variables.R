@@ -1,9 +1,10 @@
 
-#' Classify variables path
+#' @title Classify variables path
 #'
-#' \code{classify_variables} is copied from \code{sem:::classifyVariables}
+#' @description \code{classify_variables} is copied from \code{sem:::classifyVariables}
 #'
-#' Copied with permission from John Fox under licence GPL (>= 2)
+#' @details
+#' Copied from package `sem` under licence GPL (>= 2) with permission from John Fox
 #'
 #' @param model SEM model
 #'

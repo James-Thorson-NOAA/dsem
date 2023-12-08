@@ -13,6 +13,11 @@
 
 \item{...}{ignored, for method compatibility}
 }
+\value{
+A square matrix containing the estimated covariances among the parameter estimates in the model.
+The dimensions dependend upon the argument \code{which}, to determine whether fixed, random effects,
+or both are outputted.
+}
 \description{
 extract the covariance of fixed effects, or both fixed and random effects.
 }

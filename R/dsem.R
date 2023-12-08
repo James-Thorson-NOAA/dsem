@@ -1,10 +1,10 @@
-#' Fit dynamic structural equation model
+#' @title Fit dynamic structural equation model
 #'
-#' Fits a dynamic structural equation model
+#' @description Fits a dynamic structural equation model
 #'
-#' @param sem structural equation model structure, passed to either \code{\link[sem]{specifyModel}}
-#'        or \code{\link[sem]{specifyEquations}} and then parsed to control
-#'        the set of path coefficients and variance-covariance parameters
+#' @param sem Specification for time-series structural equation model structure
+#'        including lagged or simultaneous effects.  See Details section in
+#'        \code{\link[dsem]{make_dsem_ram}} for more description
 #' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}
 #' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
 #'        each element must be \code{fixed} or \code{normal}.
@@ -13,27 +13,53 @@
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
-#' @param run_model Boolean indicating whether to estimate parameters (the default), or
-#'        instead to return the model inputs and compiled TMB object without running;
-#' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
-#' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
-#'        either to motigate bias in estimated variance parameters or improve efficiency for
-#'        parameter estimation given correlated fixed and random effects
-#' @param parameters list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
-#'        by hand (only helpful for advanced users to change starting values or restart at intended values)
-#' @param map list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
-#'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
+#' @param control Output from \code{\link{dsem_control}}, used to define user
+#'        settings, and see documentation for that function for details.
 #' @param ... Additional parameters passed to \code{\link{fit_tmb}}
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm
+#' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
+#' @importFrom Matrix solve Cholesky
+#' @importFrom sem sem
+#' @importFrom igraph plot.igraph graph_from_data_frame
+#' @importFrom methods is
+#'
+#' @details
+#' A DSEM involves (at a minimum):
+#' \describe{
+#'   \item{Time series}{a matrix \eqn{\mathbf X} where column \eqn{\mathbf x_c} for variable c is
+#'         a time-series;}
+#'   \item{Path diagram}{a user-supplied specification for the path coefficients, which
+#'         define the precision (inverse covariance) \eqn{\mathbf Q} for a matrix of state-variables
+#'         and see \code{\link{make_dsem_ram}} for more details on the math involved.}
+#' }
+#' The model also estimates the time-series mean \eqn{ \mathbf{\mu}_c } for each variable.
+#' The mean and precision matrix therefore define a Gaussian Markov random field for \eqn{\mathbf X}:
+#'
+#' \deqn{ \mathrm{vec}(\mathbf X) \sim \mathrm{MVN}( \mathrm{vec}(\mathbf{I_T} \otimes \mathbf{\mu}), \mathbf{Q}^{-1}) }
+#'
+#' Users can the specify
+#' a distribution for measurement errors (or assume that variables are measured without error) using
+#' argument \code{family}.  This defines the link-function \eqn{g_c(.)} and distribution \eqn{f_c(.)}
+#' for each time-series \eqn{c}:
+#'
+#' \deqn{ y_{t,c} \sim f_c( g_c^{-1}( x_{t,c} ), \theta_c )}
+#'
+#' \code{dsem} then estimates all specified coefficients, time-series means \eqn{\mu_c}, and distribution
+#' measurement errors \eqn{\theta_c} via maximizing a log-marginal likelihood, while
+#' also estimating state-variables \eqn{x_{t,c}}.
+#' \code{summary.dsem} then assembles estimates and standard errors in an easy-to-read format.
+#' Standard errors for fixed effects (path coefficients, exogenoux variance parameters, and measurement error parameters)
+#' are estimated from the matrix of second derivatives of the log-marginal likelihod,
+#' and standard errors for random effects (i.e., missing or state-space variables) are estimated
+#' from a generalization of this method (see \code{\link[TMB]{sdreport}} for details).
 #'
 #' @return
 #' An object (list) of class `dsem`. Elements include:
 #' \describe{
 #' \item{obj}{TMB object from \code{\link[TMB]{MakeADFun}}}
-#' \item{ram}{RAM parsed by \code{make_ram}}
-#' \item{model}{SEM model parsed from \code{sem} using \code{\link[sem]{specifyModel}} or \code{\link[sem]{specifyEquations}}}
+#' \item{ram}{RAM parsed by \code{make_dsem_ram}}
+#' \item{model}{SEM structure parsed by \code{make_dsem_ram} as intermediate description of model linkages}
 #' \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
 #' \item{opt}{The output from \code{\link{fit_tmb}}}
 #' }
@@ -50,62 +76,34 @@
 #' @examples
 #' # Define model
 #' sem = "
-#'   Profits -> Consumption, 0, a2
-#'   Profits -> Consumption, -1, a3
-#'   Priv_wage -> Consumption, 0, a4
-#'   Gov_wage -> Consumption, 0, a4
-#'   Consumption <-> Consumption, 0, v1
-#'   Consumption -> Consumption, -1, ar1
-#'   Consumption -> Consumption, -2, ar2
-#'   Profits -> Investment, 0, b2
-#'   Profits -> Investment, -1, b3
-#'   Capital_stock -> Investment, -1, b4
-#'   Investment <-> Investment, 0, v2
-#'   neg_Gov_wage <-> neg_Gov_wage, 0, v3
-#'   GNP -> Priv_wage, 0, c2
-#'   Taxes -> Priv_wage, 0, c2
-#'   neg_Gov_wage -> Priv_wage, 0, c2
-#'   GNP -> Priv_wage, -1, c3
-#'   Taxes -> Priv_wage, -1, c3
-#'   neg_Gov_wage -> Priv_wage, -1, c3
-#'   Time -> Priv_wage, 0, c4
-#'   Priv_wage <-> Priv_wage, 0, v4
-#'   GNP <-> GNP, 0, v5
-#'   Profits <-> Profits, 0, v6
-#'   Capital_stock <-> Capital_stock, 0, v7
-#'   Taxes <-> Taxes, 0, v8
-#'   Time <-> Time, 0, v9
-#'   Gov_wage <-> Gov_wage, 0, v10
-#'   Gov_expense <-> Gov_expense, 0, v11
+#'   # Link, lag, param_name
+#'   cprofits -> consumption, 0, a1
+#'   cprofits -> consumption, 1, a2
+#'   pwage -> consumption, 0, a3
+#'   gwage -> consumption, 0, a3
+#'   cprofits -> invest, 0, b1
+#'   cprofits -> invest, 1, b2
+#'   capital -> invest, 0, b3
+#'   gnp -> pwage, 0, c2
+#'   gnp -> pwage, 1, c3
+#'   time -> pwage, 0, c1
 #' "
 #'
 #' # Load data
 #' data(KleinI, package="AER")
-#' Data = as.data.frame(KleinI)
-#' Data = cbind( Data, "time" = seq(1,22)-11 )
-#' colnames(Data) = sapply( colnames(Data), FUN=switch,
-#'            "consumption"="Consumption", "invest"="Investment",
-#'            "cprofits"="Profits", "capital"="Capital_stock", "gwage"="Gov_wage",
-#'            "pwage"="Priv_wage", "gexpenditure"="Gov_expense", "taxes"="Taxes",
-#'            "time"="Time", "gnp"="GNP")
-#' Z = ts( cbind(Data, "neg_Gov_wage"=-1*Data[,'Gov_wage']) )
+#' TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
+#' tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
+#'                "gwage","invest","capital")]
 #'
 #' # Fit model
-#' fit = dsem( sem=sem, tsdata=Z )
+#' fit = dsem( sem=sem,
+#'             tsdata = tsdata,
+#'             newtonsteps = 0,
+#'             estimate_delta0 = TRUE,
+#'             control = dsem_control(quiet=TRUE) )
 #' summary( fit )
-#'
-#' # Plot results
-#' library(ggplot2)
-#' library(ggpubr)
-#' library(phylopath)
-#' p1 = plot(as_fitted_DAG(fit), text_size=3, type="width", show.legend=FALSE)
-#' p1$layers[[1]]$mapping$edge_width = 0.5
-#' p2 = plot(as_fitted_DAG(fit, lag=-1), text_size=3, type="width", show.legend=FALSE)
-#' p2$layers[[1]]$mapping$edge_width = 0.25
-#' ggarrange(p1 + scale_x_continuous(expand = c(0.2, 0.0)),
-#'                     p2 + scale_x_continuous(expand = c(0.2, 0.0)),
-#'                     labels = c("Simultaneous effects", "Lag-1 effects"),
-#'                     ncol = 1, nrow = 2)
+#' plot( fit )
+#' plot( fit, edge_label="value" )
 #'
 #' @useDynLib dsem, .registration = TRUE
 #' @export
@@ -113,17 +111,18 @@ dsem <-
 function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
-          covs = colnames(tsdata),
           estimate_delta0 = FALSE,
-          quiet = FALSE,
-          run_model = TRUE,
-          use_REML = TRUE,
-          parameters = NULL,
-          map = NULL,
+          control = dsem_control(),
           ... ){
 
+  # General error checks
+  if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
+
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
-  out = make_ram( sem, tsdata=tsdata, quiet=quiet, covs=covs )
+  out = make_dsem_ram( sem,
+                  times = as.numeric(time(tsdata)),
+                  variables = colnames(tsdata),
+                  quiet = control$quiet )
   ram = out$ram
 
   # Error checks
@@ -141,7 +140,7 @@ function( sem,
                "y_tj" = tsdata )
 
   # Construct parameters
-  if( is.null(parameters) ){
+  if( is.null(control$parameters) ){
     Params = list( "beta_z" = rep(0,max(ram[,4])),
                    "lnsigma_j" = rep(0,ncol(tsdata)),
                    "mu_j" = rep(0,ncol(tsdata)),
@@ -163,11 +162,11 @@ function( sem,
     start_z = tapply( as.numeric(ram[which_nonzero,5]), INDEX=ram[which_nonzero,4], mean )
     Params$beta_z = ifelse( is.na(start_z), Params$beta_z, start_z)
   }else{
-    Params = parameters
+    Params = control$parameters
   }
 
   # Construct map
-  if( is.null(map) ){
+  if( is.null(control$map) ){
     Map = list()
     Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
     Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
@@ -175,17 +174,17 @@ function( sem,
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
   }else{
-    Map = map
+    Map = control$map
   }
 
   # Initial run
-  if(isTRUE(use_REML)){
+  if(isTRUE(control$use_REML)){
     Random = c( "x_tj", "mu_j" )
   }else{
     Random = "x_tj"
   }
   obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
-  if(quiet==FALSE) list_parameters(obj)
+  if(control$quiet==FALSE) list_parameters(obj)
   out = list( "obj"=obj,
               "ram"=ram,
               "sem_full"=out$model,
@@ -193,15 +192,15 @@ function( sem,
               "call" = match.call() )
 
   # Export stuff
-  if( run_model==FALSE ){
+  if( control$run_model==FALSE ){
     return( out )
   }
 
   # Fit
   obj$env$beSilent()       # if(!is.null(Random))
   out$opt = fit_tmb( obj,
-                     quiet = quiet,
-                     control = list(eval.max=10000, iter.max=10000, trace=ifelse(quiet==TRUE,0,1) ),
+                     quiet = control$quiet,
+                     control = list(eval.max=10000, iter.max=10000, trace=ifelse(control$quiet==TRUE,0,1) ),
                      ... )
 
   # output
@@ -209,12 +208,87 @@ function( sem,
   return(out)
 }
 
-#' summarize dsem
+#' @title Detailed control for dsem structure
 #'
-#' @title Summarize dsem
+#' @description Define a list of control parameters.  Note that
+#' the format of this input is likely to change more rapidly than that of
+#' \code{\link{dsem}}
+#'
+#' @param run_model Boolean indicating whether to estimate parameters (the default), or
+#'        instead to return the model inputs and compiled TMB object without running;
+#' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
+#' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
+#'        either to motigate bias in estimated variance parameters or improve efficiency for
+#'        parameter estimation given correlated fixed and random effects
+#' @param parameters list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
+#'        by hand (only helpful for advanced users to change starting values or restart at intended values)
+#' @param map list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
+#'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
+#'
+#' @return
+#' An S3 object of class "dsem_control" that specifies detailed model settings,
+#' allowing user specification while also specifying default values
+#'
+#' @export
+dsem_control <-
+function( quiet = FALSE,
+          run_model = TRUE,
+          use_REML = TRUE,
+          parameters = NULL,
+          map = NULL ){
+
+  # Return
+  structure( list(
+    quiet = quiet,
+    run_model = run_model,
+    use_REML = use_REML,
+    parameters = parameters,
+    map = map
+  ), class = "dsem_control" )
+}
+
+#' @title summarize dsem
+#'
+#' @description summarize parameters from a fitted dynamic structural equation model
+#'
+#' @details
+#' A DSEM is specified using "arrow and lag" notation, which specifies the set of
+#' path coefficients and exogenous variance parameters to be estimated. Function \code{dsem}
+#' then estimates the maximum likelihood value for those coefficients and parameters
+#' by maximizing the log-marginal likelihood.  Standard errors for parameters are calculated
+#' from the matrix of second derivatives of this log-marginal likelihood (the "Hessian matrix").
+#'
+#' However, many users will want to associate individual parameters and standard errors
+#' with the path coefficients that were specified using the "arrow and lag" notation.
+#' This task is complicated in
+#' models where some path coefficients or variance parameters are specified to share a single value a priori,
+#' or were assigned a name of NA and hence assumed to have a fixed value a priori (such that
+#' these coefficients or parameters have an assigned value but no standard error).
+#' The \code{summary} function therefore compiles the MLE for coefficients (including duplicating
+#' values for any path coefficients that assigned the same value) and standard error
+#' estimates, and outputs those in a table that associates them with the user-supplied path and parameter names.
+#' It also outputs the z-score and a p-value arising from a two-sided Wald test (i.e.
+#' comparing the estimate divided by standard error against a standard normal distribution).
 #'
 #' @param object Output from \code{\link{dsem}}
 #' @param ... Not used
+#'
+#' @return
+#' Returns a data.frame summarizing estimated path coefficients, containing columns:
+#' \describe{
+#' \item{path}{The parsed path coefficient}
+#' \item{lag}{The lag, where e.g. 1 means the predictor in time t effects the response in time t+1}
+#' \item{name}{Parameter name}
+#' \item{start}{Start value if supplied, and NA otherwise}
+#' \item{parameter}{Parameter number}
+#' \item{first}{Variable in path treated as predictor}
+#' \item{second}{Variable in path treated as response}
+#' \item{direction}{Whether the path is one-headed or two-headed}
+#' \item{Estimate}{Maximum likelihood estimate}
+#' \item{Std_Error}{Estimated standard error from the Hessian matrix}
+#' \item{z_value}{Estimate divided by Std_Error}
+#' \item{p_value}{P-value associated with z_value using a two-sided Wald test}
+#' }
 #'
 #' @method summary dsem
 #' @export
@@ -222,7 +296,7 @@ summary.dsem <-
 function( object, ... ){
 
   # Easy of use
-  model = object$model
+  model = object$sem_full
   ParHat = object$obj$env$parList()
 
   #
@@ -238,9 +312,56 @@ function( object, ... ){
   return(coefs)
 }
 
-#' Simulate dsem
+
+#' @title Simulate dsem
 #'
-#' @title Simulate from a fitted \code{dsem} model
+#' @description Plot from a fitted \code{dsem} model
+#'
+#' @param x Output from \code{\link{dsem}}
+#' @param y Not used
+#' @param edge_label Whether to plot parameter names or estimated values
+#' @param digits integer indicating the number of decimal places to be used
+#' @param ... arguments passed to \code{\link[igraph]{plot.igraph}}
+#'
+#' @details
+#' This function coerces output from a graph and then plots the graph.
+#'
+#' @return
+#' Invisibly returns the output from \code{\link[igraph]{graph_from_data_frame}}
+#' which was passed to \code{\link[igraph]{plot.igraph}} for plotting.
+#'
+#' @method plot dsem
+#' @export
+plot.dsem <-
+function( x,
+          y,
+          edge_label = c("name","value"),
+          digits = 2,
+          ... ){
+
+  # Extract stuff
+  edge_label = match.arg(edge_label)
+  out = summary(x)
+
+  # Format inputs
+  from = ifelse( out[,2]==0, out$first, paste0("lag(",out$first,",",out[,2],")"))
+  vertices = union( out$second, from )
+  DF = data.frame(from=from, to=out$second, label=out[,3])
+  if( edge_label=="value"){
+    DF$label = round(out$Estimate, digits=digits)
+  }
+
+  # Create and plotgraph
+  pg <- graph_from_data_frame( d = DF,
+                               directed = TRUE,
+                               vertices = data.frame(vertices) )
+  plot( pg, ... )
+  return(invisible(pg))
+}
+
+#' @title Simulate dsem
+#'
+#' @description Simulate from a fitted \code{dsem} model
 #'
 #' @param object Output from \code{\link{dsem}}
 #' @param nsim number of simulated data sets
@@ -252,14 +373,20 @@ function( object, ... ){
 #' @param seed random seed
 #' @param ... Not used
 #'
-#' @description
+#' @details
 #' This function conducts a parametric bootstrap, i.e., simulates new data
 #' conditional upon estimated values for fixed and random effects.  The user
 #' can optionally simulate new random effects conditional upon their estimated
 #' covariance, or simulate new fixed and random effects conditional upon their imprecision.
 #'
 #' Note that \code{simulate} will have no effect on states \code{x_tj} for which there
-#' is a measurement and when those measurements are fitted using \code{family="fixed"}
+#' is a measurement and when those measurements are fitted using \code{family="fixed"}, unless
+#' \code{resimulate_gmrf=TRUE}.  In this latter case, the GMRF is resimulated given
+#' estimated path coefficients
+#'
+#' @return
+#' Simulated data, either from \code{obj$simulate} where \code{obj} is the compiled
+#' TMB object, first simulating a new GMRF and then calling \code{obj$simulate}.
 #'
 #' @method simulate dsem
 #' @export
@@ -271,36 +398,40 @@ function( object,
           resimulate_gmrf = FALSE,
           ... ){
 
+  # Front stuff
   set.seed(seed)
   variance = match.arg(variance)
 
   # Sample from GMRF using sparse precision
   rmvnorm_prec <- function(mu, prec, nsim) {
     z <- matrix(rnorm(length(mu) * nsim), ncol=nsim)
-    L <- Matrix::Cholesky(prec, super=TRUE)
-    z <- Matrix::solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
-    z <- Matrix::solve(L, z, system = "Pt") ## z = Pt    %*% z
+    L <- Cholesky(prec, super=TRUE)
+    z <- solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
+    z <- solve(L, z, system = "Pt") ## z = Pt    %*% z
     z <- as.matrix(z)
     return(mu + z)
   }
 
-  #
+  # pull out objects for easy use
   obj = object$obj
   parfull = obj$env$parList()
+  tsdata = eval(object$call$tsdata)
 
+  # Extract parameters, and add noise as desired
   par_zr = outer( obj$env$last.par.best, rep(1,nsim) )
   if( variance=="random" ){
-    tmp = rmvnorm_prec( rep(0,length(obj$env$random)), obj$env$spHess(random=TRUE), nsim=nsim )
-    par_zr[obj$env$random,] = par_zr[obj$env$random,,drop=FALSE] + tmp
+    eps_zr = rmvnorm_prec( rep(0,length(obj$env$random)), obj$env$spHess(random=TRUE), nsim=nsim )
+    par_zr[obj$env$random,] = par_zr[obj$env$random,,drop=FALSE] + eps_zr
   }
   if( variance=="both" ){
     if(is.null(object$opt$SD$jointPrecision)){
       stop("Please re-run `dsem` with `getsd=TRUE` and `getJointPrecision=TRUE`, or confirm that the model is converged")
     }
-    tmp = rmvnorm_prec( rep(0,length(obj$env$last.par)), object$opt$SD$jointPrecision, nsim=nsim )
-    par_zr = par_zr + tmp
+    eps_zr = rmvnorm_prec( rep(0,length(obj$env$last.par)), object$opt$SD$jointPrecision, nsim=nsim )
+    par_zr = par_zr + eps_zr
   }
 
+  # Simulate new GMRF and data conditional on simulated parameters
   out = NULL
   for( r in seq_len(nsim) ){
     if( resimulate_gmrf==TRUE ){
@@ -320,26 +451,29 @@ function( object,
     }else{
       out[[r]] = obj$simulate( par_zr[,r] )
     }
+    colnames(out[[r]]) = colnames(tsdata)
+    tsp(out[[r]]) = attr(tsdata,"tsp")
+    class(out[[r]]) = class(tsdata)
   }
-
-  #out = lapply( 1:nsim, FUN=\(x) obj$env$simulate(par=par_zr[,x],complete=TRUE)$y_tj )
-  #mean( obj$env$simulate(par=par_zr[,1],complete=TRUE)$y_tj )
-  #mean( obj$env$simulate(par=par_zr[,2]+1,complete=TRUE)$y_tj )
-  #sapply(out, mean)
-  #apply(par_zr, MARGIN=2, mean)
 
   return(out)
 }
 
-#' Extract Variance-Covariance Matrix
+#' @title Extract Variance-Covariance Matrix
 #'
-#' extract the covariance of fixed effects, or both fixed and random effects.
+#' @description extract the covariance of fixed effects, or both fixed and random effects.
 #'
 #' @param object output from \code{dsem}
 #' @param which whether to extract the covariance among fixed effects, random effects, or both
 #' @param ... ignored, for method compatibility
 #' @importFrom stats vcov
 #' @method vcov dsem
+#'
+#' @return
+#' A square matrix containing the estimated covariances among the parameter estimates in the model.
+#' The dimensions dependend upon the argument \code{which}, to determine whether fixed, random effects,
+#' or both are outputted.
+#'
 #' @export
 vcov.dsem <-
 function( object,
@@ -370,15 +504,20 @@ function( object,
   return( V )
 }
 
-#' Calculate residuals
+#' @title Calculate residuals
 #'
-#' @title Calculate residuals for dsem
+#' @description Calculate deviance or response residuals for dsem
 #'
 #' @param object Output from \code{\link{dsem}}
 #' @param type which type of residuals to compute (only option is \code{"deviance"} or \code{"response"} for now)
-#' @param ... Note used
+#' @param ... Not used
 #'
 #' @method residuals dsem
+#'
+#' @return
+#' A matrix of residuals, with same order and dimensions as argument \code{tsdata}
+#' that was passed to \code{dsem}.
+#'
 #' @export
 residuals.dsem <-
 function( object,
@@ -447,9 +586,28 @@ function( object,
   return(resid_tj)
 }
 
-#' predictions using dsem
+#' @title Print fitted dsem object
 #'
-#' @title Predict variables given new (counterfactual) values of data, or for future or past times
+#' @description Prints output from fitted dsem model
+#'
+#' @param x Output from \code{\link{dsem}}
+#' @param ... Not used
+#'
+#' @return
+#' No return value, called to provide clean terminal output when calling fitted
+#' object in terminal.
+#'
+#' @method print dsem
+#' @export
+print.dsem <-
+function( x,
+          ... ){
+  print(x$opt)
+}
+
+#' @title predictions using dsem
+#'
+#' @description Predict variables given new (counterfactual) values of data, or for future or past times
 #'
 #' @param object Output from \code{\link{dsem}}
 #' @param newdata optionally, a data frame in which to look for variables with which to predict.
@@ -460,7 +618,14 @@ function( object,
 #' @param type the type of prediction required. The default is on the scale of the linear predictors;
 #'        the alternative "response" is on the scale of the response variable.
 #'        Thus for a Poisson-distributed variable the default predictions are of log-intensity and type = "response" gives the predicted intensity.
-#' @param ... Note used
+#' @param ... Not used
+#'
+#' @return
+#' A matrix of predicted values with dimensions and order corresponding to
+#' argument \code{newdata} is provided, or \code{tsdata} if not.
+#' Predictions are provided on either link or response scale, and
+#' are generated by re-optimizing random effects condition on MLE
+#' for fixed effects, given those new data.
 #'
 #' @method predict dsem
 #' @export
@@ -498,12 +663,24 @@ function( object,
   return(out)
 }
 
-# Extract the log-likelihood of a dsem model
-#
-# @return object of class \code{logLik} with attributes
-#   \item{val}{log-likelihood}
-#   \item{df}{number of parameters}
+#' @title Marglinal log-likelihood
+#'
+#' @description Extract the (marginal) log-likelihood of a dsem model
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param ... Not used
+#'
+#' @return object of class \code{logLik} with attributes
+#'   \item{val}{log-likelihood}
+#'   \item{df}{number of parameters}
 #' @importFrom stats logLik
+#'
+#' @return
+#' Returns an object of class logLik. This has attributes
+#' "df" (degrees of freedom) giving the number of (estimated) fixed effects
+#' in the model, abd "val" (value) giving the marginal log-likelihood.
+#' This class then allows \code{AIC} to work as expected.
+#'
 #' @export
 logLik.dsem <- function(object, ...) {
   val = -1 * object$opt$objective
@@ -522,6 +699,7 @@ logLik.dsem <- function(object, ...) {
 #' @param lag which lag to output
 #' @param what whether to output estimates \code{what="Estimate"}, standard errors \code{what="Std_Error"}
 #'        or p-values \code{what="Std_Error"}
+#' @param direction whether to include one-sided arrows \code{direction=1}, or both one- and two-sided arrows \code{direction=c(1,2)}
 #'
 #' @return Convert output to format supplied by \code{\link[phylopath]{est_DAG}}
 #'
@@ -529,17 +707,68 @@ logLik.dsem <- function(object, ...) {
 as_fitted_DAG <-
 function( fit,
           lag = 0,
-          what = "Estimate" ){
+          what = "Estimate",
+          direction = 1 ){
 
   coefs = summary( fit )
   coefs = coefs[ which(coefs[,2]==lag), ]
-  coefs = coefs[ which(coefs[,'direction']==1), ]
+  coefs = coefs[ which(coefs[,'direction'] %in% direction), ]
 
   #
-  vars = unique( c(coefs[,'first'],coefs[,'second']) )
+  #vars = unique( c(coefs[,'first'],coefs[,'second']) )
+  vars = colnames(fit$tmb_inputs$data$y_tj)
   out = list( "coef"=array(0, dim=rep(length(vars),2), dimnames=list(vars,vars)) )
   out$coef[as.matrix(coefs[,c('first','second')])] = coefs[,what]
 
   class(out) = "fitted_DAG"
   return(out)
 }
+
+#' @title Convert dsem to sem output
+#'
+#' @description Convert output from package dsem to sem
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param lag what lag to extract and visualize
+#'
+#' @return Convert output to format supplied by \code{\link[sem]{sem}}
+#'
+#' @export
+as_sem <-
+function( object,
+          lag = 0 ){
+
+  Rho = t(as_fitted_DAG( object, what="Estimate", direction=1, lag=lag )$coef)
+  Gamma = as_fitted_DAG( object, what="Estimate", direction=2, lag=lag )$coef
+  Gammainv = diag(1/diag(Gamma))
+  Linv = Gammainv %*% (diag(nrow(Rho))-Rho)
+  Sinv = t(Linv) %*% Linv
+  Sprime = solve(Sinv)
+  Sprime = 0.5*Sprime + 0.5*t(Sprime)
+
+  model = object$sem_full
+  model = model[model[,2]==0,c(1,3,4)]
+  out = sem( model,
+             S = Sprime,
+             N = nrow(eval(object$call$tsdata)) )
+
+  # pass out
+  return(out)
+
+  #x = rnorm(10)
+  #y = x + rnorm(10)
+  #object = dsem( sem="x->y, 0, beta", tsdata=ts(cbind(x,y)) )
+  #mysem = as_sem(object)
+  #myplot = semPlot::semPlotModel( mysem )
+  #semPlot::semPaths( myplot,
+  #                   whatLabels = "est",
+  #                   edge.label.cex = 1.5,
+  #                   node.width = 4,
+  #                   node.height = 2,
+  #                   shapeMan = "rectangle",
+  #                   edge.width = 4,
+  #                   nodeLabels = myplot@Vars$name,
+  #                   nDigits=4 )
+}
+
+

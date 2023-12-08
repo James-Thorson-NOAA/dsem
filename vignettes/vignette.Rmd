@@ -9,19 +9,24 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r, include = FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+# Install locally
+#  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
-#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd")
-# PDF
-#  library(rmarkdown); render( "vignettes/vignette.Rmd", pdf_document())
+#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd"); rmarkdown::render( "vignettes/vignette.Rmd", rmarkdown::pdf_document())
 ```
 
-```{r setup, echo=TRUE}
+```{r setup, echo=TRUE, message=FALSE}
 library(dsem)
+library(dynlm)
+library(ggplot2)
+library(reshape)
+library(gridExtra)
+library(phylopath)
 ```
 
 `dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure.   We here highlight a few features in particular.
@@ -31,8 +36,6 @@ library(dsem)
 We first demonstrate that `dsem` gives identical results to `dynlm` for a well-known econometric model, the Klein-1 model.
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
-library(dynlm)
-
 data(KleinI, package="AER")
 TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
@@ -43,17 +46,18 @@ fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = TS)
 
 # dsem
 sem = "
+  # Link, lag, param_name
   cprofits -> consumption, 0, a1
-  cprofits -> consumption, -1, a2
+  cprofits -> consumption, 1, a2
   pwage -> consumption, 0, a3
   gwage -> consumption, 0, a3
 
   cprofits -> invest, 0, b1
-  cprofits -> invest, -1, b2
+  cprofits -> invest, 1, b2
   capital -> invest, 0, b3
 
   gnp -> pwage, 0, c2
-  gnp -> pwage, -1, c3
+  gnp -> pwage, 1, c3
   time -> pwage, 0, c1
 "
 tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
@@ -61,11 +65,13 @@ tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
 fit = dsem( sem=sem,
             tsdata = tsdata,
             newtonsteps = 0,
-            quiet = TRUE,
-            estimate_delta0 = TRUE )
+            estimate_delta0 = TRUE,
+            control = dsem_control(quiet = TRUE) )
 
 # Compile
-m1 = rbind( summary(fm_cons)$coef[-1,], summary(fm_inv)$coef[-1,], summary(fm_pwage)$coef[-1,] )[,1:2]
+m1 = rbind( summary(fm_cons)$coef[-1,],
+            summary(fm_inv)$coef[-1,],
+            summary(fm_pwage)$coef[-1,] )[,1:2]
 m2 = summary(fit$opt$SD)[1:9,]
 m = rbind(
   data.frame("var"=rownames(m1),m1,"method"="OLS","eq"=rep(c("C","I","Wp"),each=3)),
@@ -74,10 +80,6 @@ m = rbind(
 m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
 
 # ggplot estimates
-library(ggplot2)
-library(reshape)
-library(gridExtra)
-library(phylopath)
 
 longform = melt( as.data.frame(KleinI) )
   longform$year = rep( time(KleinI), 9 )
@@ -92,17 +94,53 @@ p2 = ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
 
 p3 = plot( as_fitted_DAG(fit) ) +
      expand_limits(x = c(-0.2,1) )
-p4 = plot( as_fitted_DAG(fit, lag=-1) ) +
+p4 = plot( as_fitted_DAG(fit, lag=1), text_size=4 ) +
      expand_limits(x = c(-0.2,1), y = c(-0.2,0) )
 
-grid.arrange( arrangeGrob(p1, arrangeGrob(p2, p3, p4), ncol=2) )
+p1
+p2
+grid.arrange( arrangeGrob(p3, p4, nrow=2) )
 ```
 
 Results show that both packages provide (almost) identical estimates and standard errors.
 
+We can also compare results using the Laplace approximation against those obtained via numerical integration of random effects using MCMC.  In this example, MCMC results in somewhat higher estimates of exogenous variance parameters (presumably because those follow a chi-squared distribution with positive skewness), but otherwise the two produce similar estimates.
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5, eval=FALSE}
+library(tmbstan)
+
+# MCMC for both fixed and random effects
+mcmc = tmbstan( fit$obj, init="last.par.best" )
+summary_mcmc = summary(mcmc)
+```
+```{r, echo=FALSE, message=FALSE, fig.width=7, fig.height=5, eval=FALSE}
+saveRDS( summary_mcmc, file=file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\inst\tmbstan)',"summary_mcmc.RDS") )
+```
+```{r, echo=FALSE, message=FALSE, fig.width=6, fig.height=4, out.width = "100%", eval=TRUE}
+summary_mcmc = readRDS( file.path(system.file("tmbstan",package="dsem"),"summary_mcmc.RDS") )
+```
+```{r, echo=TRUE, message=FALSE, fig.width=6, fig.height=4, out.width = "100%", eval=TRUE}
+# long-form data frame
+m1 = summary_mcmc$summary[1:17,c('mean','sd')]
+rownames(m1) = paste0( "b", seq_len(nrow(m1)) )
+m2 = summary(fit$opt$SD)[1:17,c('Estimate','Std. Error')]
+m = rbind(
+  data.frame('mean'=m1[,1], 'sd'=m1[,2], 'par'=rownames(m1), "method"="MCMC"),
+  data.frame('mean'=m2[,1], 'sd'=m2[,2], 'par'=rownames(m1), "method"="LA")
+)
+m$lower = m$mean - m$sd
+m$upper = m$mean + m$sd
+
+# plot
+ggplot(data=m, aes(x=par, y=mean, col=method)) +
+  geom_point( position=position_dodge(0.9) ) +
+  geom_errorbar( aes(ymax=as.numeric(upper),ymin=as.numeric(lower)),
+                 width=0.25, position=position_dodge(0.9))  #
+```
+
 ## Comparison with vector autoregressive models
 
-We next demonstrate that `dsem` gives similar results to a vector autoregressive model (VAM).  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website (Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. URL: www.isleroyalewolf.org).
+We next demonstrate that `dsem` gives similar results to a vector autoregressive (VAR) model.  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website (Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. URL: www.isleroyalewolf.org).
 
 This dataset was previously analyzed by in Chapter 14 of the User Manual for the R-package MARSS (Holmes, E. E., M. D. Scheuerell, and E. J. Ward (2023) Analysis of multivariate time-series using the MARSS package. Version 3.11.8. NOAA Fisheries,
   Northwest Fisheries Science Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI: 10.5281/zenodo.5781847).
@@ -112,21 +150,26 @@ Here, we compare fits using `dsem` with `dynlm`, as well as a vector autoregress
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
-family = c("fixed","fixed")
 
 sem = "
-  wolves -> wolves, -1, arW
-  moose -> wolves, -1, MtoW
-  wolves -> moose, -1, WtoM
-  moose -> moose, -1, arM
+  # Link, lag, param_name
+  wolves -> wolves, 1, arW
+  moose -> wolves, 1, MtoW
+  wolves -> moose, 1, WtoM
+  moose -> moose, 1, arM
 "
 # initial first without delta0 (to improve starting values)
-fit0 = dsem( sem=sem, tsdata=data, estimate_delta0=FALSE,
-            quiet=TRUE, getsd=FALSE, family=family )
+fit0 = dsem( sem = sem,
+             tsdata = data,
+             estimate_delta0 = FALSE,
+             control = dsem_control(quiet=TRUE),
+             getsd=FALSE )
 # Refit with delta0
-fit = dsem( sem=sem, tsdata=data, estimate_delta0=TRUE,
-            quiet=TRUE, parameters=fit0$obj$env$parList(),
-            family=family, getJointPrecision = TRUE )
+fit = dsem( sem = sem,
+            tsdata = data,
+            estimate_delta0 = TRUE,
+            control = dsem_control( quiet=TRUE,
+                                    parameters = fit0$obj$env$parList()) )
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #
@@ -182,7 +225,7 @@ p2 = ggplot(data=m, aes(x=interaction(var,eq), y=Estimate, color=method)) +
   geom_point( position=position_dodge(0.9) ) +
   geom_errorbar( aes(ymax=as.numeric(upper),ymin=as.numeric(lower)),
                  width=0.25, position=position_dodge(0.9))  #
-p3 = plot( as_fitted_DAG(fit, lag=-1), rotation=0 ) +
+p3 = plot( as_fitted_DAG(fit, lag=1), rotation=0 ) +
      geom_edge_loop( aes( label=round(weight,2), direction=0)) + #arrow=arrow(), , angle_calc="along", label_dodge=grid::unit(10,"points") )
      expand_limits(x = c(-0.1,0) )
 
@@ -204,6 +247,7 @@ family = rep('fixed', ncol(bering_sea))
 
 # Specify model
 sem = "
+  # Link, lag, param_name
   log_seaice -> log_CP, 0, seaice_to_CP
   log_CP -> log_Cfall, 0, CP_to_Cfall
   log_CP -> log_Esummer, 0, CP_to_E
@@ -213,33 +257,27 @@ sem = "
   log_Cfall -> log_PercentCop, 0, Cfall_to_Scop
   log_SSB -> log_RperS, 0, SSB_to_RperS
 
-  #log_seaice <-> log_seaice, 0, var1, 0.001
-  #log_CP <-> log_CP,0,  var2, 0.001
-  #log_Cspring <-> log_Cspring, 0, var3, 0.001
-  #log_Cfall <-> log_Cfall, 0, var4, 0.001
-  #log_Esummer <-> log_Esummer, 0, var5, 0.001
-  #log_SSB <-> log_SSB, 0, var6, 0.001
-  #log_RperS <->  log_RperS, 0, var7, 0.001
-  #log_PercentEuph <-> log_PercentEuph, 0, var8, 0.001
-  #log_PercentCop <-> log_PercentCop, 0, var9, 0.001
-
-  log_seaice -> log_seaice, -1, AR1, 0.001
-  log_CP -> log_CP, -1,  AR2, 0.001
-  log_Cspring -> log_Cspring, -1, AR3, 0.001
-  log_Cfall -> log_Cfall, -1, AR4, 0.001
-  log_Esummer -> log_Esummer, -1, AR5, 0.001
-  log_SSB -> log_SSB, -1, AR6, 0.001
-  log_RperS ->  log_RperS, -1, AR7, 0.001
-  log_PercentEuph -> log_PercentEuph, -1, AR8, 0.001
-  log_PercentCop -> log_PercentCop, -1, AR9, 0.001
+  log_seaice -> log_seaice, 1, AR1, 0.001
+  log_CP -> log_CP, 1,  AR2, 0.001
+  log_Cspring -> log_Cspring, 1, AR3, 0.001
+  log_Cfall -> log_Cfall, 1, AR4, 0.001
+  log_Esummer -> log_Esummer, 1, AR5, 0.001
+  log_SSB -> log_SSB, 1, AR6, 0.001
+  log_RperS ->  log_RperS, 1, AR7, 0.001
+  log_PercentEuph -> log_PercentEuph, 1, AR8, 0.001
+  log_PercentCop -> log_PercentCop, 1, AR9, 0.001
 "
 
 # Fit
-fit = dsem( sem=sem, tsdata=Z, family=family, use_REML=FALSE, quiet=TRUE )
+fit = dsem( sem = sem,
+            tsdata = Z,
+            family = family,
+            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
 ParHat = fit$obj$env$parList()
 # summary( fit )
 
 # Timeseries plot
+oldpar <- par(no.readonly = TRUE)
 par( mfcol=c(3,3), mar=c(2,2,2,0), mgp=c(2,0.5,0), tck=-0.02 )
 for(i in 1:ncol(bering_sea)){
   tmp = bering_sea[,i,drop=FALSE]
@@ -255,6 +293,7 @@ for(i in 1:ncol(bering_sea)){
   polygon( x=c(rownames(bering_sea),rev(rownames(bering_sea))),
            y=c(tmp[,3],rev(tmp[,4])), col=rgb(0,0,1,0.2), border=NA )
 }
+par(oldpar)
 
 #
 library(phylopath)
@@ -347,69 +386,71 @@ sem = "
   log_Otter_Count_SIREN_CEN -> log_Kelp_SIREN_CEN, 0, x4
 
   # AR1
-  Pycno_CANNERY_DC -> Pycno_CANNERY_DC, -1, ar1
-  log_Urchins_CANNERY_DC -> log_Urchins_CANNERY_DC, -1, ar2
-  log_Otter_Count_CANNERY_DC -> log_Otter_Count_CANNERY_DC, -1, ar3
-  log_Kelp_CANNERY_DC -> log_Kelp_CANNERY_DC, -1, ar4
+  Pycno_CANNERY_DC -> Pycno_CANNERY_DC, 1, ar1
+  log_Urchins_CANNERY_DC -> log_Urchins_CANNERY_DC, 1, ar2
+  log_Otter_Count_CANNERY_DC -> log_Otter_Count_CANNERY_DC, 1, ar3
+  log_Kelp_CANNERY_DC -> log_Kelp_CANNERY_DC, 1, ar4
 
-  Pycno_CANNERY_UC -> Pycno_CANNERY_UC, -1, ar1
-  log_Urchins_CANNERY_UC -> log_Urchins_CANNERY_UC, -1, ar2
-  log_Otter_Count_CANNERY_UC -> log_Otter_Count_CANNERY_UC, -1, ar3
-  log_Kelp_CANNERY_UC -> log_Kelp_CANNERY_UC, -1, ar4
+  Pycno_CANNERY_UC -> Pycno_CANNERY_UC, 1, ar1
+  log_Urchins_CANNERY_UC -> log_Urchins_CANNERY_UC, 1, ar2
+  log_Otter_Count_CANNERY_UC -> log_Otter_Count_CANNERY_UC, 1, ar3
+  log_Kelp_CANNERY_UC -> log_Kelp_CANNERY_UC, 1, ar4
 
-  Pycno_HOPKINS_DC -> Pycno_HOPKINS_DC, -1, ar1
-  log_Urchins_HOPKINS_DC -> log_Urchins_HOPKINS_DC, -1, ar2
-  log_Otter_Count_HOPKINS_DC -> log_Otter_Count_HOPKINS_DC, -1, ar3
-  log_Kelp_HOPKINS_DC -> log_Kelp_HOPKINS_DC, -1, ar4
+  Pycno_HOPKINS_DC -> Pycno_HOPKINS_DC, 1, ar1
+  log_Urchins_HOPKINS_DC -> log_Urchins_HOPKINS_DC, 1, ar2
+  log_Otter_Count_HOPKINS_DC -> log_Otter_Count_HOPKINS_DC, 1, ar3
+  log_Kelp_HOPKINS_DC -> log_Kelp_HOPKINS_DC, 1, ar4
 
-  Pycno_HOPKINS_UC -> Pycno_HOPKINS_UC, -1, ar1
-  log_Urchins_HOPKINS_UC -> log_Urchins_HOPKINS_UC, -1, ar2
-  log_Otter_Count_HOPKINS_UC -> log_Otter_Count_HOPKINS_UC, -1, ar3
-  log_Kelp_HOPKINS_UC -> log_Kelp_HOPKINS_UC, -1, ar4
+  Pycno_HOPKINS_UC -> Pycno_HOPKINS_UC, 1, ar1
+  log_Urchins_HOPKINS_UC -> log_Urchins_HOPKINS_UC, 1, ar2
+  log_Otter_Count_HOPKINS_UC -> log_Otter_Count_HOPKINS_UC, 1, ar3
+  log_Kelp_HOPKINS_UC -> log_Kelp_HOPKINS_UC, 1, ar4
 
-  Pycno_LOVERS_DC -> Pycno_LOVERS_DC, -1, ar1
-  log_Urchins_LOVERS_DC -> log_Urchins_LOVERS_DC, -1, ar2
-  log_Otter_Count_LOVERS_DC -> log_Otter_Count_LOVERS_DC, -1, ar3
-  log_Kelp_LOVERS_DC -> log_Kelp_LOVERS_DC, -1, ar4
+  Pycno_LOVERS_DC -> Pycno_LOVERS_DC, 1, ar1
+  log_Urchins_LOVERS_DC -> log_Urchins_LOVERS_DC, 1, ar2
+  log_Otter_Count_LOVERS_DC -> log_Otter_Count_LOVERS_DC, 1, ar3
+  log_Kelp_LOVERS_DC -> log_Kelp_LOVERS_DC, 1, ar4
 
-  Pycno_LOVERS_UC -> Pycno_LOVERS_UC, -1, ar1
-  log_Urchins_LOVERS_UC -> log_Urchins_LOVERS_UC, -1, ar2
-  log_Otter_Count_LOVERS_UC -> log_Otter_Count_LOVERS_UC, -1, ar3
-  log_Kelp_LOVERS_UC -> log_Kelp_LOVERS_UC, -1, ar4
+  Pycno_LOVERS_UC -> Pycno_LOVERS_UC, 1, ar1
+  log_Urchins_LOVERS_UC -> log_Urchins_LOVERS_UC, 1, ar2
+  log_Otter_Count_LOVERS_UC -> log_Otter_Count_LOVERS_UC, 1, ar3
+  log_Kelp_LOVERS_UC -> log_Kelp_LOVERS_UC, 1, ar4
 
-  Pycno_MACABEE_DC -> Pycno_MACABEE_DC, -1, ar1
-  log_Urchins_MACABEE_DC -> log_Urchins_MACABEE_DC, -1, ar2
-  log_Otter_Count_MACABEE_DC -> log_Otter_Count_MACABEE_DC, -1, ar3
-  log_Kelp_MACABEE_DC -> log_Kelp_MACABEE_DC, -1, ar4
+  Pycno_MACABEE_DC -> Pycno_MACABEE_DC, 1, ar1
+  log_Urchins_MACABEE_DC -> log_Urchins_MACABEE_DC, 1, ar2
+  log_Otter_Count_MACABEE_DC -> log_Otter_Count_MACABEE_DC, 1, ar3
+  log_Kelp_MACABEE_DC -> log_Kelp_MACABEE_DC, 1, ar4
 
-  Pycno_MACABEE_UC -> Pycno_MACABEE_UC, -1, ar1
-  log_Urchins_MACABEE_UC -> log_Urchins_MACABEE_UC, -1, ar2
-  log_Otter_Count_MACABEE_UC -> log_Otter_Count_MACABEE_UC, -1, ar3
-  log_Kelp_MACABEE_UC -> log_Kelp_MACABEE_UC, -1, ar4
+  Pycno_MACABEE_UC -> Pycno_MACABEE_UC, 1, ar1
+  log_Urchins_MACABEE_UC -> log_Urchins_MACABEE_UC, 1, ar2
+  log_Otter_Count_MACABEE_UC -> log_Otter_Count_MACABEE_UC, 1, ar3
+  log_Kelp_MACABEE_UC -> log_Kelp_MACABEE_UC, 1, ar4
 
-  Pycno_OTTER_PT_DC -> Pycno_OTTER_PT_DC, -1, ar1
-  log_Urchins_OTTER_PT_DC -> log_Urchins_OTTER_PT_DC, -1, ar2
-  log_Otter_Count_OTTER_PT_DC -> log_Otter_Count_OTTER_PT_DC, -1, ar3
-  log_Kelp_OTTER_PT_DC -> log_Kelp_OTTER_PT_DC, -1, ar4
+  Pycno_OTTER_PT_DC -> Pycno_OTTER_PT_DC, 1, ar1
+  log_Urchins_OTTER_PT_DC -> log_Urchins_OTTER_PT_DC, 1, ar2
+  log_Otter_Count_OTTER_PT_DC -> log_Otter_Count_OTTER_PT_DC, 1, ar3
+  log_Kelp_OTTER_PT_DC -> log_Kelp_OTTER_PT_DC, 1, ar4
 
-  Pycno_OTTER_PT_UC -> Pycno_OTTER_PT_UC, -1, ar1
-  log_Urchins_OTTER_PT_UC -> log_Urchins_OTTER_PT_UC, -1, ar2
-  log_Otter_Count_OTTER_PT_UC -> log_Otter_Count_OTTER_PT_UC, -1, ar3
-  log_Kelp_OTTER_PT_UC -> log_Kelp_OTTER_PT_UC, -1, ar4
+  Pycno_OTTER_PT_UC -> Pycno_OTTER_PT_UC, 1, ar1
+  log_Urchins_OTTER_PT_UC -> log_Urchins_OTTER_PT_UC, 1, ar2
+  log_Otter_Count_OTTER_PT_UC -> log_Otter_Count_OTTER_PT_UC, 1, ar3
+  log_Kelp_OTTER_PT_UC -> log_Kelp_OTTER_PT_UC, 1, ar4
 
-  Pycno_PINOS_CEN -> Pycno_PINOS_CEN, -1, ar1
-  log_Urchins_PINOS_CEN -> log_Urchins_PINOS_CEN, -1, ar2
-  log_Otter_Count_PINOS_CEN -> log_Otter_Count_PINOS_CEN, -1, ar3
-  log_Kelp_PINOS_CEN -> log_Kelp_PINOS_CEN, -1, ar4
+  Pycno_PINOS_CEN -> Pycno_PINOS_CEN, 1, ar1
+  log_Urchins_PINOS_CEN -> log_Urchins_PINOS_CEN, 1, ar2
+  log_Otter_Count_PINOS_CEN -> log_Otter_Count_PINOS_CEN, 1, ar3
+  log_Kelp_PINOS_CEN -> log_Kelp_PINOS_CEN, 1, ar4
 
-  Pycno_SIREN_CEN -> Pycno_SIREN_CEN, -1, ar1
-  log_Urchins_SIREN_CEN -> log_Urchins_SIREN_CEN, -1, ar2
-  log_Otter_Count_SIREN_CEN -> log_Otter_Count_SIREN_CEN, -1, ar3
-  log_Kelp_SIREN_CEN -> log_Kelp_SIREN_CEN, -1, ar4
+  Pycno_SIREN_CEN -> Pycno_SIREN_CEN, 1, ar1
+  log_Urchins_SIREN_CEN -> log_Urchins_SIREN_CEN, 1, ar2
+  log_Otter_Count_SIREN_CEN -> log_Otter_Count_SIREN_CEN, 1, ar3
+  log_Kelp_SIREN_CEN -> log_Kelp_SIREN_CEN, 1, ar4
 "
 
 # Fit model
-fit = dsem( sem=sem, tsdata=Z, use_REML=FALSE, quiet=TRUE )
+fit = dsem( sem = sem,
+            tsdata = Z,
+            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
 # summary( fit )
 
 #
