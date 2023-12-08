@@ -277,7 +277,7 @@ ParHat = fit$obj$env$parList()
 # summary( fit )
 
 # Timeseries plot
-oldpar <- par()
+oldpar <- par(no.readonly = TRUE)
 par( mfcol=c(3,3), mar=c(2,2,2,0), mgp=c(2,0.5,0), tck=-0.02 )
 for(i in 1:ncol(bering_sea)){
   tmp = bering_sea[,i,drop=FALSE]
