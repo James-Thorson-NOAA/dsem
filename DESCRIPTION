@@ -48,3 +48,4 @@ Encoding: UTF-8
 RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 LazyData: true
+URL: https://james-thorson-noaa.github.io/dsem/
