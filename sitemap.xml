@@ -4,9 +4,6 @@
     <loc>/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
     <loc>/articles/index.html</loc>
   </url>
   <url>
@@ -19,7 +16,7 @@
     <loc>/index.html</loc>
   </url>
   <url>
-    <loc>/reference/TMBAIC.html</loc>
+    <loc>/LICENSE-text.html</loc>
   </url>
   <url>
     <loc>/reference/as_fitted_DAG.html</loc>
@@ -80,6 +77,9 @@
   </url>
   <url>
     <loc>/reference/summary.dsem.html</loc>
+  </url>
+  <url>
+    <loc>/reference/TMBAIC.html</loc>
   </url>
   <url>
     <loc>/reference/vcov.dsem.html</loc>

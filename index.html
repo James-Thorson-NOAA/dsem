@@ -64,20 +64,37 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="dsem">dsem<a class="anchor" aria-label="anchor" href="#dsem"></a>
-</h1></div>
-<p>Dynamic structural equation models.</p>
-<p><a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/dsem"></a></p>
-<p><a href="https://zenodo.org/doi/10.5281/zenodo.10304770" class="external-link"><img src="https://zenodo.org/badge/656795688.svg" alt="DOI"></a></p>
-<div class="section level2">
+  <main id="main" class="col-md-9"><div class="section level2">
 <h2 id="dynamic-structural-equation-models">Dynamic structural equation models<a class="anchor" aria-label="anchor" href="#dynamic-structural-equation-models"></a>
 </h2>
-<p>Package <em>dsem</em> fits dynamic structural equation models, which includes as nested submodels: * structural equation models * vector autoregressive models * dynamic factor analysis * state-space autoregressive integrated moving average (ARIMA) models</p>
-<p>The model has several advantages: * It estimates direct, indirect, and total effects among system variables * It can estimate the cumulative outcome from press or pulse experiments or initial conditions * It jointly estimates structural linkages and imputes missing values * It is rapidly fitted as a Gaussian Markov random field (GMRF) in a Generalized Linear Mixed Model (GLMM), with speed and asymptotics associated with each.</p>
-<p><em>phylosem</em> is specifically intended as a minimal implementation, and uses standard packages for input/output formatting: * Input: time-series defined using class <em>ts</em>, with <code>NA</code> for missing values * Input: structural trade-offs specified using syntax defined by package <em>sem</em> * Output: visualizing estimated trade-offs using <em>igraph</em> * Output: access model output using standard S3-generic functions including <code>summary</code>, <code>predict</code>, <code>residuals</code>, and <code>simulate</code></p>
+<p>Package <em>dsem</em> fits dynamic structural equation models, which includes as nested submodels:</p>
+<ol style="list-style-type: decimal">
+<li>structural equation models</li>
+<li>vector autoregressive models</li>
+<li>dynamic factor analysis</li>
+<li>state-space autoregressive integrated moving average (ARIMA) models</li>
+</ol>
+<p>The model has several advantages:</p>
+<ul>
+<li>It estimates direct, indirect, and total effects among system variables, including simultaneous and lagged effects and recursive (cyclic) dependencies</li>
+<li>It can estimate the cumulative outcome from press or pulse experiments or initial conditions that differ from the stationary distribution of system dynamics</li>
+<li>It estimates structural linkages as regression slopes while jointly imputing missing values and/or measurement errors</li>
+<li>It is rapidly fitted as a Gaussian Markov random field (GMRF) in a Generalized Linear Mixed Model (GLMM), with speed and asymptotics associated with each</li>
+<li>It allows granular control over the number of parameters (and restrictions on parameters) used to structure the covariance among variables and over time,</li>
+</ul>
+<p><em>phylosem</em> is specifically intended as a minimal implementation, and uses standard packages to simplify input/output formatting:</p>
+<ul>
+<li>Input: time-series defined using class <em>ts</em>, with <code>NA</code> for missing values</li>
+<li>Input: structural trade-offs specified using syntax defined by package <em>sem</em>
+</li>
+<li>Output: visualizing estimated trade-offs using <em>igraph</em>
+</li>
+<li>Output: access model output using standard S3-generic functions including <code>summary</code>, <code>predict</code>, <code>residuals</code>, <code>simulate</code>, and <code>AIC</code>
+</li>
+</ul>
 <p>Please see package vignettes for more details regarding syntax and features.</p>
-</div>
+<p><a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/dsem"></a></p>
+<p><a href="https://zenodo.org/doi/10.5281/zenodo.10304770" class="external-link"><img src="https://zenodo.org/badge/656795688.svg" alt="DOI"></a></p>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>

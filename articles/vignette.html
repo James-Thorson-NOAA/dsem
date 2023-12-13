@@ -72,7 +72,7 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">dsem</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">dynlm</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://had.co.nz/reshape" class="external-link">reshape</a></span><span class="op">)</span></span>
@@ -254,14 +254,14 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span>  U <span class="op">=</span> <span class="st">"zero"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">kem.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atsa-es.github.io/MARSS/reference/MARSS.html" class="external-link">MARSS</a></span><span class="op">(</span><span class="va">z.royale.dat</span>, model <span class="op">=</span> <span class="va">royale.model.1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Success! algorithm run for 15 iterations. abstol and log-log tests passed.</span></span>
+<span><span class="co">#&gt; Success! abstol and log-log tests passed at 16 iterations.</span></span>
 <span><span class="co">#&gt; Alert: conv.test.slope.tol is 0.5.</span></span>
 <span><span class="co">#&gt; Test with smaller values (&lt;0.1) to ensure convergence.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; MARSS fit is</span></span>
 <span><span class="co">#&gt; Estimation method: kem </span></span>
 <span><span class="co">#&gt; Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001</span></span>
-<span><span class="co">#&gt; Algorithm ran 15 (=minit) iterations and convergence was reached. </span></span>
+<span><span class="co">#&gt; Estimation converged in 16 iterations. </span></span>
 <span><span class="co">#&gt; Log-likelihood: -3.21765 </span></span>
 <span><span class="co">#&gt; AIC: 22.4353   AICc: 23.70964   </span></span>
 <span><span class="co">#&gt;  </span></span>
