@@ -133,11 +133,14 @@ function( sem,
     stop("Some variable in `sem` is not in `tsdata`")
   }
 
-  #
+  ## get observations into format applicable for OSA
+  ## residuals. This is a single vector with NAs removed
+  y_k2 <- as.numeric(na.omit(as.numeric(tsdata)))
   Data = list( "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1 ),
-               "y_tj" = tsdata )
+              "y_tj" = tsdata,
+              "y_k2"= y_k2)
 
   # Construct parameters
   if( is.null(control$parameters) ){
