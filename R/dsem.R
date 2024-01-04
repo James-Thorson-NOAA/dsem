@@ -442,10 +442,12 @@ function( object,
       tmp = rmvnorm_prec( newrep$delta_k + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
       newcall = object$call
-      newcall$parameters = newparfull
-      newcall$parameters$x_tj[] = tmp
+      # Get control
+      newcall$control = eval(newcall$control)
+      newcall$control$parameters = newparfull
+      newcall$control$parameters$x_tj[] = tmp
       # Rebuild model with new GMRF values
-      newcall$run_model = FALSE
+      newcall$control$run_model = FALSE
       newfit = eval(newcall)
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
