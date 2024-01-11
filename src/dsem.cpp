@@ -28,6 +28,9 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR( mu_j );
   PARAMETER_VECTOR( delta0_j );
   PARAMETER_ARRAY( x_tj );
+  // vector of real observations (NA's removed) for OSA residuals, k2<=k
+  DATA_VECTOR(y_k2); 		
+  DATA_VECTOR_INDICATOR(keep, y_k2);
 
   // Indices
   int n_t = x_tj.rows();
@@ -123,12 +126,17 @@ Type objective_function<Type>::operator() ()
   // Distribution for data
   array<Type> devresid_tj( n_t, n_j );
   array<Type> mu_tj( n_t, n_j );
+  bool is_not_na;
+
+  int k2=0;			// counter for non NA observations for OSA
   for(int t=0; t<n_t; t++){
   for(int j=0; j<n_j; j++){
+    is_not_na=!R_IsNA(asDouble(y_tj(t,j)));
+    
     // familycode = 0 :  don't include likelihood
     if( familycode_j(j)==0 ){
       mu_tj(t,j) = x_tj(t,j);
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(is_not_na){
         SIMULATE{
           y_tj(t,j) = mu_tj(t,j);
         }
@@ -138,8 +146,11 @@ Type objective_function<Type>::operator() ()
     // familycode = 1 :  normal
     if( familycode_j(j)==1 ){
       mu_tj(t,j) = x_tj(t,j);
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
-        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
+      if(is_not_na){
+        loglik_tj(t,j) = keep(k2)*dnorm( y_k2(k2), mu_tj(t,j), sigma_j(j), true );
+	loglik_tj(t,j) += keep.cdf_lower(k2)*log(pnorm(y_k2(k2), mu_tj(t,j), sigma_j(j)));
+	loglik_tj(t,j) += keep.cdf_upper(k2)*log(1.0-pnorm(y_k2(k2), mu_tj(t,j), sigma_j(j)));
+	k2++;
         SIMULATE{
           y_tj(t,j) = rnorm( mu_tj(t,j), sigma_j(j) );
         }
@@ -149,8 +160,12 @@ Type objective_function<Type>::operator() ()
     // familycode = 2 :  binomial
     if( familycode_j(j)==2 ){
       mu_tj(t,j) = invlogit(x_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
-        loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
+      if(is_not_na){
+	loglik_tj(t,j) = keep(k2)*dbinom( y_k2(k2), Type(1.0), mu_tj(t,j), true );
+	//loglik_tj(t,j) += keep.cdf_lower(k2)*log(pbinom(y_k2(k2), Type(1.0), mu_tj(t,j)));
+	//loglik_tj(t,j) += keep.cdf_upper(k2)*log(1.0-pbinom(y_k2(k2), Type(1.0), mu_tj(t,j)));
+	//   loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
+	k2++;
         SIMULATE{
           y_tj(t,j) = rbinom( Type(1), mu_tj(t,j) );
         }
@@ -160,7 +175,11 @@ Type objective_function<Type>::operator() ()
     // familycode = 3 :  Poisson
     if( familycode_j(j)==3 ){
       mu_tj(t,j) = exp(x_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(is_not_na){
+	loglik_tj(t,j) = keep(k2)*dpois( y_k2(k2), mu_tj(t,j), true );
+	loglik_tj(t,j) += keep.cdf_lower(k2)*log(ppois(y_k2(k2), mu_tj(t,j)));
+	loglik_tj(t,j) += keep.cdf_upper(k2)*log(1.0-ppois(y_k2(k2), mu_tj(t,j)));
+	k2++;
         loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
         SIMULATE{
           y_tj(t,j) = rpois( mu_tj(t,j) );
@@ -171,10 +190,16 @@ Type objective_function<Type>::operator() ()
     // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
     if( familycode_j(j)==4 ){
       mu_tj(t,j) = exp(x_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
-        loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
+      if(is_not_na){
+	Type tmp1=pow(sigma_j(j),-2);
+	Type tmp2=mu_tj(t,j)*pow(sigma_j(j),2);
+	loglik_tj(t,j) = keep(k2)*dgamma(y_k2(k2), tmp1, tmp2, true );
+	loglik_tj(t,j) += keep.cdf_lower(k2)*log(pgamma(y_k2(k2), tmp1, tmp2));
+	loglik_tj(t,j) += keep.cdf_upper(k2)*log(1.0-pgamma(y_k2(k2), tmp1, tmp2));
+	k2++;
+        //loglik_tj(t,j) = dgamma( y_tj(t,j), tmp1 , tmp2, true );
         SIMULATE{
-          y_tj(t,j) = rgamma( pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2) );
+          y_tj(t,j) = rgamma(tmp1, tmp2);
         }
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2 * ( (y_tj(t,j)-mu_tj(t,j))/mu_tj(t,j) - log(y_tj(t,j)/mu_tj(t,j)) ), 0.5);
