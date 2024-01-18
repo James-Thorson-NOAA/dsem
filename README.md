@@ -27,4 +27,4 @@ Please see package vignettes for more details regarding syntax and features.
 
 [![DOI](https://zenodo.org/badge/656795688.svg)](https://zenodo.org/doi/10.5281/zenodo.10304770)
 
-[![Codecov test coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/main/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=main)
+[![Codecov test coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
