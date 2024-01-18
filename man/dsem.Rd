@@ -9,8 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
-  control = dsem_control(),
-  ...
+  control = dsem_control()
 )
 }
 \arguments{
@@ -31,8 +30,6 @@ the stationary distribution}
 
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
 settings, and see documentation for that function for details.}
-
-\item{...}{Additional parameters passed to \code{\link{fit_tmb}}}
 }
 \value{
 An object (list) of class `dsem`. Elements include:
@@ -41,7 +38,8 @@ An object (list) of class `dsem`. Elements include:
 \item{ram}{RAM parsed by \code{make_dsem_ram}}
 \item{model}{SEM structure parsed by \code{make_dsem_ram} as intermediate description of model linkages}
 \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
-\item{opt}{The output from \code{\link{fit_tmb}}}
+\item{opt}{The output from \code{\link[stats]{nlminb}}}
+\item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 }
 }
 \description{
@@ -102,7 +100,6 @@ tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
 # Fit model
 fit = dsem( sem=sem,
             tsdata = tsdata,
-            newtonsteps = 0,
             estimate_delta0 = TRUE,
             control = dsem_control(quiet=TRUE) )
 summary( fit )

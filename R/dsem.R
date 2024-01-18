@@ -15,7 +15,6 @@
 #'        the stationary distribution
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
-#' @param ... Additional parameters passed to \code{\link{fit_tmb}}
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
 #' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
@@ -61,7 +60,8 @@
 #' \item{ram}{RAM parsed by \code{make_dsem_ram}}
 #' \item{model}{SEM structure parsed by \code{make_dsem_ram} as intermediate description of model linkages}
 #' \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
-#' \item{opt}{The output from \code{\link{fit_tmb}}}
+#' \item{opt}{The output from \code{\link[stats]{nlminb}}}
+#' \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 #' }
 #'
 #' @references
@@ -98,7 +98,6 @@
 #' # Fit model
 #' fit = dsem( sem=sem,
 #'             tsdata = tsdata,
-#'             newtonsteps = 0,
 #'             estimate_delta0 = TRUE,
 #'             control = dsem_control(quiet=TRUE) )
 #' summary( fit )
@@ -112,8 +111,7 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
-          control = dsem_control(),
-          ... ){
+          control = dsem_control() ){
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
@@ -198,10 +196,40 @@ function( sem,
 
   # Fit
   obj$env$beSilent()       # if(!is.null(Random))
-  out$opt = fit_tmb( obj,
-                     quiet = control$quiet,
-                     control = list(eval.max=10000, iter.max=10000, trace=ifelse(control$quiet==TRUE,0,1) ),
-                     ... )
+  #out$opt = fit_tmb( obj,
+  #                   quiet = control$quiet,
+  #                   control = list(eval.max=10000, iter.max=10000, trace=ifelse(control$quiet==TRUE,0,1) ),
+  #                   ... )
+
+  # Optimize
+  out$opt = list( "par"=obj$par )
+  for( i in seq_len(max(0,control$nlminb_loops)) ){
+    if( isFALSE(control$quiet) ) message("Running nlminb_loop #", i)
+    out$opt = nlminb( start = out$opt$par,
+                  objective = obj$fn,
+                  gradient = obj$gr,
+                  control = list( eval.max = control$eval.max,
+                                  iter.max = control$iter.max,
+                                  trace = control$trace ) )
+  }
+
+  # Newtonsteps
+  for( i in seq_len(max(0,control$newton_loops)) ){
+    if( isFALSE(control$quiet) ) message("Running newton_loop #", i)
+    g = as.numeric( obj$gr(out$opt$par) )
+    h = optimHess(out$opt$par, fn=obj$fn, gr=obj$gr)
+    out$opt$par = out$opt$par - solve(h, g)
+    out$opt$objective = obj$fn(out$opt$par)
+  }
+
+  # Run sdreport
+  if( isTRUE(control$getsd) ){
+    if( isTRUE(control$verbose) ) message("Running sdreport")
+    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    out$sdrep = sdreport( obj, hessian.fixed=Hess_fixed )
+  }else{
+    out$sdrep = NULL
+  }
 
   # output
   class(out) = "dsem"
@@ -214,6 +242,17 @@ function( sem,
 #' the format of this input is likely to change more rapidly than that of
 #' \code{\link{dsem}}
 #'
+#' @param nlminb_loops Integer number of times to call \code{\link[stats]{nlminb}}.
+#' @param newton_loops Integer number of Newton steps to do after running
+#'        \code{\link[stats]{nlminb}}.
+#' @param trace Parameter values are printed every `trace` iteration
+#'        for the outer optimizer. Passed to
+#'        `control` in \code{\link[stats]{nlminb}}.
+#' @param eval.max Maximum number of evaluations of the objective function
+#'        allowed. Passed to `control` in \code{\link[stats]{nlminb}}.
+#' @param iter.max Maximum number of iterations allowed. Passed to `control` in
+#'        \code{\link[stats]{nlminb}}.
+#' @param getsd Boolean indicating whether to call \code{\link[TMB]{sdreport}}
 #' @param run_model Boolean indicating whether to estimate parameters (the default), or
 #'        instead to return the model inputs and compiled TMB object without running;
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
@@ -231,7 +270,13 @@ function( sem,
 #'
 #' @export
 dsem_control <-
-function( quiet = FALSE,
+function( nlminb_loops = 1,
+          newton_loops = 1,
+          trace = 0,
+          eval.max = 1000,
+          iter.max = 1000,
+          getsd = TRUE,
+          quiet = FALSE,
           run_model = TRUE,
           use_REML = TRUE,
           parameters = NULL,
@@ -239,6 +284,12 @@ function( quiet = FALSE,
 
   # Return
   structure( list(
+    nlminb_loops = nlminb_loops,
+    newton_loops = newton_loops,
+    trace = trace,
+    eval.max = eval.max,
+    iter.max = iter.max,
+    getsd = getsd,
     quiet = quiet,
     run_model = run_model,
     use_REML = use_REML,
@@ -302,8 +353,8 @@ function( object, ... ){
   #
   coefs = data.frame( model, "Estimate"=c(NA,ParHat$beta_z)[ as.numeric(model[,'parameter'])+1 ] ) # parameter=0 outputs NA
   coefs$Estimate = ifelse( is.na(coefs$Estimate), as.numeric(model[,4]), coefs$Estimate )
-  if( "SD" %in% names(object$opt) ){
-    SE = as.list( object$opt$SD, report=FALSE, what="Std. Error")
+  if( "sdrep" %in% names(object) ){
+    SE = as.list( object$sdrep, report=FALSE, what="Std. Error")
     coefs = data.frame( coefs, "Std_Error"=c(NA,SE$beta_z)[ as.numeric(model[,'parameter'])+1 ] ) # parameter=0 outputs NA
     coefs = data.frame( coefs, "z_value"=coefs[,'Estimate']/coefs[,'Std_Error'] )
     coefs = data.frame( coefs, "p_value"=pnorm(-abs(coefs[,'z_value'])) * 2 )
@@ -424,10 +475,10 @@ function( object,
     par_zr[obj$env$random,] = par_zr[obj$env$random,,drop=FALSE] + eps_zr
   }
   if( variance=="both" ){
-    if(is.null(object$opt$SD$jointPrecision)){
+    if(is.null(object$sdrep$jointPrecision)){
       stop("Please re-run `dsem` with `getsd=TRUE` and `getJointPrecision=TRUE`, or confirm that the model is converged")
     }
-    eps_zr = rmvnorm_prec( rep(0,length(obj$env$last.par)), object$opt$SD$jointPrecision, nsim=nsim )
+    eps_zr = rmvnorm_prec( rep(0,length(obj$env$last.par)), object$sdrep$jointPrecision, nsim=nsim )
     par_zr = par_zr + eps_zr
   }
 
@@ -485,7 +536,7 @@ function( object,
   which = match.arg(which)
 
   if( which=="fixed" ){
-    V = object$opt$SD$cov.fixed
+    V = object$sdrep$cov.fixed
     if(is.null(V)){
       warning("Please re-run `dsem` with `getsd=TRUE`, or confirm that the model is converged")
     }
@@ -494,7 +545,7 @@ function( object,
     V = solve(object$obj$env$spHess(random=TRUE))
   }
   if( which=="both" ){
-    H = object$opt$SD$jointPrecision
+    H = object$sdrep$jointPrecision
     if(is.null(H)){
       warning("Please re-run `dsem` with `getsd=TRUE` and `getJointPrecision=TRUE`, or confirm that the model is converged")
       V = NULL
