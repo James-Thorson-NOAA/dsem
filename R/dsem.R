@@ -62,6 +62,8 @@
 #' \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
 #' \item{opt}{The output from \code{\link[stats]{nlminb}}}
 #' \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
+#' \item{interal}{Objects useful for package function, i.e., all arguments
+#'                passed during the call}
 #' }
 #'
 #' @references
@@ -183,11 +185,19 @@ function( sem,
   }
   obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
   if(control$quiet==FALSE) list_parameters(obj)
+  internal = list(
+    sem = sem,
+    tsdata = tsdata,
+    family = family,
+    estimate_delta0 = estimate_delta0,
+    control = control
+  )
   out = list( "obj"=obj,
               "ram"=ram,
               "sem_full"=out$model,
               "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map),
-              "call" = match.call() )
+              #"call" = match.call(),
+              "internal" = internal )
 
   # Export stuff
   if( control$run_model==FALSE ){
@@ -466,7 +476,7 @@ function( object,
   # pull out objects for easy use
   obj = object$obj
   parfull = obj$env$parList()
-  tsdata = eval(object$call$tsdata)
+  tsdata = object$internal$tsdata
 
   # Extract parameters, and add noise as desired
   par_zr = outer( obj$env$last.par.best, rep(1,nsim) )
@@ -492,14 +502,23 @@ function( object,
       Q_kk = newrep$Q_kk
       tmp = rmvnorm_prec( newrep$delta_k + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
-      newcall = object$call
+      #newcall = object$call
       # Get control
-      newcall$control = eval(newcall$control)
-      newcall$control$parameters = newparfull
-      newcall$control$parameters$x_tj[] = tmp
+      #newcall$control = eval(newcall$control)
+      #newcall$control$parameters = newparfull
+      #newcall$control$parameters$x_tj[] = tmp
       # Rebuild model with new GMRF values
-      newcall$control$run_model = FALSE
-      newfit = eval(newcall)
+      #newcall$control$run_model = FALSE
+      #newfit = eval(newcall)
+      control = object$internal$control
+      control$parameters = newparfull
+      control$parameters$x_tj[] = tmp
+      control$run_model = FALSE
+      newfit = dsem( sem = object$internal$sem,
+                     tsdata = object$internal$tsdata,
+                     family = object$internal$family,
+                     estimate_delta0 = object$internal$estimate_delta0,
+                     control = control )
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
       out[[r]] = obj$simulate( par_zr[,r] )
@@ -701,11 +720,18 @@ function( object,
     if(type=="link") out = parfull$x_tj
     if(type=="response") out = report$mu_tj
   }else{
-    newcall = object$call
-    newcall$tsdata = newdata
+    #newcall = object$call
+    #newcall$tsdata = newdata
     # Rebuild model with new data
-    newcall$run_model = FALSE
-    newfit = eval(newcall)
+    #newcall$run_model = FALSE
+    #newfit = eval(newcall)
+    control = object$internal$control
+    control$run_model = FALSE
+    newfit = dsem( sem = object$internal$sem,
+                   tsdata = newdata,
+                   family = object$internal$family,
+                   estimate_delta0 = object$internal$estimate_delta0,
+                   control = object$internal$control )
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor
@@ -803,7 +829,7 @@ function( object,
   model = model[model[,2]==0,c(1,3,4)]
   out = sem( model,
              S = Sprime,
-             N = nrow(eval(object$call$tsdata)) )
+             N = nrow(object$internal$tsdata) )
 
   # pass out
   return(out)

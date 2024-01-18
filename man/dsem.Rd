@@ -40,6 +40,8 @@ An object (list) of class `dsem`. Elements include:
 \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
 \item{opt}{The output from \code{\link[stats]{nlminb}}}
 \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
+\item{interal}{Objects useful for package function, i.e., all arguments
+               passed during the call}
 }
 }
 \description{
