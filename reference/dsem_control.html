@@ -14,7 +14,7 @@ dsem"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathja
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,6 +64,12 @@ the format of this input is likely to change more rapidly than that of
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">dsem_control</span><span class="op">(</span></span>
+<span>  nlminb_loops <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  newton_loops <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  trace <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  eval.max <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  iter.max <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  getsd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  run_model <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  use_REML <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -74,7 +80,36 @@ the format of this input is likely to change more rapidly than that of
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>quiet</dt>
+    <dl><dt>nlminb_loops</dt>
+<dd><p>Integer number of times to call <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>.</p></dd>
+
+
+<dt>newton_loops</dt>
+<dd><p>Integer number of Newton steps to do after running
+<code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>.</p></dd>
+
+
+<dt>trace</dt>
+<dd><p>Parameter values are printed every `trace` iteration
+for the outer optimizer. Passed to
+`control` in <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>.</p></dd>
+
+
+<dt>eval.max</dt>
+<dd><p>Maximum number of evaluations of the objective function
+allowed. Passed to `control` in <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>.</p></dd>
+
+
+<dt>iter.max</dt>
+<dd><p>Maximum number of iterations allowed. Passed to `control` in
+<code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>.</p></dd>
+
+
+<dt>getsd</dt>
+<dd><p>Boolean indicating whether to call <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code></p></dd>
+
+
+<dt>quiet</dt>
 <dd><p>Boolean indicating whether to run model printing messages to terminal or not;</p></dd>
 
 

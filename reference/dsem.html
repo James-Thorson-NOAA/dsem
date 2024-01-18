@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,8 +62,7 @@
 <span>  <span class="va">tsdata</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"fixed"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  estimate_delta0 <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  control <span class="op">=</span> <span class="fu"><a href="dsem_control.html">dsem_control</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  control <span class="op">=</span> <span class="fu"><a href="dsem_control.html">dsem_control</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -96,10 +95,6 @@ the stationary distribution</p></dd>
 <dd><p>Output from <code><a href="dsem_control.html">dsem_control</a></code>, used to define user
 settings, and see documentation for that function for details.</p></dd>
 
-
-<dt>...</dt>
-<dd><p>Additional parameters passed to <code><a href="fit_tmb.html">fit_tmb</a></code></p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -118,7 +113,10 @@ settings, and see documentation for that function for details.</p></dd>
 <dd><p>The list of inputs passed to <code><a href="https://rdrr.io/pkg/TMB/man/MakeADFun.html" class="external-link">MakeADFun</a></code></p></dd>
 
 <dt>opt</dt>
-<dd><p>The output from <code><a href="fit_tmb.html">fit_tmb</a></code></p></dd>
+<dd><p>The output from <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code></p></dd>
+
+<dt>sdrep</dt>
+<dd><p>The output from <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code></p></dd>
 
 
 </dl></div>
@@ -186,7 +184,6 @@ ecosystem dynamics constrained by ecological mechanisms.</p>
 <span class="r-in"><span><span class="co"># Fit model</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">=</span> <span class="fu">dsem</span><span class="op">(</span> sem<span class="op">=</span><span class="va">sem</span>,</span></span>
 <span class="r-in"><span>            tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span></span>
-<span class="r-in"><span>            newtonsteps <span class="op">=</span> <span class="fl">0</span>,</span></span>
 <span class="r-in"><span>            estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>            control <span class="op">=</span> <span class="fu"><a href="dsem_control.html">dsem_control</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: adding 8 variances to the model</span>
@@ -215,24 +212,24 @@ ecosystem dynamics constrained by ecological mechanisms.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 17                 gnp &lt;-&gt; gnp   0         V[gnp]  &lt;NA&gt;        16         gnp</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 18               time &lt;-&gt; time   0        V[time]  &lt;NA&gt;        17        time</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         second direction    Estimate  Std_Error   z_value       p_value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  consumption         1  0.19323180 0.08199227  2.356708  1.843776e-02</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  consumption         1  0.08942121 0.08136332  1.099036  2.717524e-01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  consumption         1  0.79625660 0.03594117 22.154444 9.451951e-109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  consumption         1  0.79625660 0.03594117 22.154444 9.451951e-109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       invest         1  0.48138159 0.08740017  5.507788  3.633710e-08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       invest         1  0.33084594 0.09069259  3.647993  2.642966e-04</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7       invest         1 -0.11150749 0.02408258 -4.630214  3.652878e-06</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8        pwage         1  0.44041578 0.02921826 15.073305  2.426629e-51</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9        pwage         1  0.14476508 0.03370695  4.294813  1.748404e-05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10       pwage         1  0.13029843 0.02882713  4.519994  6.184145e-06</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11    cprofits         2  4.10929066 0.63141042  6.508114  7.610041e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12 consumption         2  0.92285209 0.14239888  6.480754  9.126542e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13       pwage         2  0.69302971 0.10701074  6.476263  9.402191e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14       gwage         2  1.90952952 0.29464657  6.480746  9.127028e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15      invest         2  0.91015014 0.14046555  6.479525  9.201155e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16     capital         2  9.67951927 1.49358531  6.480727  9.128145e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17         gnp         2 10.32018719 1.58101797  6.527558  6.685044e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18        time         2  6.05530028 0.93435296  6.480742  9.127276e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  consumption         1  0.19323185 0.08199229  2.356708  1.843776e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  consumption         1  0.08942112 0.08136334  1.099035  2.717530e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  consumption         1  0.79625663 0.03594118 22.154439 9.452934e-109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  consumption         1  0.79625663 0.03594118 22.154439 9.452934e-109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       invest         1  0.48138141 0.08740019  5.507785  3.633777e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       invest         1  0.33084616 0.09069261  3.647995  2.642950e-04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7       invest         1 -0.11150752 0.02408258 -4.630214  3.652875e-06</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8        pwage         1  0.44041577 0.02921824 15.073314  2.426312e-51</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9        pwage         1  0.14476511 0.03370693  4.294817  1.748376e-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10       pwage         1  0.13029837 0.02882711  4.519995  6.184119e-06</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11    cprofits         2  4.10929046 0.63141034  6.508114  7.610017e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 consumption         2  0.92285232 0.14239896  6.480752  9.126683e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13       pwage         2  0.69302930 0.10701058  6.476269  9.401826e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14       gwage         2  1.90952975 0.29464666  6.480745  9.127100e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15      invest         2  0.91015034 0.14046563  6.479523  9.201284e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16     capital         2  9.67950590 1.49358015  6.480741  9.127332e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17         gnp         2 10.32020497 1.58102475  6.527542  6.685791e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18        time         2  6.05530071 0.93435313  6.480741  9.127318e-11</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span> <span class="va">fit</span> <span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dsem-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span> <span class="va">fit</span>, edge_label<span class="op">=</span><span class="st">"value"</span> <span class="op">)</span></span></span>
