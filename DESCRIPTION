@@ -49,3 +49,5 @@ RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 LazyData: true
 URL: https://james-thorson-noaa.github.io/dsem/
+BugReports: https://github.com/James-Thorson-NOAA/dsem/issues
+
