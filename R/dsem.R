@@ -15,7 +15,6 @@
 #'        the stationary distribution
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
-#' @param ... Additional parameters passed to \code{\link{fit_tmb}}
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
 #' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
@@ -61,7 +60,8 @@
 #' \item{ram}{RAM parsed by \code{make_dsem_ram}}
 #' \item{model}{SEM structure parsed by \code{make_dsem_ram} as intermediate description of model linkages}
 #' \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
-#' \item{opt}{The output from \code{\link{fit_tmb}}}
+#' \item{opt}{The output from \code{\link[stats]{nlminb}}}
+#' \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 #' }
 #'
 #' @references
@@ -98,7 +98,6 @@
 #' # Fit model
 #' fit = dsem( sem=sem,
 #'             tsdata = tsdata,
-#'             newtonsteps = 0,
 #'             estimate_delta0 = TRUE,
 #'             control = dsem_control(quiet=TRUE) )
 #' summary( fit )
@@ -112,8 +111,7 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
-          control = dsem_control(),
-          ... ){
+          control = dsem_control() ){
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
