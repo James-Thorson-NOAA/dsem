@@ -1,8 +1,4 @@
 
-
-context("Testing cross platform and R version compatibility")
-
-# Eastern Bering Sea pollcok
 test_that("dsem example is working ", {
   #skip_on_ci()
   sem = "
@@ -53,5 +49,14 @@ test_that("dsem example is working ", {
 
   # Convert and plot using phylopath
   as_fitted_DAG(fit)
+
+  # Various other utilities
+  plot(fit)
+  vcov(fit)
+  print(fit)
+  logLik(fit)
+  as_sem(fit)
+  predict(fit)
+  predict(fit, newdata=Z)
 })
 
