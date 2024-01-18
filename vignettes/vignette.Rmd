@@ -64,9 +64,10 @@ tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
                "gwage","invest","capital")]
 fit = dsem( sem=sem,
             tsdata = tsdata,
-            newtonsteps = 0,
             estimate_delta0 = TRUE,
-            control = dsem_control(quiet = TRUE) )
+            control = dsem_control(
+              quiet = TRUE,
+              newton_loops = 0) )
 
 # Compile
 m1 = rbind( summary(fm_cons)$coef[-1,],
