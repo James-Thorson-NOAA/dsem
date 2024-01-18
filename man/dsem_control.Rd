@@ -5,6 +5,12 @@
 \title{Detailed control for dsem structure}
 \usage{
 dsem_control(
+  nlminb_loops = 1,
+  newton_loops = 1,
+  trace = 0,
+  eval.max = 1000,
+  iter.max = 1000,
+  getsd = TRUE,
   quiet = FALSE,
   run_model = TRUE,
   use_REML = TRUE,
@@ -13,6 +19,23 @@ dsem_control(
 )
 }
 \arguments{
+\item{nlminb_loops}{Integer number of times to call \code{\link[stats]{nlminb}}.}
+
+\item{newton_loops}{Integer number of Newton steps to do after running
+\code{\link[stats]{nlminb}}.}
+
+\item{trace}{Parameter values are printed every `trace` iteration
+for the outer optimizer. Passed to
+`control` in \code{\link[stats]{nlminb}}.}
+
+\item{eval.max}{Maximum number of evaluations of the objective function
+allowed. Passed to `control` in \code{\link[stats]{nlminb}}.}
+
+\item{iter.max}{Maximum number of iterations allowed. Passed to `control` in
+\code{\link[stats]{nlminb}}.}
+
+\item{getsd}{Boolean indicating whether to call \code{\link[TMB]{sdreport}}}
+
 \item{quiet}{Boolean indicating whether to run model printing messages to terminal or not;}
 
 \item{run_model}{Boolean indicating whether to estimate parameters (the default), or
