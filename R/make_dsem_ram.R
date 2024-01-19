@@ -199,21 +199,21 @@ function( sem,
 
   # MATH CHECK IN ROXYGEN DOCS ABOVE
   if( FALSE ){
-    rho = 0.8
-    sigma = 0.5
-    Rho = Gamma = matrix(0, nrow=4, ncol=4)
-    Rho[cbind(2:4,1:3)] = rho
-    Gamma = I = diag(4)
-    diag(Gamma)[] = sigma
-    # DSEM covariance
-    solve(I-Rho) %*% Gamma %*% t(Gamma) %*% t(solve(I-Rho))
-    # Stated covariance
-    sigma^2 * rbind(
-      c(1, rho, rho^2, rho^3),
-      c(rho, 1+rho^2, rho*(1+rho^2), rho^2*(1+rho^2) ),
-      c(rho^2, rho*(1+rho^2), 1+rho^2+rho^4, rho*(1+rho^2+rho^4) ),
-      c(rho^3, rho^2*(1+rho^2), rho*(1+rho^2+rho^4), 1+rho^2+rho^4+rho^6 )
-    )
+    #rho = 0.8
+    #sigma = 0.5
+    #Rho = Gamma = matrix(0, nrow=4, ncol=4)
+    #Rho[cbind(2:4,1:3)] = rho
+    #Gamma = I = diag(4)
+    #diag(Gamma)[] = sigma
+    ## DSEM covariance
+    #solve(I-Rho) %*% Gamma %*% t(Gamma) %*% t(solve(I-Rho))
+    ## Stated covariance
+    #sigma^2 * rbind(
+    #  c(1, rho, rho^2, rho^3),
+    #  c(rho, 1+rho^2, rho*(1+rho^2), rho^2*(1+rho^2) ),
+    #  c(rho^2, rho*(1+rho^2), 1+rho^2+rho^4, rho*(1+rho^2+rho^4) ),
+    #  c(rho^3, rho^2*(1+rho^2), rho*(1+rho^2+rho^4), 1+rho^2+rho^4+rho^6 )
+    #)
   }
 
   ####### Error checks
