@@ -58,5 +58,13 @@ test_that("dsem example is working ", {
   as_sem(fit)
   predict(fit)
   predict(fit, newdata=Z)
+
+  # Refit with measurement errors
+  fit1 = dsem( sem=sem,
+               tsdata=Z,
+               family = c("normal","gamma",rep("fixed",ncol(Z)-2)),
+               control = dsem_control(getsd=FALSE, newton_loops=0) )
+  residuals(fit1, type="deviance")
+  residuals(fit1, type="response")
 })
 
