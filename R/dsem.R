@@ -236,7 +236,9 @@ function( sem,
   if( isTRUE(control$getsd) ){
     if( isTRUE(control$verbose) ) message("Running sdreport")
     Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
-    out$sdrep = sdreport( obj, hessian.fixed=Hess_fixed )
+    out$sdrep = sdreport( obj,
+                          hessian.fixed = Hess_fixed,
+                          getJointPrecision = control$getJointPrecision )
   }else{
     out$sdrep = NULL
   }
@@ -273,6 +275,8 @@ function( sem,
 #'        by hand (only helpful for advanced users to change starting values or restart at intended values)
 #' @param map list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
 #'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
+#' @param getJointPrecision whether to get the joint precision matrix.  Passed
+#'        to \code{\link[TMB]{sdreport}}.
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -290,7 +294,8 @@ function( nlminb_loops = 1,
           run_model = TRUE,
           use_REML = TRUE,
           parameters = NULL,
-          map = NULL ){
+          map = NULL,
+          getJointPrecision = FALSE ){
 
   # Return
   structure( list(
@@ -304,7 +309,8 @@ function( nlminb_loops = 1,
     run_model = run_model,
     use_REML = use_REML,
     parameters = parameters,
-    map = map
+    map = map,
+    getJointPrecision = getJointPrecision
   ), class = "dsem_control" )
 }
 
@@ -521,7 +527,7 @@ function( object,
                      control = control )
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
-      out[[r]] = obj$simulate( par_zr[,r] )
+      out[[r]] = obj$simulate( par_zr[,r] )$y_tj
     }
     colnames(out[[r]]) = colnames(tsdata)
     tsp(out[[r]]) = attr(tsdata,"tsp")

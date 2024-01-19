@@ -43,7 +43,9 @@ test_that("dsem example is working ", {
   Z = ts( cbind(Data, "neg_Gov_wage"=-1*Data[,'Gov_wage']) )
 
   # Fit model
-  fit = dsem( sem=sem, tsdata=Z )
+  fit = dsem( sem=sem,
+              tsdata=Z,
+              control = dsem_control(getJointPrecision=TRUE) )
   # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 587.4755, tolerance=1e-2 )
 
