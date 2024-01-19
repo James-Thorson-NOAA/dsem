@@ -14,7 +14,7 @@ dsem"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathja
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,7 +74,8 @@ the format of this input is likely to change more rapidly than that of
 <span>  run_model <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  use_REML <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  parameters <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  map <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  map <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  getJointPrecision <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -132,6 +133,11 @@ by hand (only helpful for advanced users to change starting values or restart at
 <dt>map</dt>
 <dd><p>list of fixed and mirrored parameters, constructed by <code>dsem</code> by default but available
 to override this default and then pass to <code><a href="https://rdrr.io/pkg/TMB/man/MakeADFun.html" class="external-link">MakeADFun</a></code></p></dd>
+
+
+<dt>getJointPrecision</dt>
+<dd><p>whether to get the joint precision matrix.  Passed
+to <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
