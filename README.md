@@ -1,4 +1,9 @@
 ## Dynamic structural equation models
+
+[![](https://cranlogs.r-pkg.org/badges/dsem)](https://cran.r-project.org/package=dsem)
+[![DOI](https://zenodo.org/badge/656795688.svg)](https://zenodo.org/doi/10.5281/zenodo.10304770)
+[![Codecov test coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
+
 Package _dsem_ fits dynamic structural equation models, which includes as nested submodels:
 
 1. structural equation models
@@ -23,8 +28,4 @@ _phylosem_ is specifically intended as a minimal implementation, and uses standa
 
 Please see package vignettes for more details regarding syntax and features.
 
-[![](https://cranlogs.r-pkg.org/badges/dsem)](https://cran.r-project.org/package=dsem)
 
-[![DOI](https://zenodo.org/badge/656795688.svg)](https://zenodo.org/doi/10.5281/zenodo.10304770)
-
-[![Codecov test coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
