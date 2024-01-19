@@ -52,12 +52,19 @@ test_that("dsem example is working ", {
 
   # Various other utilities
   plot(fit)
-  vcov(fit)
+  vcov(fit, which="fixed")
+  vcov(fit, which="random")
+  vcov(fit, which="both")
   print(fit)
   logLik(fit)
   as_sem(fit)
-  predict(fit)
-  predict(fit, newdata=Z)
+  predict(fit, type="link")
+  predict(fit, type="response")
+  predict(fit, type="link", newdata=Z)
+  simulate(fit, variance = "none")
+  simulate(fit, variance = "random")
+  simulate(fit, variance = "both")
+  simulate(fit, resimulate_gmrf=TRUE)
 
   # Refit with measurement errors
   fit1 = dsem( sem=sem,
