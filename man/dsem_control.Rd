@@ -15,7 +15,8 @@ dsem_control(
   run_model = TRUE,
   use_REML = TRUE,
   parameters = NULL,
-  map = NULL
+  map = NULL,
+  getJointPrecision = FALSE
 )
 }
 \arguments{
@@ -50,6 +51,9 @@ by hand (only helpful for advanced users to change starting values or restart at
 
 \item{map}{list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
 to override this default and then pass to \code{\link[TMB]{MakeADFun}}}
+
+\item{getJointPrecision}{whether to get the joint precision matrix.  Passed
+to \code{\link[TMB]{sdreport}}.}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

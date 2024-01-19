@@ -1,8 +1,4 @@
 
-
-context("Testing cross platform and R version compatibility")
-
-# Eastern Bering Sea pollcok
 test_that("dsem example is working ", {
   #skip_on_ci()
   sem = "
@@ -47,11 +43,37 @@ test_that("dsem example is working ", {
   Z = ts( cbind(Data, "neg_Gov_wage"=-1*Data[,'Gov_wage']) )
 
   # Fit model
-  fit = dsem( sem=sem, tsdata=Z )
+  fit = dsem( sem=sem,
+              tsdata=Z,
+              control = dsem_control(getJointPrecision=TRUE) )
   # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 587.4755, tolerance=1e-2 )
 
   # Convert and plot using phylopath
   as_fitted_DAG(fit)
+
+  # Various other utilities
+  plot(fit)
+  vcov(fit, which="fixed")
+  vcov(fit, which="random")
+  vcov(fit, which="both")
+  print(fit)
+  logLik(fit)
+  as_sem(fit)
+  predict(fit, type="link")
+  predict(fit, type="response")
+  predict(fit, type="link", newdata=Z)
+  simulate(fit, variance = "none")
+  simulate(fit, variance = "random")
+  simulate(fit, variance = "both")
+  simulate(fit, resimulate_gmrf=TRUE)
+
+  # Refit with measurement errors
+  fit1 = dsem( sem=sem,
+               tsdata=Z,
+               family = c("normal","gamma",rep("fixed",ncol(Z)-2)),
+               control = dsem_control(getsd=FALSE, newton_loops=0) )
+  residuals(fit1, type="deviance")
+  residuals(fit1, type="response")
 })
 

@@ -62,6 +62,8 @@
 #' \item{tmb_inputs}{The list of inputs passed to \code{\link[TMB]{MakeADFun}}}
 #' \item{opt}{The output from \code{\link[stats]{nlminb}}}
 #' \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
+#' \item{interal}{Objects useful for package function, i.e., all arguments
+#'                passed during the call}
 #' }
 #'
 #' @references
@@ -134,7 +136,7 @@ function( sem,
   #
   Data = list( "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
-               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1 ),
+               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
                "y_tj" = tsdata )
 
   # Construct parameters
@@ -183,11 +185,19 @@ function( sem,
   }
   obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
   if(control$quiet==FALSE) list_parameters(obj)
+  internal = list(
+    sem = sem,
+    tsdata = tsdata,
+    family = family,
+    estimate_delta0 = estimate_delta0,
+    control = control
+  )
   out = list( "obj"=obj,
               "ram"=ram,
               "sem_full"=out$model,
               "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map),
-              "call" = match.call() )
+              #"call" = match.call(),
+              "internal" = internal )
 
   # Export stuff
   if( control$run_model==FALSE ){
@@ -226,7 +236,9 @@ function( sem,
   if( isTRUE(control$getsd) ){
     if( isTRUE(control$verbose) ) message("Running sdreport")
     Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
-    out$sdrep = sdreport( obj, hessian.fixed=Hess_fixed )
+    out$sdrep = sdreport( obj,
+                          hessian.fixed = Hess_fixed,
+                          getJointPrecision = control$getJointPrecision )
   }else{
     out$sdrep = NULL
   }
@@ -263,6 +275,8 @@ function( sem,
 #'        by hand (only helpful for advanced users to change starting values or restart at intended values)
 #' @param map list of fixed and mirrored parameters, constructed by \code{dsem} by default but available
 #'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
+#' @param getJointPrecision whether to get the joint precision matrix.  Passed
+#'        to \code{\link[TMB]{sdreport}}.
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -280,7 +294,8 @@ function( nlminb_loops = 1,
           run_model = TRUE,
           use_REML = TRUE,
           parameters = NULL,
-          map = NULL ){
+          map = NULL,
+          getJointPrecision = FALSE ){
 
   # Return
   structure( list(
@@ -294,7 +309,8 @@ function( nlminb_loops = 1,
     run_model = run_model,
     use_REML = use_REML,
     parameters = parameters,
-    map = map
+    map = map,
+    getJointPrecision = getJointPrecision
   ), class = "dsem_control" )
 }
 
@@ -466,7 +482,7 @@ function( object,
   # pull out objects for easy use
   obj = object$obj
   parfull = obj$env$parList()
-  tsdata = eval(object$call$tsdata)
+  tsdata = object$internal$tsdata
 
   # Extract parameters, and add noise as desired
   par_zr = outer( obj$env$last.par.best, rep(1,nsim) )
@@ -492,17 +508,26 @@ function( object,
       Q_kk = newrep$Q_kk
       tmp = rmvnorm_prec( newrep$delta_k + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
-      newcall = object$call
+      #newcall = object$call
       # Get control
-      newcall$control = eval(newcall$control)
-      newcall$control$parameters = newparfull
-      newcall$control$parameters$x_tj[] = tmp
+      #newcall$control = eval(newcall$control)
+      #newcall$control$parameters = newparfull
+      #newcall$control$parameters$x_tj[] = tmp
       # Rebuild model with new GMRF values
-      newcall$control$run_model = FALSE
-      newfit = eval(newcall)
+      #newcall$control$run_model = FALSE
+      #newfit = eval(newcall)
+      control = object$internal$control
+      control$parameters = newparfull
+      control$parameters$x_tj[] = tmp
+      control$run_model = FALSE
+      newfit = dsem( sem = object$internal$sem,
+                     tsdata = object$internal$tsdata,
+                     family = object$internal$family,
+                     estimate_delta0 = object$internal$estimate_delta0,
+                     control = control )
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
-      out[[r]] = obj$simulate( par_zr[,r] )
+      out[[r]] = obj$simulate( par_zr[,r] )$y_tj
     }
     colnames(out[[r]]) = colnames(tsdata)
     tsp(out[[r]]) = attr(tsdata,"tsp")
@@ -579,43 +604,43 @@ function( object,
 
   # https://stats.stackexchange.com/questions/1432/what-do-the-residuals-in-a-logistic-regression-mean
   # Normal deviance residuals
-  if( FALSE ){
-    x = rnorm(10)
-    y = x + rnorm(10)
-    Glm = glm( y ~ 1 + x, family="gaussian")
-    mu = predict(Glm,type="response")
-    r1 = y - mu
-    r1 - resid(Glm)
-  }
-  # Poisson deviance residuals
-  if( FALSE ){
-    x = rnorm(10)
-    y = rpois(10, exp(x))
-    Glm = glm( y ~ 1 + x, family="poisson")
-    mu = predict(Glm,type="response")
-    # https://stats.stackexchange.com/questions/398098/formula-for-deviance-residuals-for-poisson-model-with-identity-link-function
-    r1 = sign(y - mu) * sqrt(2*(y*log((y+1e-10)/mu) - (y-mu)))
-    r1 - resid(Glm)
-  }
-  # Binomial deviance residuals
-  if( FALSE ){
-    p = 0.5
-    y = rbinom(10, prob=p, size=1)
-    Glm = glm( y ~ 1, family="binomial")
-    mu = predict(Glm, type="response")
-    r1 = sign(y - mu) * sqrt(-2*(((1-y)*log(1-mu) + y*log(mu))))
-    r1 - resid(Glm)
-  }
-  # Gamma deviance residuals
-  if( FALSE ){
-    mu = 1
-    cv = 0.8
-    y = rgamma( n=10, shape=1/cv^2, scale=mu*cv^2 )
-    Glm = glm( y ~ 1, family=Gamma(link='log'))
-    mu = predict(Glm, type="response")
-    r1 = sign(y - mu) * sqrt(2 * ( (y-mu)/mu - log(y/mu) ))
-    r1 - resid(Glm)
-  }
+  #if( FALSE ){
+  #  x = rnorm(10)
+  #  y = x + rnorm(10)
+  #  Glm = glm( y ~ 1 + x, family="gaussian")
+  #  mu = predict(Glm,type="response")
+  #  r1 = y - mu
+  #  r1 - resid(Glm)
+  #}
+  ## Poisson deviance residuals
+  #if( FALSE ){
+  #  x = rnorm(10)
+  #  y = rpois(10, exp(x))
+  #  Glm = glm( y ~ 1 + x, family="poisson")
+  #  mu = predict(Glm,type="response")
+  #  # https://stats.stackexchange.com/questions/398098/formula-for-deviance-residuals-for-poisson-model-with-identity-link-function
+  #  r1 = sign(y - mu) * sqrt(2*(y*log((y+1e-10)/mu) - (y-mu)))
+  #  r1 - resid(Glm)
+  #}
+  ## Binomial deviance residuals
+  #if( FALSE ){
+  #  p = 0.5
+  #  y = rbinom(10, prob=p, size=1)
+  #  Glm = glm( y ~ 1, family="binomial")
+  #  mu = predict(Glm, type="response")
+  #  r1 = sign(y - mu) * sqrt(-2*(((1-y)*log(1-mu) + y*log(mu))))
+  #  r1 - resid(Glm)
+  #}
+  ## Gamma deviance residuals
+  #if( FALSE ){
+  #  mu = 1
+  #  cv = 0.8
+  #  y = rgamma( n=10, shape=1/cv^2, scale=mu*cv^2 )
+  #  Glm = glm( y ~ 1, family=Gamma(link='log'))
+  #  mu = predict(Glm, type="response")
+  #  r1 = sign(y - mu) * sqrt(2 * ( (y-mu)/mu - log(y/mu) ))
+  #  r1 - resid(Glm)
+  #}
 
   # Poisson: sign(y - mu) * sqrt(2*(ifelse(y==0, 0, y*log(y/mu)) - (y-mu)))
   # Binomial:  -2 * ((1-y)*log(1-mu) + y*log(mu))
@@ -701,11 +726,18 @@ function( object,
     if(type=="link") out = parfull$x_tj
     if(type=="response") out = report$mu_tj
   }else{
-    newcall = object$call
-    newcall$tsdata = newdata
+    #newcall = object$call
+    #newcall$tsdata = newdata
     # Rebuild model with new data
-    newcall$run_model = FALSE
-    newfit = eval(newcall)
+    #newcall$run_model = FALSE
+    #newfit = eval(newcall)
+    control = object$internal$control
+    control$run_model = FALSE
+    newfit = dsem( sem = object$internal$sem,
+                   tsdata = newdata,
+                   family = object$internal$family,
+                   estimate_delta0 = object$internal$estimate_delta0,
+                   control = object$internal$control )
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor
@@ -803,7 +835,7 @@ function( object,
   model = model[model[,2]==0,c(1,3,4)]
   out = sem( model,
              S = Sprime,
-             N = nrow(eval(object$call$tsdata)) )
+             N = nrow(object$internal$tsdata) )
 
   # pass out
   return(out)
