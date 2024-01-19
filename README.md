@@ -1,7 +1,7 @@
 ## Dynamic structural equation models
 
+[![](https://www.r-pkg.org/badges/version/dsem)](https://cran.r-project.org/package=dsem)
 [![](https://cranlogs.r-pkg.org/badges/dsem)](https://cran.r-project.org/package=dsem)
-[![DOI](https://zenodo.org/badge/656795688.svg)](https://zenodo.org/doi/10.5281/zenodo.10304770)
 [![Codecov test coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
 [![Documentation](https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
 
