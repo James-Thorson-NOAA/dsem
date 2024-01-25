@@ -1,6 +1,6 @@
 ---
 title: "Demonstration of selected features"
-author: "Anonymous"
+author: "James Thorson"
 output: rmarkdown::html_vignette
 #output: rmarkdown::pdf_document
 vignette: >
@@ -35,7 +35,7 @@ library(phylopath)
 
 We first demonstrate that `dsem` gives identical results to `dynlm` for a well-known econometric model, the Klein-1 model.
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 data(KleinI, package="AER")
 TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
@@ -148,7 +148,7 @@ This dataset was previously analyzed by in Chapter 14 of the User Manual for the
 
 Here, we compare fits using `dsem` with `dynlm`, as well as a vector autoregressive model package `vars`, and finally with `MARSS`.
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+```{r, echo=TRUE, message=FALSE, fig.width=5, fig.height=7}
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
 
@@ -242,7 +242,7 @@ Results again show that `dsem` can estimate parameters for a vector autoregressi
 
 We next replicate an analysis involving climate, forage fishes, stomach contents, and recruitment of a predatory fish.
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 data(bering_sea)
 Z = ts( bering_sea )
 family = rep('fixed', ncol(bering_sea))
@@ -277,7 +277,8 @@ fit = dsem( sem = sem,
             control = dsem_control(use_REML=FALSE, quiet=TRUE) )
 ParHat = fit$obj$env$parList()
 # summary( fit )
-
+```
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Timeseries plot
 oldpar <- par(no.readonly = TRUE)
 par( mfcol=c(3,3), mar=c(2,2,2,0), mgp=c(2,0.5,0), tck=-0.02 )
@@ -296,7 +297,8 @@ for(i in 1:ncol(bering_sea)){
            y=c(tmp[,3],rev(tmp[,4])), col=rgb(0,0,1,0.2), border=NA )
 }
 par(oldpar)
-
+```
+```{r, echo=TRUE, message=FALSE, fig.width=8, fig.height=8}
 #
 library(phylopath)
 library(ggplot2)
@@ -333,7 +335,7 @@ These results are further discussed in the paper describing dsem.
 
 Finally, we replicate an analysis involving a trophic cascade involving sea stars predators, sea urchin consumers, and kelp producers.
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+```{r, echo=TRUE, message=FALSE, fig.width=5, fig.height=7}
 data(sea_otter)
 Z = ts( sea_otter[,-1] )
 
