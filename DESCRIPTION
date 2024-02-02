@@ -2,7 +2,7 @@ Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
 Version: 1.0.2
-Date: 2024-01-17
+Date: 2024-02-01
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
