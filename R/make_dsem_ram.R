@@ -5,6 +5,7 @@
 #' @inheritParams dsem
 #' @param times A character vector listing the set of times in order
 #' @param variables A character vector listing the set of variables
+#' @param covs A character vector listing variables for which to estimate a standard deviation
 #' @param quiet Boolean indicating whether to print messages to terminal
 #' @param remove_na Boolean indicating whether to remove NA values from RAM (default) or not.
 #'            \code{remove_NA=FALSE} might be useful for exploration and diagnostics for
@@ -193,6 +194,7 @@ make_dsem_ram <-
 function( sem,
           times,
           variables,
+          covs = NULL,
           quiet = FALSE,
           remove_na = TRUE ){
   # Docs : https://roxygen2.r-lib.org/articles/formatting.html
@@ -284,24 +286,25 @@ function( sem,
   model$par[model$par == ""] <- NA
   model <- cbind( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
 
-  #if( !is.null(covs) ){
-  #  for (cov in covs) {
-  #    vars <- strsplit(cov, "[ ,]+")[[1]]
-  #    nvar <- length(vars)
-  #    for (i in 1:nvar) {
-  #    for (j in i:nvar) {
-  #      p1 = paste(vars[i], "<->", vars[j])
-  #      p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
-  #      p3 = NA
-  #      row <- c(p1, 0, p2, p3)
-  #      if( any((row[1]==model[,1]) & (row[2]==model[,2])) ){
-  #        next
-  #      }else{
-  #        model <- rbind(model, row, deparse.level = 0)
-  #      }
-  #    }}
-  #  }
-  #}
+  # Adding a SD automatically
+  if( !is.null(covs) ){
+    for (cov in covs) {
+      vars <- strsplit(cov, "[ ,]+")[[1]]
+      nvar <- length(vars)
+      for (i in 1:nvar) {
+      for (j in i:nvar) {
+        p1 = paste(vars[i], "<->", vars[j])
+        p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
+        p3 = NA
+        row <- c(p1, 0, p2, p3)
+        if( any((row[1]==model[,1]) & (row[2]==model[,2])) ){
+          next
+        }else{
+          model <- rbind(model, row, deparse.level = 0)
+        }
+      }}
+    }
+  }
 
   exog.variances = endog.variances = TRUE
   model = add.variances()
