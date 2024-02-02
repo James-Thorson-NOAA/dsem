@@ -77,3 +77,14 @@ test_that("dsem example is working ", {
   residuals(fit1, type="response")
 })
 
+test_that("dsem adds variances ", {
+  data(isle_royale)
+  data = ts( log(isle_royale[,2:3]), start=1959)
+
+  sem = "
+  "
+  # initial first without delta0 (to improve starting values)
+  fit = dsem( sem = sem,
+               tsdata = data )
+})
+
