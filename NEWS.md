@@ -2,6 +2,8 @@
 
 * Eliminate `eval` usage
 * Add codecov Action and badge
+* Change default behavior so that all variables in `tsdata` have a standard
+  deviation by default
 
 # dsem 1.0.1
 

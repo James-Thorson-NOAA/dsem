@@ -2,7 +2,7 @@ Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
 Version: 1.0.2
-Date: 2024-01-17
+Date: 2024-02-01
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -10,8 +10,8 @@ Authors@R:
              email = "James.Thorson@noaa.gov")
     )
 Imports:
-    TMB (>= 1.9.7),
-    Matrix (>= 1.6.3),
+    TMB,
+    Matrix,
     sem,
     igraph,
     methods

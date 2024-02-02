@@ -1,5 +1,4 @@
 
-root_dir = R'(C:\Users\James.Thorson\Desktop\Work files\Collaborations\2023 -- DSEM\CRAN submission)'
 
 library(devtools)
 setwd( R'(C:\Users\James.Thorson\Desktop\Git\dsem)' )
@@ -66,6 +65,7 @@ if( FALSE ){
 }
 
 # Build for uploading via web interface
+root_dir = R'(C:\Users\James.Thorson\Desktop\Git\dsem\scratch)'
 # https://cran.r-project.org/submit.html
 build( path=root_dir, manual=TRUE )
 

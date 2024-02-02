@@ -4,7 +4,14 @@
 \alias{make_dsem_ram}
 \title{Make a RAM (Reticular Action Model)}
 \usage{
-make_dsem_ram(sem, times, variables, quiet = FALSE, remove_na = TRUE)
+make_dsem_ram(
+  sem,
+  times,
+  variables,
+  covs = NULL,
+  quiet = FALSE,
+  remove_na = TRUE
+)
 }
 \arguments{
 \item{sem}{Specification for time-series structural equation model structure
@@ -14,6 +21,8 @@ including lagged or simultaneous effects.  See Details section in
 \item{times}{A character vector listing the set of times in order}
 
 \item{variables}{A character vector listing the set of variables}
+
+\item{covs}{A character vector listing variables for which to estimate a standard deviation}
 
 \item{quiet}{Boolean indicating whether to print messages to terminal}
 

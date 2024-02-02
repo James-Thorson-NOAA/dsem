@@ -122,6 +122,7 @@ function( sem,
   out = make_dsem_ram( sem,
                   times = as.numeric(time(tsdata)),
                   variables = colnames(tsdata),
+                  covs = colnames(tsdata),
                   quiet = control$quiet )
   ram = out$ram
 

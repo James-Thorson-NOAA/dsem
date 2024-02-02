@@ -77,3 +77,21 @@ test_that("dsem example is working ", {
   residuals(fit1, type="response")
 })
 
+test_that("dsem adds variances ", {
+  data(isle_royale)
+  data = ts( log(isle_royale[,2:3]), start=1959)
+
+  sem = "
+    wolves <-> wolves, 0, sd1
+    moose <-> moose, 0, sd2
+  "
+  # initial first without delta0 (to improve starting values)
+  fit1 = dsem( sem = "",
+               tsdata = data )
+  # initial first without delta0 (to improve starting values)
+  fit2 = dsem( sem = sem,
+               tsdata = data )
+  # Check objective function
+  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
+})
+
