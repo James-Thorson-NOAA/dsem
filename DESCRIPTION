@@ -10,8 +10,8 @@ Authors@R:
              email = "James.Thorson@noaa.gov")
     )
 Imports:
-    TMB (>= 1.9.7),
-    Matrix (>= 1.6.3),
+    TMB,
+    Matrix,
     sem,
     igraph,
     methods
