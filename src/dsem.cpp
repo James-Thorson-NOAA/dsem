@@ -43,12 +43,12 @@ Type objective_function<Type>::operator() ()
   sigma_j = exp( lnsigma_j );
 
   // Assemble precision
-  // Using Gamma_kk seems to crash when fixing values
   Eigen::SparseMatrix<Type> Q_kk( n_k, n_k );
   // SEM
   Eigen::SparseMatrix<Type> Linv_kk(n_k, n_k);
   Eigen::SparseMatrix<Type> Rho_kk(n_k, n_k);
-  //Eigen::SparseMatrix<Type> Gamma_kk(n_k, n_k);
+  Eigen::SparseMatrix<Type> Gamma_jj(n_j, n_j);
+  Eigen::SparseMatrix<Type> Gamma_kk(n_k, n_k);
   Eigen::SparseMatrix<Type> Gammainv_kk(n_k, n_k);
   //matrix<Type> Gammainv2_kk(n_k, n_k);
   Eigen::SparseMatrix<Type> I_kk( n_k, n_k );
@@ -66,14 +66,48 @@ Type objective_function<Type>::operator() ()
       tmp = RAMstart(r);
     }
     if(RAM(r,0)==1) Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
-    //if(RAM(r,0)==2) Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = beta_z(RAM(r,3)-1); // Cholesky of covariance, so -Inf to Inf;
+    //if((RAM(r,0)==2) && (RAM(r,1)==(n_t)) && (RAM(r,2)<=n_j)){
+    //  Gamma_jj.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
+    //}
+    if(RAM(r,0)==2){
+      Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp; // Cholesky of covariance, so -Inf to Inf;
+    }
     if(RAM(r,0)==2) Gammainv_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = 1 / tmp;
   }
-  //Gammainv2_kk = invertSparseMatrix( Gamma_kk );
-  //Linv_kk = asSparseMatrix(Gammainv2_kk) * ( I_kk - Rho_kk );
-  Linv_kk = Gammainv_kk * ( I_kk - Rho_kk );
-  Q_kk = Linv_kk.transpose() * Linv_kk;
+  // Option-1
+  //Eigen::SparseMatrix<Type> Q1_kk( n_k, n_k );
+  //Linv_kk = Gammainv_kk * ( I_kk - Rho_kk );
+  //Q1_kk = Linv_kk.transpose() * Linv_kk;
 
+  //Eigen::SparseMatrix<Type> Q2_kk( n_k, n_k );
+  //REPORT( Gamma_jj );
+  //matrix<Type> Gammainv_jj( n_j, n_j );
+  //Gammainv_jj = invertSparseMatrix( Gamma_jj );  // Returns dense matrix (trying to return sparse throws compiler error)
+  //REPORT( Gammainv_jj );
+  //Eigen::SparseMatrix<Type> Gammainv2_jj( n_j, n_j );
+  //Gammainv2_jj = asSparseMatrix( Gammainv_jj );
+  //REPORT( Gammainv2_jj );
+  //Eigen::SparseMatrix<Type> I_tt( n_t, n_t );
+  //I_tt.setIdentity();
+  //REPORT( I_tt );
+  //Eigen::SparseMatrix<Type> Gammainv2_kk( n_k, n_k );
+  //Gammainv2_kk = kronecker( Gammainv2_jj, I_tt );
+  //REPORT( Gammainv2_kk );
+  //REPORT( Gammainv_kk );
+  //Linv_kk = asSparseMatrix(Gammainv2_kk) * ( I_kk - Rho_kk );
+
+  // Option-3
+  Eigen::SparseMatrix<Type> V_kk( n_k, n_k );
+  V_kk = Gamma_kk.transpose() * Gamma_kk;
+  matrix<Type> Vinv_kk( n_k, n_k );
+  Vinv_kk = invertSparseMatrix( V_kk );
+  Eigen::SparseMatrix<Type> Vinv2_kk( n_k, n_k );
+  Vinv2_kk = asSparseMatrix( Vinv_kk );
+  REPORT( Gamma_kk );
+  REPORT( Vinv2_kk );
+  Eigen::SparseMatrix<Type> Linv2_kk(n_k, n_k);
+  Linv2_kk = I_kk - Rho_kk;
+  Q_kk = Linv2_kk.transpose() * Vinv2_kk * Linv2_kk;
 
   // Calculate effect of initial condition -- SPARSE version
   vector<Type> delta_k( n_k );
