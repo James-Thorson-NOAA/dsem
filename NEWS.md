@@ -1,3 +1,7 @@
+# dsem 1.1.0
+
+* Adding option to specify covariance in Gamma
+
 # dsem 1.0.2
 
 * Eliminate `eval` usage
