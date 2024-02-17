@@ -1,10 +1,12 @@
 citHeader("For methodological details regarding dynamic structural equation models, please see Thorson et al. (2024).")
 
 bibentry(bibtype = "Article",
-           textVersion = "Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (In press). Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms. Methods in Ecology and Evolution.",
+           textVersion = "Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024). Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms. Methods in Ecology and Evolution.",
            title = "Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms",
            journal = "Methods in Ecology and Evolution",
            year = "2024",
+           doi = "10.1111/2041-210X.14289",
+           url = "https://doi.org/10.1111/2041-210X.14289",
            author = c(person(given = c("J.", "T."),
                              family = "Thorson"),
                       person(given = c("A.", "G."),
