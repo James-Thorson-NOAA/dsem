@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
-Version: 1.0.2
-Date: 2024-02-01
+Version: 1.1.0
+Date: 2024-02-16
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -40,7 +40,7 @@ LinkingTo:
     RcppEigen
 Description: Applies dynamic structural equation models to time-series data
 	with generic and simplified specification for simultaneous and lagged
-	effects. Methods are described in Thorson et al. (In press)
+	effects. Methods are described in Thorson et al. (2024)
 	"Dynamic structural equation models synthesize ecosystem dynamics 
 	constrained by ecological mechanisms."  
 License: GPL-3
