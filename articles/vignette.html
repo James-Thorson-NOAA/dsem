@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -243,8 +243,6 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span>             control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span></span>
 <span>               quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>               getsd <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in nlminb(start = out$opt$par, objective = obj$fn, gradient = obj$gr, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co"># Refit with delta0</span></span>
 <span><span class="va">fit</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> sem <span class="op">=</span> <span class="va">sem</span>,</span>
 <span>            tsdata <span class="op">=</span> <span class="va">data</span>,</span>
@@ -381,6 +379,11 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span>            tsdata <span class="op">=</span> <span class="va">Z</span>,</span>
 <span>            family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span>use_REML<span class="op">=</span><span class="cn">FALSE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in nlminb(start = out$opt$par, objective = obj$fn, gradient = obj$gr, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in nlminb(start = out$opt$par, objective = obj$fn, gradient = obj$gr, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="va">ParHat</span> <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">obj</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="fu">parList</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># summary( fit )</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
