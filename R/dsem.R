@@ -13,6 +13,13 @@
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
+#' @param covs optional: a character vector of one or more elements, with each element giving a string of variable 
+#'        names, separated by commas. Variances and covariances among all variables in each such string are 
+#'        added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent: 
+#'        covs="x1, x2" specifies the variance of x1, the variance of x2, and their covariance, 
+#'        while covs=c("x1", "x2") specifies the variance of x1 and the variance of x2 but not their covariance.
+#'        These same covariances can be added manually via argument `sem`, but using argument `covs` might
+#'        save time for models with many variables.
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
 #'
@@ -113,16 +120,22 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
-          control = dsem_control() ){
+          control = dsem_control(),
+          covs = colnames(tsdata) ){
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
+  if( control$gmrf_parameterization=="projection" ){
+    if( any(family=="fixed" & colSums(!is.na(tsdata))>0) ){
+      stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
+    }
+  }
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
   out = make_dsem_ram( sem,
                   times = as.numeric(time(tsdata)),
                   variables = colnames(tsdata),
-                  covs = colnames(tsdata),
+                  covs = covs,
                   quiet = control$quiet )
   ram = out$ram
 
@@ -135,7 +148,8 @@ function( sem,
   }
 
   #
-  Data = list( "RAM" = as.matrix(na.omit(ram[,1:4])),
+  Data = list( "options" = ifelse(control$gmrf_parameterization=="separable",0,1),
+               "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
                "y_tj" = tsdata )
@@ -146,7 +160,12 @@ function( sem,
                    "lnsigma_j" = rep(0,ncol(tsdata)),
                    "mu_j" = rep(0,ncol(tsdata)),
                    "delta0_j" = rep(0,ncol(tsdata)),
-                   "x_tj" = ifelse( is.na(tsdata), 0, tsdata ))
+                   "x_tj" = ifelse( is.na(tsdata), 0, tsdata ) )
+    #if( control$gmrf_parameterization=="separable" ){
+    #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
+    #}else{
+    #  Params$eps_tj = ifelse( is.na(tsdata), 0, tsdata )
+    #}
 
     # Turn off initial conditions
     if( estimate_delta0==FALSE ){
@@ -268,6 +287,12 @@ function( sem,
 #' @param getsd Boolean indicating whether to call \code{\link[TMB]{sdreport}}
 #' @param run_model Boolean indicating whether to estimate parameters (the default), or
 #'        instead to return the model inputs and compiled TMB object without running;
+#' @param gmrf_parameterization Parameterization to use for the Gaussian Markov 
+#'        random field, where the default `separable` constructs a precision matrix
+#'        that must be full rank, and the alternative `projection` constructs
+#'        a full-rank and IID precision for variables over time, and then projects
+#'        this using the inverse-cholesky of the precision, where this projection
+#'        can be rank-deficient.
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
 #' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
 #'        either to motigate bias in estimated variance parameters or improve efficiency for
@@ -293,10 +318,13 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
+          gmrf_parameterization = c("separable","projection"),
           use_REML = TRUE,
           parameters = NULL,
           map = NULL,
           getJointPrecision = FALSE ){
+
+  gmrf_parameterization = match.arg(gmrf_parameterization)
 
   # Return
   structure( list(
@@ -308,6 +336,7 @@ function( nlminb_loops = 1,
     getsd = getsd,
     quiet = quiet,
     run_model = run_model,
+    gmrf_parameterization = gmrf_parameterization,
     use_REML = use_REML,
     parameters = parameters,
     map = map,
