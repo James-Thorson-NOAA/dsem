@@ -1,3 +1,9 @@
+# dsem 1.2.0
+
+* Adding option to specify covariance via argument `covs`
+* Adding options to specify gmrf_parameterization="projection"
+* Adding vigette outlining how to fit dynamic factor analysis
+
 # dsem 1.1.0
 
 * Adding option to specify covariance in Gamma

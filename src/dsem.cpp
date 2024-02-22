@@ -47,7 +47,7 @@ Type objective_function<Type>::operator() ()
   // Assemble precision
   // SEM
   Eigen::SparseMatrix<Type> Rho_kk(n_k, n_k);
-  Eigen::SparseMatrix<Type> Gamma_jj(n_j, n_j);
+  //Eigen::SparseMatrix<Type> Gamma_jj(n_j, n_j);
   Eigen::SparseMatrix<Type> Gamma_kk(n_k, n_k);
   //Eigen::SparseMatrix<Type> Gammainv_kk(n_k, n_k);
   Eigen::SparseMatrix<Type> I_kk( n_k, n_k );
@@ -68,19 +68,9 @@ Type objective_function<Type>::operator() ()
     }
     //if(RAM(r,0)==2) Gammainv_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = 1 / tmp;
   }
-  // Option-1
-  //Eigen::SparseMatrix<Type> Q1_kk( n_k, n_k );
-  //Eigen::SparseMatrix<Type> Linv_kk = Gammainv_kk * ( I_kk - Rho_kk );
-  //Q1_kk = Linv_kk.transpose() * Linv_kk;
-
-  // Option-3
-  Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
-  matrix<Type> Vinv_kk = invertSparseMatrix( V_kk );
-  Eigen::SparseMatrix<Type> Vinv2_kk = asSparseMatrix( Vinv_kk );
-  Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
-  Eigen::SparseMatrix<Type> Q_kk = IminusRho_kk.transpose() * Vinv2_kk * IminusRho_kk;
 
   // solve(I - Rho) %*% x
+  Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
   Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseIminusRho_kk;
   inverseIminusRho_kk.compute(IminusRho_kk);
   
@@ -124,9 +114,16 @@ Type objective_function<Type>::operator() ()
   // Apply GMRF
   array<Type> z_tj( n_t, n_j );
   if( options(0)==0 ){
+    // Only compute Vinv_kk if Gamma_kk is full rank
+    Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
+    matrix<Type> Vinv_kk = invertSparseMatrix( V_kk );
+    Eigen::SparseMatrix<Type> Vinv2_kk = asSparseMatrix( Vinv_kk );
+    Eigen::SparseMatrix<Type> Q_kk = IminusRho_kk.transpose() * Vinv2_kk * IminusRho_kk;
+    
     // Centered GMRF
     jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_tj );
     z_tj = x_tj;
+    REPORT( Q_kk );
   }else{
     // Rank-deficient (projection) method
     jnll_gmrf += GMRF(I_kk)( x_tj );
@@ -226,7 +223,6 @@ Type objective_function<Type>::operator() ()
 
   // Reporting
   //REPORT( V_kk );
-  REPORT( Q_kk );
   REPORT( xhat_tj ); // needed to simulate new GMRF in R
   REPORT( delta_k ); // FIXME>  Eliminate in simulate.dsem
   REPORT( delta_tj ); // needed to simulate new GMRF in R
@@ -234,6 +230,7 @@ Type objective_function<Type>::operator() ()
   REPORT( Gamma_kk );
   REPORT( mu_tj );
   REPORT( devresid_tj );
+  REPORT( IminusRho_kk );
   //REPORT( Gammainv_kk );
   REPORT( jnll );
   REPORT( loglik_tj );

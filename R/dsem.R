@@ -197,12 +197,14 @@ function( sem,
     Map = control$map
   }
 
-  # Initial run
+  # Define random
   if(isTRUE(control$use_REML)){
     Random = c( "x_tj", "mu_j" )
   }else{
     Random = "x_tj"
   }
+
+  # Build object
   obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
   if(control$quiet==FALSE) list_parameters(obj)
   internal = list(
@@ -210,7 +212,8 @@ function( sem,
     tsdata = tsdata,
     family = family,
     estimate_delta0 = estimate_delta0,
-    control = control
+    control = control,
+    covs = covs
   )
   out = list( "obj"=obj,
               "ram"=ram,
@@ -536,7 +539,7 @@ function( object,
       newrep = obj$report( par=par_zr[,r] )
       newparfull = obj$env$parList()
       Q_kk = newrep$Q_kk
-      tmp = rmvnorm_prec( newrep$delta_k + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
+      tmp = rmvnorm_prec( newrep$delta_tj + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
       #newcall = object$call
       # Get control
@@ -677,9 +680,9 @@ function( object,
   # Gamma: 2 * ( (y-mu)/mu - log(y/mu) )
 
   # Easy of use
-  x_tj = object$obj$env$parList()$x_tj
+  #z_tj = object$obj$report()$z_tj
   y_tj = object$tmb_inputs$data$y_tj
-  familycode_j = object$tmb_inputs$data$familycode_j
+  #familycode_j = object$tmb_inputs$data$familycode_j
   report = object$obj$report()
 
   #
@@ -767,7 +770,8 @@ function( object,
                    tsdata = newdata,
                    family = object$internal$family,
                    estimate_delta0 = object$internal$estimate_delta0,
-                   control = object$internal$control )
+                   control = object$internal$control,
+                   covs = object$internal$covs )
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor
