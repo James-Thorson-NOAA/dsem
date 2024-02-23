@@ -32,7 +32,6 @@ data( harborSealWA, package="MARSS")
 
 # Define helper function
 grab = \(x,name) x[which(names(x)==name)] 
-n_factors = 2 # n_factors >= 3 doesn't seem to work using DSEM
 ```
 
 
@@ -46,7 +45,7 @@ dat <- t(harborSealWA[,-1])
 
 # DFA with 3 states; used BFGS because it fits much faster for this model
 fit_MARSS <- MARSS( dat, 
-                    model = list(m=n_factors),
+                    model = list(m=1),
                     form="dfa", 
                     method="BFGS",
                     silent = TRUE )
@@ -56,6 +55,20 @@ plot(fit_MARSS, plot.type="xtT")
 
 # Plot expectation for data using all data
 plot(fit_MARSS, plot.type="fitted.ytT")
+```
+
+We can check that it is performing as expected by extracting states and loadings matrices
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+L_cf = matrix(0, nrow=5, ncol=2)
+L_cf[lower.tri(L_cf,diag=TRUE)] = fit_MARSS$par$Z
+
+#
+X_ct = fit_MARSS$ytT
+F_ft = fit_MARSS$states
+Xhat_ct = L_cf %*% F_ft
+
+# Check that they're equal
+all.equal( X_ct, Xhat_ct )
 ```
 
 ## Full-rank covariance using DSEM 
@@ -103,19 +116,18 @@ mydsem_full = dsem( tsdata = tsdata,
 We can then define a custom function to plot states:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
-plot_states = function( out,
-                        vars=1:ncol(out$tmb_inputs$data$y_tj) ){
+plot_states = function( out ){
   # 
-  xhat_tj = as.list(out$sdrep,report=TRUE,what="Estimate")$z_tj[,vars,drop=FALSE]
-  xse_tj = as.list(out$sdrep,report=TRUE,what="Std. Error")$z_tj[,vars,drop=FALSE]
-
+  xhat_tj = as.list(out$sdrep, report=TRUE, what="Estimate")$z_tj
+  xse_tj = as.list(out$sdrep, report=TRUE, what="Std. Error")$z_tj
+  
   # 
-  longform = expand.grid( Year=time(tsdata), Var=colnames(tsdata)[vars] )
+  longform = expand.grid( Year=time(tsdata), Var=colnames(tsdata) )
   longform$est = as.vector(xhat_tj)
   longform$se = as.vector(xse_tj)
   longform$upper = longform$est + 1.96*longform$se
   longform$lower = longform$est - 1.96*longform$se
-  longform$data = as.vector(tsdata[,vars,drop=FALSE])
+  longform$data = as.vector(tsdata)
   
   # 
   ggplot(data=longform) +  #, aes(x=interaction(var,eq), y=Estimate, color=method)) +
@@ -127,15 +139,15 @@ plot_states = function( out,
 plot_states( mydsem_full )
 ```
 
-These estimated states follow the data more closely and have smaller estimated confidence intervals. Presumably this occurs because we are using a full-rank covariance so far.
+These estimated states are similar to those from MARSS.  However, the estimated confidence intervals are smaller, presumably because we are using a full-rank covariance so far.  
 
-## Reduced-rank factor model with measurement errors
+## Reduced-rank factor model with process errors
 
-Next, we can specify three factors factors while eliminating additional process error and estimating measurement errors.  This requires us to switch to `gmrf_parameterization = "projection"`, so that we can fit a rank-deficient Gaussian Markov random field:
+Next, we can specify a three-factor model while estimating additional process-error variance for each variable, and assuming that variables are measured without error:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
-tsdata = ts( cbind(harborSealWA[,-1], F1=NA, F2=NA), start=1978)
+tsdata = ts( cbind(harborSealWA[,-1], F1=NA), start=1978)
 
 # Scale and center (matches with MARSS does when fitting a DFA)
 tsdata = scale( tsdata, center=TRUE, scale=TRUE )
@@ -144,20 +156,78 @@ tsdata = scale( tsdata, center=TRUE, scale=TRUE )
 sem = "
   # Fixed SD=1 for factors
   F1 <-> F1, 0, NA, 1
-  F2 <-> F2, 0, NA, 1
+  #F2 <-> F2, 0, NA, 1
+  #F3 <-> F3, 0, NA, 1
   # Fixed random-walk for factors
   F1 -> F1, 1, NA, 1
-  F2 -> F2, 1, NA, 1
+  #F2 -> F2, 1, NA, 1
+  #F3 -> F3, 1, NA, 1
+  # Loadings
+  F1 -> SJF, 0, f11
+  F1 -> SJI, 0, f12
+  F1 -> EBays, 0, f13
+  F1 -> PSnd, 0, f14
+  F1 -> HC, 0, f15
+  #F2 -> SJI, 0, f22
+  #F2 -> EBays, 0, f23
+  #F2 -> PSnd, 0, f24
+  #F2 -> HC, 0, f25
+  #F3 -> EBays, 0, f33
+  #F3 -> PSnd, 0, f34
+  #F3 -> HC, 0, f35
+  # Constant process-error variance across variables
+  SJF <-> SJF, 0, var
+  SJI <-> SJI, 0, var
+  EBays <-> EBays, 0, var
+  PSnd <-> PSnd, 0, var
+  HC <-> HC, 0, var
+"
+
+# DFA with 3 states; used BFGS because it fits much faster for this model
+mydsem_processerror = dsem( tsdata = tsdata,
+               sem = sem,
+               family = c( rep("fixed",5), rep("fixed",1) ),
+               control = dsem_control( getsd = TRUE,
+                                       newton_loops = 1 ) )
+
+# Do plot
+plot_states( mydsem_processerror )
+```
+
+## Reduced-rank factor model with measurement errors
+
+Alternatively, we can specify three factors factors while eliminating additional process error and estimating measurement errors:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# Add factors to data
+tsdata = ts( cbind(harborSealWA[,-1], F1=NA), start=1978)
+
+# Scale and center (matches with MARSS does when fitting a DFA)
+tsdata = scale( tsdata, center=TRUE, scale=TRUE )
+
+#
+sem = "
+  # Fixed SD=1 for factors
+  F1 <-> F1, 0, NA, 1
+  #F2 <-> F2, 0, NA, 1
+  #F3 <-> F3, 0, NA, 1
+  # Fixed random-walk for factors
+  F1 -> F1, 1, NA, 1
+  #F2 -> F2, 1, NA, 1
+  #F3 -> F3, 1, NA, 1
   # Loadings
   F1 -> SJF, 0, f11      
   F1 -> SJI, 0, f12
   F1 -> EBays, 0, f13
   F1 -> PSnd, 0, f14
   F1 -> HC, 0, f15
-  F2 -> SJI, 0, f22
-  F2 -> EBays, 0, f23
-  F2 -> PSnd, 0, f24
-  F2 -> HC, 0, f25
+  #F2 -> SJI, 0, f22
+  #F2 -> EBays, 0, f23
+  #F2 -> PSnd, 0, f24
+  #F2 -> HC, 0, f25
+  #F3 -> EBays, 0, f33
+  #F3 -> PSnd, 0, f34
+  #F3 -> HC, 0, f35
   # Fix SD=0 for additional process error variance
   SJF <-> SJF, 0, NA, 0
   SJI <-> SJI, 0, NA, 0
@@ -169,44 +239,50 @@ sem = "
 # DFA with 3 states; used BFGS because it fits much faster for this model
 mydsem0 = dsem( tsdata = tsdata,
                sem = sem,
-               family = c( rep("normal",5), rep("fixed",2) ),
-               estimate_delta0 = TRUE,
-               control = dsem_control( quiet = TRUE,
-                                       run_model = FALSE,
+               family = c( rep("normal",5), rep("fixed",1) ),
+               control = dsem_control( run_model = FALSE,
                                        gmrf_parameterization = "projection" ) )
 
 # fix all measurement errors at diagonal and equal
 map = mydsem0$tmb_inputs$map
 map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
 map$mu_j = factor( rep(0,ncol(tsdata)) )
-map$delta0_j = factor( c(rep(NA,5), c(1,2) ) )
 
 #
-mydfa = dsem( tsdata = tsdata,
+mydsem_measurementerror = dsem( tsdata = tsdata,
                sem = sem,
-               family = c( rep("normal",5), rep("fixed",2) ),
-               estimate_delta0 = TRUE,
+               family = c( rep("normal",5), rep("fixed",1) ),
                control = dsem_control( quiet = TRUE,
                                        map = map,
                                        gmrf_parameterization = "projection" ) )
-
-# Plot estimated factors
-plot_states( mydfa, vars=6:7 )
-
-# Plot estimated variables
-plot_states( mydfa, vars=1:5 )
+#
+plot_states( mydsem_measurementerror )
 ```
 
-This results in similar (but not identical) factor values using MARSS and DSEM.  In particular, DSEM has higher variance in early years.
+As expected, this results in identical factors, but incorporates some predictive error for latent traits (which are measured with some associated variance).
 
-We can also compare the two in terms of estimated loadings:
+We can check that DSEM is working as expected by confirming that estimated state-variables are the product of loadings `L_cf` and factors `F_ft` :
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
-Table = cbind( "MARSS" = as.vector(fit_MARSS$par$Z),
-       "DSEM_measurement_error" = grab(mydfa$opt$par,"beta_z") )
-rownames(Table) = names(fit_MARSS$coef)[1:nrow(Table)]
-knitr::kable( Table, digits=3)       
+L_cf = matrix(0, nrow=5, ncol=1)
+L_cf[lower.tri(L_cf,diag=TRUE)] = grab(mydsem_measurementerror$opt$par,"beta_z")[1:5]
+
+# 
+Report = mydsem_measurementerror$obj$report()
+X_tz = as.list(mydsem_measurementerror$sdrep, report=TRUE, what="Estimate")$z_tj
+X_ct = t( X_tz[,1:5] )
+F_ft = t( X_tz[,6,drop=FALSE])
+Xhat_ct = L_cf %*% F_ft + t(Report$xhat_tj[,1:5])
+
+# Check that they're equal
+all.equal( X_ct, Xhat_ct )
 ```
 
-The estimating loadings are similar (but not identical) to those resulting from MARSS, except with label switching (where some factors and loadings can be multiplied by -1 with no change in teh model):
+Strangely, the estimating loadings do not agree with those resulting from MARSS:
 
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+Table = cbind( "MARSS" = fit_MARSS$coef[1:12], 
+       "DSEM_process_error" = grab(mydsem_processerror$opt$par,"beta_z")[1:12],
+       "DSEM_measurement_error" = grab(mydsem_measurementerror$opt$par,"beta_z")[1:12] )
+knitr::kable( Table, digits=3)       
+```
