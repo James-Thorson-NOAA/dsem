@@ -539,7 +539,7 @@ function( object,
       newrep = obj$report( par=par_zr[,r] )
       newparfull = obj$env$parList()
       Q_kk = newrep$Q_kk
-      tmp = rmvnorm_prec( newrep$delta_tj + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
+      tmp = rmvnorm_prec( as.vector(newrep$delta_tj + newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
       #newcall = object$call
       # Get control
