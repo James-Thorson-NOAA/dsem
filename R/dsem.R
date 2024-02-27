@@ -146,6 +146,9 @@ function( sem,
   if( !all(c(out$model[,'first'],out$model[,'second']) %in% colnames(tsdata)) ){
     stop("Some variable in `sem` is not in `tsdata`")
   }
+  if( ncol(tsdata) != length(unique(colnames(tsdata))) ){
+    stop("Please check `colnames(tsdata)` to confirm that all variables (columns) have a unique name")
+  }
 
   #
   Data = list( "options" = ifelse(control$gmrf_parameterization=="separable",0,1),

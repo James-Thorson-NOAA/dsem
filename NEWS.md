@@ -3,6 +3,7 @@
 * Adding option to specify covariance via argument `covs`
 * Adding options to specify gmrf_parameterization="projection"
 * Adding vigette outlining how to fit dynamic factor analysis
+* Fix bug arising when `tsdata` had two or more columns sharing a single variable name
 
 # dsem 1.1.0
 
