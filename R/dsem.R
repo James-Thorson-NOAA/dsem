@@ -130,6 +130,7 @@ function( sem,
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
   }
+  if( !is(tsdata,"ts") ) stop("`tsdata` must be a `ts` object")
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
   out = make_dsem_ram( sem,

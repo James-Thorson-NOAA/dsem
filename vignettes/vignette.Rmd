@@ -164,7 +164,7 @@ fit0 = dsem( sem = sem,
              tsdata = data,
              estimate_delta0 = FALSE,
              control = dsem_control(
-               quiet = TRUE,
+               quiet = FALSE,
                getsd = FALSE) )
 
 #
