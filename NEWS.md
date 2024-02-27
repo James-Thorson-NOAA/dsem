@@ -4,6 +4,7 @@
 * Adding options to specify gmrf_parameterization="projection"
 * Adding vigette outlining how to fit dynamic factor analysis
 * Fix bug arising when `tsdata` had two or more columns sharing a single variable name
+* Adding `make_dfa` helper function
 
 # dsem 1.1.0
 

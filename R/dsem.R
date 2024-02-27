@@ -208,7 +208,12 @@ function( sem,
   }
 
   # Build object
-  obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
+  obj = MakeADFun( data=Data,
+                   parameters=Params,
+                   random=Random,
+                   map=Map,
+                   profile = control$profile,
+                   DLL="dsem" )
   if(control$quiet==FALSE) list_parameters(obj)
   internal = list(
     sem = sem,
@@ -280,6 +285,8 @@ function( sem,
 #' the format of this input is likely to change more rapidly than that of
 #' \code{\link{dsem}}
 #'
+#' @inheritParams TMB::MakeADFun
+#'
 #' @param nlminb_loops Integer number of times to call \code{\link[stats]{nlminb}}.
 #' @param newton_loops Integer number of Newton steps to do after running
 #'        \code{\link[stats]{nlminb}}.
@@ -326,6 +333,7 @@ function( nlminb_loops = 1,
           run_model = TRUE,
           gmrf_parameterization = c("separable","projection"),
           use_REML = TRUE,
+          profile = NULL,
           parameters = NULL,
           map = NULL,
           getJointPrecision = FALSE ){
@@ -344,6 +352,7 @@ function( nlminb_loops = 1,
     run_model = run_model,
     gmrf_parameterization = gmrf_parameterization,
     use_REML = use_REML,
+    profile = profile,
     parameters = parameters,
     map = map,
     getJointPrecision = getJointPrecision

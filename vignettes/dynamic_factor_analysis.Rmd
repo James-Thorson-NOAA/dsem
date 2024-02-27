@@ -32,7 +32,7 @@ data( harborSealWA, package="MARSS")
 
 # Define helper function
 grab = \(x,name) x[which(names(x)==name)] 
-n_factors = 2 # n_factors >= 3 doesn't seem to work using DSEM
+n_factors = 3 # n_factors >= 3 doesn't seem to work using DSEM
 ```
 
 
@@ -42,7 +42,7 @@ We first illustrate a DFA model using three factors, fitted using MARSS:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Load data
-dat <- t(harborSealWA[,-1])
+dat <- t(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")])
 
 # DFA with 3 states; used BFGS because it fits much faster for this model
 fit_MARSS <- MARSS( dat, 
@@ -64,7 +64,7 @@ In DSEM syntax, we can first fit a saturated (full-covariance) model using the a
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
-tsdata = ts( cbind(harborSealWA[,-1]), start=1978)
+tsdata = ts( cbind(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]), start=1978)
 
 # Scale and center (matches with MARSS does when fitting a DFA)
 tsdata = scale( tsdata, center=TRUE, scale=TRUE )
@@ -135,41 +135,52 @@ Next, we can specify three factors factors while eliminating additional process 
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
-tsdata = ts( cbind(harborSealWA[,-1], F1=NA, F2=NA), start=1978)
+tsdata = harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]
+newcols = array( NA,
+                 dim = c(nrow(tsdata),n_factors),
+                 dimnames = list(NULL,paste0("F",seq_len(n_factors))) )
+tsdata = ts( cbind(tsdata, newcols), start=1978)
 
 # Scale and center (matches with MARSS does when fitting a DFA)
 tsdata = scale( tsdata, center=TRUE, scale=TRUE )
 
 #
-sem = "
-  # Fixed SD=1 for factors
-  F1 <-> F1, 0, NA, 1
-  F2 <-> F2, 0, NA, 1
-  # Fixed random-walk for factors
-  F1 -> F1, 1, NA, 1
-  F2 -> F2, 1, NA, 1
-  # Loadings
-  F1 -> SJF, 0, f11      
-  F1 -> SJI, 0, f12
-  F1 -> EBays, 0, f13
-  F1 -> PSnd, 0, f14
-  F1 -> HC, 0, f15
-  F2 -> SJI, 0, f22
-  F2 -> EBays, 0, f23
-  F2 -> PSnd, 0, f24
-  F2 -> HC, 0, f25
-  # Fix SD=0 for additional process error variance
-  SJF <-> SJF, 0, NA, 0
-  SJI <-> SJI, 0, NA, 0
-  EBays <-> EBays, 0, NA, 0     
-  PSnd <-> PSnd, 0, NA, 0       
-  HC <-> HC, 0, NA, 0
-"
+#sem = "
+#  # Fixed SD=1 for factors
+#  F1 <-> F1, 0, NA, 1
+#  F2 <-> F2, 0, NA, 1
+#  F3 <-> F3, 0, NA, 1
+#  # Fixed random-walk for factors
+#  F1 -> F1, 1, NA, 1
+#  F2 -> F2, 1, NA, 1
+#  F3 -> F3, 1, NA, 1
+#  # Loadings
+#  F1 -> SJI, 0, f11
+#  F1 -> EBays, 0, f12
+#  F1 -> SJF, 0, f13
+#  F1 -> PSnd, 0, f14
+#  F1 -> HC, 0, f15
+#  F2 -> EBays, 0, f22
+#  F2 -> SJF, 0, f23
+#  F2 -> PSnd, 0, f24
+#  F2 -> HC, 0, f25
+#  F3 -> SJF, 0, f33
+#  F3 -> PSnd, 0, f34
+#  F3 -> HC, 0, f35
+#  # Fix SD=0 for additional process error variance
+#  SJF <-> SJF, 0, NA, 0
+#  SJI <-> SJI, 0, NA, 0
+#  EBays <-> EBays, 0, NA, 0
+#  PSnd <-> PSnd, 0, NA, 0
+#  HC <-> HC, 0, NA, 0
+#"
+sem = make_dfa( variables = c("SJI","EBays","SJF","PSnd","HC"),
+                n_factors = 3 )
 
-# DFA with 3 states; used BFGS because it fits much faster for this model
+# Initial fit
 mydsem0 = dsem( tsdata = tsdata,
                sem = sem,
-               family = c( rep("normal",5), rep("fixed",2) ),
+               family = c( rep("normal",5), rep("fixed",n_factors) ),
                estimate_delta0 = TRUE,
                control = dsem_control( quiet = TRUE,
                                        run_model = FALSE,
@@ -178,20 +189,26 @@ mydsem0 = dsem( tsdata = tsdata,
 # fix all measurement errors at diagonal and equal
 map = mydsem0$tmb_inputs$map
 map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
-map$mu_j = factor( rep(0,ncol(tsdata)) )
-map$delta0_j = factor( c(rep(NA,5), c(1,2) ) )
 
-#
+# Fix factors to have initial value, and variables to not
+map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
+
+# Fix variables to have no stationary mean except what's predicted by initial value
+map$mu_j = factor( rep(NA,ncol(tsdata)) )
+
+# profile "delta0_j" to match MARSS (which treats initial condition as unpenalized random effect)
 mydfa = dsem( tsdata = tsdata,
                sem = sem,
-               family = c( rep("normal",5), rep("fixed",2) ),
+               family = c( rep("normal",5), rep("fixed",n_factors) ),
                estimate_delta0 = TRUE,
                control = dsem_control( quiet = TRUE,
                                        map = map,
+                                       use_REML = TRUE,
+                                       profile = "delta0_j",
                                        gmrf_parameterization = "projection" ) )
 
 # Plot estimated factors
-plot_states( mydfa, vars=6:7 )
+plot_states( mydfa, vars=6:8 )
 
 # Plot estimated variables
 plot_states( mydfa, vars=1:5 )

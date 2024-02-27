@@ -166,12 +166,17 @@ fit0 = dsem( sem = sem,
              control = dsem_control(
                quiet = TRUE,
                getsd = FALSE) )
+
+#
+parameters = fit0$obj$env$parList()
+  parameters$delta0_j = rep( 0, ncol(data) )
+
 # Refit with delta0
 fit = dsem( sem = sem,
             tsdata = data,
             estimate_delta0 = TRUE,
             control = dsem_control( quiet=TRUE,
-                                    parameters = fit0$obj$env$parList()) )
+                                    parameters = parameters ) )
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #

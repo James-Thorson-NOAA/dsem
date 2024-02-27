@@ -15,6 +15,7 @@ dsem_control(
   run_model = TRUE,
   gmrf_parameterization = c("separable", "projection"),
   use_REML = TRUE,
+  profile = NULL,
   parameters = NULL,
   map = NULL,
   getJointPrecision = FALSE
@@ -53,6 +54,8 @@ can be rank-deficient.}
 \item{use_REML}{Boolean indicating whether to treat non-variance fixed effects as random,
 either to motigate bias in estimated variance parameters or improve efficiency for
 parameter estimation given correlated fixed and random effects}
+
+\item{profile}{Parameters to profile out of the likelihood (this subset will be appended to \code{random} with Laplace approximation disabled).}
 
 \item{parameters}{list of fixed and random effects, e.g., as constructed by \code{dsem} and then modified
 by hand (only helpful for advanced users to change starting values or restart at intended values)}
