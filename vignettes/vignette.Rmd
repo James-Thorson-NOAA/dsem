@@ -289,10 +289,10 @@ oldpar <- par(no.readonly = TRUE)
 par( mfcol=c(3,3), mar=c(2,2,2,0), mgp=c(2,0.5,0), tck=-0.02 )
 for(i in 1:ncol(bering_sea)){
   tmp = bering_sea[,i,drop=FALSE]
-  tmp = cbind( tmp, "PSEM"=ParHat$x_tj[,i] )
+  tmp = cbind( tmp, "pred"=ParHat$x_tj[,i] )
   SD = as.list(fit$sdrep,what="Std.")$x_tj[,i]
-  tmp = cbind( tmp, outer(tmp[,2],c(1,1)) +
-               outer(ifelse(is.na(SD),0,SD),c(-1,1)) )
+  tmp = cbind( tmp, "lower"=tmp[,2] - ifelse(is.na(SD),0,SD),
+                    "upper"=tmp[,2] + ifelse(is.na(SD),0,SD) )
   #
   plot( x=rownames(bering_sea), y=tmp[,1], ylim=range(tmp,na.rm=TRUE),
         type="p", main=colnames(bering_sea)[i], pch=20, cex=2 )

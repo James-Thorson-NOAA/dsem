@@ -18,7 +18,8 @@ dsem_control(
   profile = NULL,
   parameters = NULL,
   map = NULL,
-  getJointPrecision = FALSE
+  getJointPrecision = FALSE,
+  extra_convergence_checks = TRUE
 )
 }
 \arguments{
@@ -65,6 +66,9 @@ to override this default and then pass to \code{\link[TMB]{MakeADFun}}}
 
 \item{getJointPrecision}{whether to get the joint precision matrix.  Passed
 to \code{\link[TMB]{sdreport}}.}
+
+\item{extra_convergence_checks}{Boolean indicating whether to run extra checks on model
+convergence.}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

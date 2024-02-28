@@ -130,7 +130,15 @@ function( sem,
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
   }
-  if( !is(tsdata,"ts") ) stop("`tsdata` must be a `ts` object")
+  if( isFALSE(is(tsdata,"ts")) ) stop("`tsdata` must be a `ts` object")
+
+  # General warnings
+  if( isFALSE(control$quiet) ){
+    tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
+    if( (max(tsdata_SD)/min(tsdata_SD)) > 10 ){
+      warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
+    }
+  }
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
   out = make_dsem_ram( sem,
@@ -264,10 +272,32 @@ function( sem,
     out$opt$objective = obj$fn(out$opt$par)
   }
 
+  if( isTRUE(control$extra_convergence_checks) ){
+    # Gradient checks
+    Grad_fixed = obj$gr( out$opt$par )
+    if( isTRUE(any(Grad_fixed > 0.01)) ){
+      warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
+    }
+    # Hessian check ... condition and positive definite
+    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    Eigen_fixed = eigen( Hess_fixed, only.values=TRUE )
+    if( (max(Eigen_fixed$values)/min(Eigen_fixed$values)) > 1e6 ){
+      # See McCullough and Vinod 2003
+      warning("The ratio of maximum and minimum Hessian eigenvalues is high. Some parameters might not be identifiable.")
+    }
+    if( isTRUE(any(Eigen_fixed$values < 0)) ){
+      warning("Some Hessian eigenvalue is negative. Some parameters might not be converged.")
+    }
+  }else{
+    Hess_fixed = NULL
+  }
+
   # Run sdreport
   if( isTRUE(control$getsd) ){
     if( isTRUE(control$verbose) ) message("Running sdreport")
-    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    if( is.null(Hess_fixed) ){
+      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    }
     out$sdrep = sdreport( obj,
                           hessian.fixed = Hess_fixed,
                           getJointPrecision = control$getJointPrecision )
@@ -317,6 +347,8 @@ function( sem,
 #'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
 #' @param getJointPrecision whether to get the joint precision matrix.  Passed
 #'        to \code{\link[TMB]{sdreport}}.
+#' @param extra_convergence_checks Boolean indicating whether to run extra checks on model
+#'        convergence.
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -337,7 +369,8 @@ function( nlminb_loops = 1,
           profile = NULL,
           parameters = NULL,
           map = NULL,
-          getJointPrecision = FALSE ){
+          getJointPrecision = FALSE,
+          extra_convergence_checks = TRUE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
 
@@ -356,7 +389,8 @@ function( nlminb_loops = 1,
     profile = profile,
     parameters = parameters,
     map = map,
-    getJointPrecision = getJointPrecision
+    getJointPrecision = getJointPrecision,
+    extra_convergence_checks = extra_convergence_checks
   ), class = "dsem_control" )
 }
 
