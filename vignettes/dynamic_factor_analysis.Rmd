@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 ## Dynamic factor analysis
 
-`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure. Here, we highlight how DSEM can be used to implement dynamic factor analysis (DFA).  We specifically replicate analysis using the Multivariate Autoregressive State-Space (MARSS) package, using data that are provided as an example in the MARSS package.
+`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a potentially recursive structure. Here, we highlight how DSEM can be used to implement dynamic factor analysis (DFA).  We specifically replicate analysis using the Multivariate Autoregressive State-Space (MARSS) package, using data that are provided as an example in the MARSS package.
 
 ```{r setup, echo=TRUE, message=FALSE}
 library(dsem)
@@ -41,7 +41,7 @@ n_factors = 2
 
 ## Using MARSS
 
-We first illustrate a DFA model using three factors, fitted using MARSS:
+We first illustrate a DFA model using two factors, fitted using MARSS:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Load data
@@ -53,10 +53,16 @@ fit_MARSS <- MARSS( dat,
                     form="dfa",
                     method="BFGS",
                     silent = TRUE )
+```
 
+We can then plot the estimated factors (latent variables):
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
 # Plots states using all data
 plot(fit_MARSS, plot.type="xtT")
+```
 
+And the estimated predictor for measurements (manifest variables):
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Plot expectation for data using all data
 plot(fit_MARSS, plot.type="fitted.ytT")
 ```
@@ -180,10 +186,16 @@ mydfa = dsem( tsdata = tsdata,
                                        use_REML = TRUE,
                                        #profile = "delta0_j",
                                        gmrf_parameterization = "projection" ) )
+```
 
+We again plot the estimated latent variables
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
 # Plot estimated factors
 plot_states( mydfa, vars=5+seq_len(n_factors) )
+```
 
+and the estimated predictor for manifest variables
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Plot estimated variables
 plot_states( mydfa, vars=1:5 )
 ```
@@ -207,6 +219,12 @@ fit_MARSS2 = MARSS( dat,
                     control = list( abstol = 0.001,
                                     conv.test.slope.tol = 0.01, 
                                     maxit = 1000 ))
+```
+
+These have estimated time-series that are more similar to those from DSEM
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
+# Plots states using all data
+plot(fit_MARSS2, plot.type="xtT")
 ```
 
 We can now compare the three options in terms of estimated loadings:
