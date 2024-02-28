@@ -44,7 +44,7 @@ function( variables,
 
   # Fix SD = 0 for additional process errors
   for( v in 1:n_variables ){
-    extraSD = c( paste(variables[f], "<->", variables[f]), 0, NA, 0 )
+    extraSD = c( paste(variables[v], "<->", variables[v]), 0, NA, 0 )
     text_matrix = rbind( text_matrix, extraSD )
   }
 

@@ -32,7 +32,10 @@ data( harborSealWA, package="MARSS")
 
 # Define helper function
 grab = \(x,name) x[which(names(x)==name)] 
-n_factors = 3 # n_factors >= 3 doesn't seem to work using DSEM
+
+# Define number of factors
+# n_factors >= 3 doesn't seem to converge using DSEM or MARSS without penalties
+n_factors = 2 
 ```
 
 
@@ -42,12 +45,12 @@ We first illustrate a DFA model using three factors, fitted using MARSS:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Load data
-dat <- t(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")])
+dat <- t(scale(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]))
 
 # DFA with 3 states; used BFGS because it fits much faster for this model
 fit_MARSS <- MARSS( dat, 
                     model = list(m=n_factors),
-                    form="dfa", 
+                    form="dfa",
                     method="BFGS",
                     silent = TRUE )
 
@@ -145,37 +148,8 @@ tsdata = ts( cbind(tsdata, newcols), start=1978)
 tsdata = scale( tsdata, center=TRUE, scale=TRUE )
 
 #
-#sem = "
-#  # Fixed SD=1 for factors
-#  F1 <-> F1, 0, NA, 1
-#  F2 <-> F2, 0, NA, 1
-#  F3 <-> F3, 0, NA, 1
-#  # Fixed random-walk for factors
-#  F1 -> F1, 1, NA, 1
-#  F2 -> F2, 1, NA, 1
-#  F3 -> F3, 1, NA, 1
-#  # Loadings
-#  F1 -> SJI, 0, f11
-#  F1 -> EBays, 0, f12
-#  F1 -> SJF, 0, f13
-#  F1 -> PSnd, 0, f14
-#  F1 -> HC, 0, f15
-#  F2 -> EBays, 0, f22
-#  F2 -> SJF, 0, f23
-#  F2 -> PSnd, 0, f24
-#  F2 -> HC, 0, f25
-#  F3 -> SJF, 0, f33
-#  F3 -> PSnd, 0, f34
-#  F3 -> HC, 0, f35
-#  # Fix SD=0 for additional process error variance
-#  SJF <-> SJF, 0, NA, 0
-#  SJI <-> SJI, 0, NA, 0
-#  EBays <-> EBays, 0, NA, 0
-#  PSnd <-> PSnd, 0, NA, 0
-#  HC <-> HC, 0, NA, 0
-#"
 sem = make_dfa( variables = c("SJI","EBays","SJF","PSnd","HC"),
-                n_factors = 3 )
+                n_factors = n_factors )
 
 # Initial fit
 mydsem0 = dsem( tsdata = tsdata,
@@ -204,26 +178,55 @@ mydfa = dsem( tsdata = tsdata,
                control = dsem_control( quiet = TRUE,
                                        map = map,
                                        use_REML = TRUE,
-                                       profile = "delta0_j",
+                                       #profile = "delta0_j",
                                        gmrf_parameterization = "projection" ) )
 
 # Plot estimated factors
-plot_states( mydfa, vars=6:8 )
+plot_states( mydfa, vars=5+seq_len(n_factors) )
 
 # Plot estimated variables
 plot_states( mydfa, vars=1:5 )
 ```
 
-This results in similar (but not identical) factor values using MARSS and DSEM.  In particular, DSEM has higher variance in early years.
+This results in similar (but not identical) factor values using MARSS and DSEM.  In particular, DSEM has higher variance in early years.  This likely arises because the default MARSS implementation of DFA includes a penalty of the initial state $\mathbf{x}_0$ with mean zero and variance of $5\mathbf{I}$.  This term presumably provides additional information about the initial year such that MARSS DFA results are not invariant to reversing the order of the data.
 
-We can also compare the two in terms of estimated loadings:
+To further explore, we can modify the MARSS DFA to eliminate the prior on initial conditions, based on help from Dr. Eli Holmes.  This involves specifying:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# Extract internal settings
+modmats <-  summary(fit_MARSS$model, silent=TRUE)
+
+# Redefine defaults
+modmats$V0 <- matrix(0, n_factors, n_factors )
+modmats$x0 <- "unequal" 
+
+# Refit
+fit_MARSS2 = MARSS( dat, 
+                    model = modmats,
+                    silent = TRUE,
+                    control = list( abstol = 0.001,
+                                    conv.test.slope.tol = 0.01, 
+                                    maxit = 1000 ))
+```
+
+We can now compare the three options in terms of estimated loadings:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# Compare likelihood for MARSS and DSEM
+Table = c( "MARSS" = logLik(fit_MARSS), 
+           "DSEM" = logLik(mydfa), 
+           "MARSS_no_pen" = logLik(fit_MARSS2) )
+knitr::kable( Table, digits=3)       
+```
+which confirms that the MARSS model without a penalty on initial conditions results in the same likelihood as DSEM.  Finally, we can also compare the three options in terms of estimated loadings:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 Table = cbind( "MARSS" = as.vector(fit_MARSS$par$Z),
-       "DSEM_measurement_error" = grab(mydfa$opt$par,"beta_z") )
+       "DSEM" = grab(mydfa$opt$par,"beta_z"),
+       "MARSS_no_pen" = as.vector(fit_MARSS2$par$Z) )
 rownames(Table) = names(fit_MARSS$coef)[1:nrow(Table)]
 knitr::kable( Table, digits=3)       
 ```
 
-The estimating loadings are similar (but not identical) to those resulting from MARSS, except with label switching (where some factors and loadings can be multiplied by -1 with no change in teh model):
+The estimating loadings are similar using DSEM and the MARSS model without initial penalty, except with label switching (where some factors and loadings can be multiplied by -1 with no change in teh model):
 
