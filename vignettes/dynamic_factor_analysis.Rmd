@@ -71,7 +71,7 @@ plot(fit_MARSS, plot.type="fitted.ytT")
 
 In DSEM syntax, we can first fit a saturated (full-covariance) model using the argument `covs`:
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7, warning=FALSE}
 # Add factors to data
 tsdata = ts( cbind(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]), start=1978)
 
@@ -227,7 +227,7 @@ These have estimated time-series that are more similar to those from DSEM
 plot(fit_MARSS2, plot.type="xtT")
 ```
 
-We can now compare the three options in terms of estimated loadings:
+We can now compare the three options in terms of the fitted log-likelihood:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Compare likelihood for MARSS and DSEM
@@ -246,5 +246,5 @@ rownames(Table) = names(fit_MARSS$coef)[1:nrow(Table)]
 knitr::kable( Table, digits=3)       
 ```
 
-The estimating loadings are similar using DSEM and the MARSS model without initial penalty, except with label switching (where some factors and loadings can be multiplied by -1 with no change in teh model):
+The estimating loadings are similar using DSEM and the MARSS model without initial penalty, except with label switching (where some factors and loadings can be multiplied by -1 with no change in the model):
 
