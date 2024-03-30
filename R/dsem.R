@@ -24,7 +24,7 @@
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
+#' @importFrom stats sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
 #' @importFrom Matrix solve Cholesky
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame
