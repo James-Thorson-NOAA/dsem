@@ -262,14 +262,13 @@ sem = "
   log_PercentCop -> log_RperS, 0, Scop_to_RperS
   log_Esummer -> log_PercentEuph, 0, Esummer_to_Suph
   log_Cfall -> log_PercentCop, 0, Cfall_to_Scop
-  log_SSB -> log_RperS, 0, SSB_to_RperS
+  SSB -> log_RperS, 0, SSB_to_RperS
 
   log_seaice -> log_seaice, 1, AR1, 0.001
   log_CP -> log_CP, 1,  AR2, 0.001
-  log_Cspring -> log_Cspring, 1, AR3, 0.001
   log_Cfall -> log_Cfall, 1, AR4, 0.001
   log_Esummer -> log_Esummer, 1, AR5, 0.001
-  log_SSB -> log_SSB, 1, AR6, 0.001
+  SSB -> SSB, 1, AR6, 0.001
   log_RperS ->  log_RperS, 1, AR7, 0.001
   log_PercentEuph -> log_PercentEuph, 1, AR8, 0.001
   log_PercentCop -> log_PercentCop, 1, AR9, 0.001
