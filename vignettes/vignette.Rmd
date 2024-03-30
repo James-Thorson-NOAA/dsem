@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 #  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/vignette.Rmd"); rmarkdown::render( "vignettes/vignette.Rmd", rmarkdown::pdf_document())
 ```
 
-```{r setup, echo=TRUE, message=FALSE}
+```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
 library(dsem)
 library(dynlm)
 library(ggplot2)
@@ -148,7 +148,7 @@ This dataset was previously analyzed by in Chapter 14 of the User Manual for the
 
 Here, we compare fits using `dsem` with `dynlm`, as well as a vector autoregressive model package `vars`, and finally with `MARSS`.
 
-```{r, echo=TRUE, message=FALSE, fig.width=5, fig.height=7}
+```{r, echo=TRUE, message=FALSE, fig.width=5, fig.height=7, warning=FALSE}
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
 
@@ -339,7 +339,7 @@ These results are further discussed in the paper describing dsem.
 
 Finally, we replicate an analysis involving a trophic cascade involving sea stars predators, sea urchin consumers, and kelp producers.
 
-```{r, echo=TRUE, message=FALSE, fig.width=5, fig.height=7}
+```{r, echo=TRUE, message=FALSE, fig.width=5, fig.height=7, warning=FALSE}
 data(sea_otter)
 Z = ts( sea_otter[,-1] )
 
