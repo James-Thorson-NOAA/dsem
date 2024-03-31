@@ -1,3 +1,15 @@
+# dsem 1.2.0
+
+* Adding option to specify covariance via argument `covs`
+* Adding options to specify gmrf_parameterization="projection"
+* Adding vigette outlining how to fit dynamic factor analysis
+* Fix bug arising when `tsdata` had two or more columns sharing a single variable name
+* Adding `make_dfa` helper function
+* Updating bering_sea dataset to include extra year of cold-pool, and changing vignette
+  to match the published specification and results
+* Updating the lag indexing for the Klein-I model in the vignette to use positive values
+  for lags, and updating saved MCMC results to match that corrected specification
+
 # dsem 1.1.0
 
 * Adding option to specify covariance in Gamma

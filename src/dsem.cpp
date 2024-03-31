@@ -16,6 +16,7 @@ Type objective_function<Type>::operator() ()
   using namespace density;
 
   // Data
+  DATA_IVECTOR( options ); // options(0) -> full rank or rank-reduced GMRF
   //DATA_INTEGER( resimulate_gmrf );
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
@@ -30,9 +31,10 @@ Type objective_function<Type>::operator() ()
   PARAMETER_ARRAY( x_tj );
 
   // Indices
-  int n_t = x_tj.rows();
-  int n_j = x_tj.cols();
+  int n_t = y_tj.rows();
+  int n_j = y_tj.cols();
   int n_k = n_t * n_j;      // data
+  int k = 0;
 
   // globals
   Type jnll = 0;
@@ -43,19 +45,14 @@ Type objective_function<Type>::operator() ()
   sigma_j = exp( lnsigma_j );
 
   // Assemble precision
-  Eigen::SparseMatrix<Type> Q_kk( n_k, n_k );
   // SEM
-  Eigen::SparseMatrix<Type> Linv_kk(n_k, n_k);
   Eigen::SparseMatrix<Type> Rho_kk(n_k, n_k);
-  Eigen::SparseMatrix<Type> Gamma_jj(n_j, n_j);
+  //Eigen::SparseMatrix<Type> Gamma_jj(n_j, n_j);
   Eigen::SparseMatrix<Type> Gamma_kk(n_k, n_k);
-  Eigen::SparseMatrix<Type> Gammainv_kk(n_k, n_k);
-  //matrix<Type> Gammainv2_kk(n_k, n_k);
+  //Eigen::SparseMatrix<Type> Gammainv_kk(n_k, n_k);
   Eigen::SparseMatrix<Type> I_kk( n_k, n_k );
   Rho_kk.setZero();
-  //Gamma_kk.setZero();
-  Gammainv_kk.setZero();
-  //Gammainv2_kk.setZero();
+  //Gammainv_kk.setZero();
   I_kk.setIdentity();
   Type tmp;
   for(int r=0; r<RAM.rows(); r++){
@@ -66,49 +63,17 @@ Type objective_function<Type>::operator() ()
       tmp = RAMstart(r);
     }
     if(RAM(r,0)==1) Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
-    //if((RAM(r,0)==2) && (RAM(r,1)==(n_t)) && (RAM(r,2)<=n_j)){
-    //  Gamma_jj.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
-    //}
     if(RAM(r,0)==2){
       Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp; // Cholesky of covariance, so -Inf to Inf;
     }
-    if(RAM(r,0)==2) Gammainv_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = 1 / tmp;
+    //if(RAM(r,0)==2) Gammainv_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = 1 / tmp;
   }
-  // Option-1
-  //Eigen::SparseMatrix<Type> Q1_kk( n_k, n_k );
-  //Linv_kk = Gammainv_kk * ( I_kk - Rho_kk );
-  //Q1_kk = Linv_kk.transpose() * Linv_kk;
 
-  //Eigen::SparseMatrix<Type> Q2_kk( n_k, n_k );
-  //REPORT( Gamma_jj );
-  //matrix<Type> Gammainv_jj( n_j, n_j );
-  //Gammainv_jj = invertSparseMatrix( Gamma_jj );  // Returns dense matrix (trying to return sparse throws compiler error)
-  //REPORT( Gammainv_jj );
-  //Eigen::SparseMatrix<Type> Gammainv2_jj( n_j, n_j );
-  //Gammainv2_jj = asSparseMatrix( Gammainv_jj );
-  //REPORT( Gammainv2_jj );
-  //Eigen::SparseMatrix<Type> I_tt( n_t, n_t );
-  //I_tt.setIdentity();
-  //REPORT( I_tt );
-  //Eigen::SparseMatrix<Type> Gammainv2_kk( n_k, n_k );
-  //Gammainv2_kk = kronecker( Gammainv2_jj, I_tt );
-  //REPORT( Gammainv2_kk );
-  //REPORT( Gammainv_kk );
-  //Linv_kk = asSparseMatrix(Gammainv2_kk) * ( I_kk - Rho_kk );
-
-  // Option-3
-  Eigen::SparseMatrix<Type> V_kk( n_k, n_k );
-  V_kk = Gamma_kk.transpose() * Gamma_kk;
-  matrix<Type> Vinv_kk( n_k, n_k );
-  Vinv_kk = invertSparseMatrix( V_kk );
-  Eigen::SparseMatrix<Type> Vinv2_kk( n_k, n_k );
-  Vinv2_kk = asSparseMatrix( Vinv_kk );
-  REPORT( Gamma_kk );
-  REPORT( Vinv2_kk );
-  Eigen::SparseMatrix<Type> Linv2_kk(n_k, n_k);
-  Linv2_kk = I_kk - Rho_kk;
-  Q_kk = Linv2_kk.transpose() * Vinv2_kk * Linv2_kk;
-
+  // solve(I - Rho) %*% x
+  Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
+  Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseIminusRho_kk;
+  inverseIminusRho_kk.compute(IminusRho_kk);
+  
   // Calculate effect of initial condition -- SPARSE version
   vector<Type> delta_k( n_k );
   delta_k.setZero();
@@ -129,23 +94,62 @@ Type objective_function<Type>::operator() ()
 
     // SPARSE version
     // See C:\Users\James.Thorson\Desktop\Work files\AFSC\2023-06 -- Sparse inverse-product\Kasper example\lu.cpp
-    Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
-    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > lu;
-    lu.compute(IminusRho_kk);
-    matrix<Type> x = lu.solve(delta0_k1);
+    matrix<Type> x = inverseIminusRho_kk.solve(delta0_k1);
 
     REPORT( delta0_k1 );
     delta_k = x.array();
   }
   REPORT( delta_k );
 
-  // Centered GMRF
+  // Format mu_j
   array<Type> xhat_tj( n_t, n_j );
-  for(int t=0; t<n_t; t++){
+  array<Type> delta_tj( n_t, n_j );
   for(int j=0; j<n_j; j++){
+  for(int t=0; t<n_t; t++){
+    k = j*n_t + t;
     xhat_tj(t,j) = mu_j(j);
+    delta_tj(t,j) = delta_k(k);
   }}
-  jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_k );
+
+  // Apply GMRF
+  array<Type> z_tj( n_t, n_j );
+  if( options(0)==0 ){
+    // Only compute Vinv_kk if Gamma_kk is full rank
+    Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
+    matrix<Type> Vinv_kk = invertSparseMatrix( V_kk );
+    Eigen::SparseMatrix<Type> Vinv2_kk = asSparseMatrix( Vinv_kk );
+    Eigen::SparseMatrix<Type> Q_kk = IminusRho_kk.transpose() * Vinv2_kk * IminusRho_kk;
+    
+    // Centered GMRF
+    jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_tj );
+    z_tj = x_tj;
+    REPORT( Q_kk );
+  }else{
+    // Rank-deficient (projection) method
+    jnll_gmrf += GMRF(I_kk)( x_tj );
+
+    // Forward-format matrix
+    matrix<Type> z_k1( n_t*n_j, int(1) );
+    for(int j=0; j<n_j; j++){
+    for(int t=0; t<n_t; t++){
+      k = j*n_t + t;
+      z_k1(k,0) = x_tj(t,j);
+    }}
+
+    // (I-Rho)^{-1} * Gamma * Epsilon
+    matrix<Type> z2_k1 = Gamma_kk * z_k1;
+    matrix<Type> z3_k1 = inverseIminusRho_kk.solve(z2_k1);
+
+    // Back-format vector
+    for(int j=0; j<n_j; j++){
+    for(int t=0; t<n_t; t++){
+      k = j*n_t + t;
+      z_tj(t,j) = z3_k1(k,0);
+    }}
+    
+    // Add back mean and deviation
+    z_tj += xhat_tj + delta_tj;
+  }
   //SIMULATE{
   //  if( resimulate_gmrf >= 1 ){
   //    //x_tj = GMRF(Q_kk).simulate(x_tj);
@@ -161,7 +165,7 @@ Type objective_function<Type>::operator() ()
   for(int j=0; j<n_j; j++){
     // familycode = 0 :  don't include likelihood
     if( familycode_j(j)==0 ){
-      mu_tj(t,j) = x_tj(t,j);
+      mu_tj(t,j) = z_tj(t,j);
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         SIMULATE{
           y_tj(t,j) = mu_tj(t,j);
@@ -171,7 +175,7 @@ Type objective_function<Type>::operator() ()
     }
     // familycode = 1 :  normal
     if( familycode_j(j)==1 ){
-      mu_tj(t,j) = x_tj(t,j);
+      mu_tj(t,j) = z_tj(t,j);
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
         SIMULATE{
@@ -182,7 +186,7 @@ Type objective_function<Type>::operator() ()
     }
     // familycode = 2 :  binomial
     if( familycode_j(j)==2 ){
-      mu_tj(t,j) = invlogit(x_tj(t,j));
+      mu_tj(t,j) = invlogit(z_tj(t,j));
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
         SIMULATE{
@@ -193,7 +197,7 @@ Type objective_function<Type>::operator() ()
     }
     // familycode = 3 :  Poisson
     if( familycode_j(j)==3 ){
-      mu_tj(t,j) = exp(x_tj(t,j));
+      mu_tj(t,j) = exp(z_tj(t,j));
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
         SIMULATE{
@@ -204,7 +208,7 @@ Type objective_function<Type>::operator() ()
     }
     // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
     if( familycode_j(j)==4 ){
-      mu_tj(t,j) = exp(x_tj(t,j));
+      mu_tj(t,j) = exp(z_tj(t,j));
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
         SIMULATE{
@@ -219,12 +223,14 @@ Type objective_function<Type>::operator() ()
 
   // Reporting
   //REPORT( V_kk );
-  REPORT( Q_kk );
   REPORT( xhat_tj ); // needed to simulate new GMRF in R
-  REPORT( delta_k ); // needed to simulate new GMRF in R
+  REPORT( delta_k ); // FIXME>  Eliminate in simulate.dsem
+  REPORT( delta_tj ); // needed to simulate new GMRF in R
   REPORT( Rho_kk );
+  REPORT( Gamma_kk );
   REPORT( mu_tj );
   REPORT( devresid_tj );
+  REPORT( IminusRho_kk );
   //REPORT( Gammainv_kk );
   REPORT( jnll );
   REPORT( loglik_tj );
@@ -232,5 +238,7 @@ Type objective_function<Type>::operator() ()
   SIMULATE{
     REPORT( y_tj );
   }
+  REPORT( z_tj );
+  ADREPORT( z_tj );
   return jnll;
 }

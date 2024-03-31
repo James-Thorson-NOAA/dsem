@@ -13,11 +13,18 @@
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
+#' @param covs optional: a character vector of one or more elements, with each element giving a string of variable 
+#'        names, separated by commas. Variances and covariances among all variables in each such string are 
+#'        added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent: 
+#'        covs="x1, x2" specifies the variance of x1, the variance of x2, and their covariance, 
+#'        while covs=c("x1", "x2") specifies the variance of x1 and the variance of x2 but not their covariance.
+#'        These same covariances can be added manually via argument `sem`, but using argument `covs` might
+#'        save time for models with many variables.
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
+#' @importFrom stats sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
 #' @importFrom Matrix solve Cholesky
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame
@@ -113,16 +120,31 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
-          control = dsem_control() ){
+          control = dsem_control(),
+          covs = colnames(tsdata) ){
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
+  if( control$gmrf_parameterization=="projection" ){
+    if( any(family=="fixed" & colSums(!is.na(tsdata))>0) ){
+      stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
+    }
+  }
+  if( isFALSE(is(tsdata,"ts")) ) stop("`tsdata` must be a `ts` object")
+
+  # General warnings
+  if( isFALSE(control$quiet) ){
+    tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
+    if( any((max(tsdata_SD)/min(tsdata_SD)) > 10, rm.na=TRUE) ){
+      warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
+    }
+  }
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
   out = make_dsem_ram( sem,
                   times = as.numeric(time(tsdata)),
                   variables = colnames(tsdata),
-                  covs = colnames(tsdata),
+                  covs = covs,
                   quiet = control$quiet )
   ram = out$ram
 
@@ -133,9 +155,13 @@ function( sem,
   if( !all(c(out$model[,'first'],out$model[,'second']) %in% colnames(tsdata)) ){
     stop("Some variable in `sem` is not in `tsdata`")
   }
+  if( ncol(tsdata) != length(unique(colnames(tsdata))) ){
+    stop("Please check `colnames(tsdata)` to confirm that all variables (columns) have a unique name")
+  }
 
   #
-  Data = list( "RAM" = as.matrix(na.omit(ram[,1:4])),
+  Data = list( "options" = ifelse(control$gmrf_parameterization=="separable",0,1),
+               "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
                "y_tj" = tsdata )
@@ -146,7 +172,12 @@ function( sem,
                    "lnsigma_j" = rep(0,ncol(tsdata)),
                    "mu_j" = rep(0,ncol(tsdata)),
                    "delta0_j" = rep(0,ncol(tsdata)),
-                   "x_tj" = ifelse( is.na(tsdata), 0, tsdata ))
+                   "x_tj" = ifelse( is.na(tsdata), 0, tsdata ) )
+    #if( control$gmrf_parameterization=="separable" ){
+    #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
+    #}else{
+    #  Params$eps_tj = ifelse( is.na(tsdata), 0, tsdata )
+    #}
 
     # Turn off initial conditions
     if( estimate_delta0==FALSE ){
@@ -178,20 +209,28 @@ function( sem,
     Map = control$map
   }
 
-  # Initial run
+  # Define random
   if(isTRUE(control$use_REML)){
     Random = c( "x_tj", "mu_j" )
   }else{
     Random = "x_tj"
   }
-  obj = MakeADFun( data=Data, parameters=Params, random=Random, map=Map, DLL="dsem" )
+
+  # Build object
+  obj = MakeADFun( data=Data,
+                   parameters=Params,
+                   random=Random,
+                   map=Map,
+                   profile = control$profile,
+                   DLL="dsem" )
   if(control$quiet==FALSE) list_parameters(obj)
   internal = list(
     sem = sem,
     tsdata = tsdata,
     family = family,
     estimate_delta0 = estimate_delta0,
-    control = control
+    control = control,
+    covs = covs
   )
   out = list( "obj"=obj,
               "ram"=ram,
@@ -233,10 +272,32 @@ function( sem,
     out$opt$objective = obj$fn(out$opt$par)
   }
 
+  if( isTRUE(control$extra_convergence_checks) ){
+    # Gradient checks
+    Grad_fixed = obj$gr( out$opt$par )
+    if( isTRUE(any(Grad_fixed > 0.01)) ){
+      warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
+    }
+    # Hessian check ... condition and positive definite
+    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    Eigen_fixed = eigen( Hess_fixed, only.values=TRUE )
+    if( (max(Eigen_fixed$values)/min(Eigen_fixed$values)) > 1e6 ){
+      # See McCullough and Vinod 2003
+      warning("The ratio of maximum and minimum Hessian eigenvalues is high. Some parameters might not be identifiable.")
+    }
+    if( isTRUE(any(Eigen_fixed$values < 0)) ){
+      warning("Some Hessian eigenvalue is negative. Some parameters might not be converged.")
+    }
+  }else{
+    Hess_fixed = NULL
+  }
+
   # Run sdreport
   if( isTRUE(control$getsd) ){
     if( isTRUE(control$verbose) ) message("Running sdreport")
-    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    if( is.null(Hess_fixed) ){
+      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    }
     out$sdrep = sdreport( obj,
                           hessian.fixed = Hess_fixed,
                           getJointPrecision = control$getJointPrecision )
@@ -255,6 +316,8 @@ function( sem,
 #' the format of this input is likely to change more rapidly than that of
 #' \code{\link{dsem}}
 #'
+#' @inheritParams TMB::MakeADFun
+#'
 #' @param nlminb_loops Integer number of times to call \code{\link[stats]{nlminb}}.
 #' @param newton_loops Integer number of Newton steps to do after running
 #'        \code{\link[stats]{nlminb}}.
@@ -268,6 +331,12 @@ function( sem,
 #' @param getsd Boolean indicating whether to call \code{\link[TMB]{sdreport}}
 #' @param run_model Boolean indicating whether to estimate parameters (the default), or
 #'        instead to return the model inputs and compiled TMB object without running;
+#' @param gmrf_parameterization Parameterization to use for the Gaussian Markov 
+#'        random field, where the default `separable` constructs a precision matrix
+#'        that must be full rank, and the alternative `projection` constructs
+#'        a full-rank and IID precision for variables over time, and then projects
+#'        this using the inverse-cholesky of the precision, where this projection
+#'        can be rank-deficient.
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
 #' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
 #'        either to motigate bias in estimated variance parameters or improve efficiency for
@@ -278,6 +347,8 @@ function( sem,
 #'        to override this default and then pass to \code{\link[TMB]{MakeADFun}}
 #' @param getJointPrecision whether to get the joint precision matrix.  Passed
 #'        to \code{\link[TMB]{sdreport}}.
+#' @param extra_convergence_checks Boolean indicating whether to run extra checks on model
+#'        convergence.
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -293,10 +364,15 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
+          gmrf_parameterization = c("separable","projection"),
           use_REML = TRUE,
+          profile = NULL,
           parameters = NULL,
           map = NULL,
-          getJointPrecision = FALSE ){
+          getJointPrecision = FALSE,
+          extra_convergence_checks = TRUE ){
+
+  gmrf_parameterization = match.arg(gmrf_parameterization)
 
   # Return
   structure( list(
@@ -308,10 +384,13 @@ function( nlminb_loops = 1,
     getsd = getsd,
     quiet = quiet,
     run_model = run_model,
+    gmrf_parameterization = gmrf_parameterization,
     use_REML = use_REML,
+    profile = profile,
     parameters = parameters,
     map = map,
-    getJointPrecision = getJointPrecision
+    getJointPrecision = getJointPrecision,
+    extra_convergence_checks = extra_convergence_checks
   ), class = "dsem_control" )
 }
 
@@ -507,7 +586,7 @@ function( object,
       newrep = obj$report( par=par_zr[,r] )
       newparfull = obj$env$parList()
       Q_kk = newrep$Q_kk
-      tmp = rmvnorm_prec( newrep$delta_k + as.vector(newrep$xhat_tj), Q_kk, nsim=1 )
+      tmp = rmvnorm_prec( as.vector(newrep$delta_tj + newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
       #newcall = object$call
       # Get control
@@ -648,9 +727,9 @@ function( object,
   # Gamma: 2 * ( (y-mu)/mu - log(y/mu) )
 
   # Easy of use
-  x_tj = object$obj$env$parList()$x_tj
+  #z_tj = object$obj$report()$z_tj
   y_tj = object$tmb_inputs$data$y_tj
-  familycode_j = object$tmb_inputs$data$familycode_j
+  #familycode_j = object$tmb_inputs$data$familycode_j
   report = object$obj$report()
 
   #
@@ -738,7 +817,8 @@ function( object,
                    tsdata = newdata,
                    family = object$internal$family,
                    estimate_delta0 = object$internal$estimate_delta0,
-                   control = object$internal$control )
+                   control = object$internal$control,
+                   covs = object$internal$covs )
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor
