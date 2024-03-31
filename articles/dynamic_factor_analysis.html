@@ -97,9 +97,7 @@ package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://atsa-es.github.io/MARSS/" class="external-link">MARSS</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'MARSS' was built under R version 4.3.3</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'ggplot2' was built under R version 4.3.3</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span> <span class="va">harborSealWA</span>, package<span class="op">=</span><span class="st">"MARSS"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define helper function</span></span>
@@ -219,10 +217,11 @@ using a full-rank covariance so far.</p>
 <div class="section level2">
 <h2 id="reduced-rank-factor-model-with-measurement-errors">Reduced-rank factor model with measurement errors<a class="anchor" aria-label="anchor" href="#reduced-rank-factor-model-with-measurement-errors"></a>
 </h2>
-<p>Next, we can specify two factors factors while eliminating additional
-process error and estimating measurement errors. This requires us to
-switch to <code>gmrf_parameterization = "projection"</code>, so that we
-can fit a rank-deficient Gaussian Markov random field:</p>
+<p>Next, we can specify three factors factors while eliminating
+additional process error and estimating measurement errors. This
+requires us to switch to
+<code>gmrf_parameterization = "projection"</code>, so that we can fit a
+rank-deficient Gaussian Markov random field:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Add factors to data</span></span>
 <span><span class="va">tsdata</span> <span class="op">=</span> <span class="va">harborSealWA</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJI"</span>,<span class="st">"EBays"</span>,<span class="st">"SJF"</span>,<span class="st">"PSnd"</span>,<span class="st">"HC"</span><span class="op">)</span><span class="op">]</span></span>
@@ -366,7 +365,7 @@ compare the three options in terms of estimated loadings:</p>
 </tr>
 <tr class="even">
 <td align="left">Z.21</td>
-<td align="right">-0.440</td>
+<td align="right">-0.439</td>
 <td align="right">0.320</td>
 <td align="right">0.332</td>
 </tr>
@@ -402,7 +401,7 @@ compare the three options in terms of estimated loadings:</p>
 </tr>
 <tr class="even">
 <td align="left">Z.42</td>
-<td align="right">-0.079</td>
+<td align="right">-0.078</td>
 <td align="right">-0.088</td>
 <td align="right">-0.095</td>
 </tr>
