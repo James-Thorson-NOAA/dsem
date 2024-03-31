@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,6 +24,7 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a>
     <a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a>
   </div>
 </li>
@@ -62,7 +63,8 @@
 <span>  <span class="va">tsdata</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"fixed"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  estimate_delta0 <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  control <span class="op">=</span> <span class="fu"><a href="dsem_control.html">dsem_control</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  control <span class="op">=</span> <span class="fu"><a href="dsem_control.html">dsem_control</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -94,6 +96,16 @@ the stationary distribution</p></dd>
 <dt>control</dt>
 <dd><p>Output from <code><a href="dsem_control.html">dsem_control</a></code>, used to define user
 settings, and see documentation for that function for details.</p></dd>
+
+
+<dt>covs</dt>
+<dd><p>optional: a character vector of one or more elements, with each element giving a string of variable 
+names, separated by commas. Variances and covariances among all variables in each such string are 
+added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent: 
+covs="x1, x2" specifies the variance of x1, the variance of x2, and their covariance, 
+while covs=c("x1", "x2") specifies the variance of x1 and the variance of x2 but not their covariance.
+These same covariances can be added manually via argument `sem`, but using argument `covs` might
+save time for models with many variables.</p></dd>
 
 </dl></div>
     <div class="section level2">

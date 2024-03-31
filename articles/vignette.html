@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,7 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a>
     <a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a>
   </div>
 </li>
@@ -241,14 +242,22 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span>             tsdata <span class="op">=</span> <span class="va">data</span>,</span>
 <span>             estimate_delta0 <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>             control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span></span>
-<span>               quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>               quiet <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>               getsd <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">)</span></span>
+<span><span class="co">#&gt;   Coefficient_name Number_of_coefficients   Type</span></span>
+<span><span class="co">#&gt; 1           beta_z                      6  Fixed</span></span>
+<span><span class="co">#&gt; 2             mu_j                      2 Random</span></span>
+<span></span>
+<span><span class="co">#</span></span>
+<span><span class="va">parameters</span> <span class="op">=</span> <span class="va">fit0</span><span class="op">$</span><span class="va">obj</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="fu">parList</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">parameters</span><span class="op">$</span><span class="va">delta0_j</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span> <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Refit with delta0</span></span>
 <span><span class="va">fit</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> sem <span class="op">=</span> <span class="va">sem</span>,</span>
 <span>            tsdata <span class="op">=</span> <span class="va">data</span>,</span>
 <span>            estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> quiet<span class="op">=</span><span class="cn">TRUE</span>,</span>
-<span>                                    parameters <span class="op">=</span> <span class="va">fit0</span><span class="op">$</span><span class="va">obj</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="fu">parList</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
+<span>                                    parameters <span class="op">=</span> <span class="va">parameters</span> <span class="op">)</span> <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># dynlm</span></span>
 <span><span class="va">fm_wolf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dynlm/man/dynlm.html" class="external-link">dynlm</a></span><span class="op">(</span> <span class="va">wolves</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">wolves</span><span class="op">)</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">moose</span><span class="op">)</span>, data<span class="op">=</span><span class="va">data</span> <span class="op">)</span>   <span class="co">#</span></span>
@@ -361,14 +370,13 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span><span class="st">  log_PercentCop -&gt; log_RperS, 0, Scop_to_RperS</span></span>
 <span><span class="st">  log_Esummer -&gt; log_PercentEuph, 0, Esummer_to_Suph</span></span>
 <span><span class="st">  log_Cfall -&gt; log_PercentCop, 0, Cfall_to_Scop</span></span>
-<span><span class="st">  log_SSB -&gt; log_RperS, 0, SSB_to_RperS</span></span>
+<span><span class="st">  SSB -&gt; log_RperS, 0, SSB_to_RperS</span></span>
 <span><span class="st"></span></span>
 <span><span class="st">  log_seaice -&gt; log_seaice, 1, AR1, 0.001</span></span>
 <span><span class="st">  log_CP -&gt; log_CP, 1,  AR2, 0.001</span></span>
-<span><span class="st">  log_Cspring -&gt; log_Cspring, 1, AR3, 0.001</span></span>
 <span><span class="st">  log_Cfall -&gt; log_Cfall, 1, AR4, 0.001</span></span>
 <span><span class="st">  log_Esummer -&gt; log_Esummer, 1, AR5, 0.001</span></span>
-<span><span class="st">  log_SSB -&gt; log_SSB, 1, AR6, 0.001</span></span>
+<span><span class="st">  SSB -&gt; SSB, 1, AR6, 0.001</span></span>
 <span><span class="st">  log_RperS -&gt;  log_RperS, 1, AR7, 0.001</span></span>
 <span><span class="st">  log_PercentEuph -&gt; log_PercentEuph, 1, AR8, 0.001</span></span>
 <span><span class="st">  log_PercentCop -&gt; log_PercentCop, 1, AR9, 0.001</span></span>
@@ -379,11 +387,6 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span>            tsdata <span class="op">=</span> <span class="va">Z</span>,</span>
 <span>            family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span>use_REML<span class="op">=</span><span class="cn">FALSE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in nlminb(start = out$opt$par, objective = obj$fn, gradient = obj$gr, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in nlminb(start = out$opt$par, objective = obj$fn, gradient = obj$gr, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="va">ParHat</span> <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">obj</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="fu">parList</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># summary( fit )</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -392,10 +395,10 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span> mfcol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span>, mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">0</span><span class="op">)</span>, mgp<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">0.5</span>,<span class="fl">0</span><span class="op">)</span>, tck<span class="op">=</span><span class="op">-</span><span class="fl">0.02</span> <span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">tmp</span> <span class="op">=</span> <span class="va">bering_sea</span><span class="op">[</span>,<span class="va">i</span>,drop<span class="op">=</span><span class="cn">FALSE</span><span class="op">]</span></span>
-<span>  <span class="va">tmp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span> <span class="va">tmp</span>, <span class="st">"PSEM"</span><span class="op">=</span><span class="va">ParHat</span><span class="op">$</span><span class="va">x_tj</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span> <span class="op">)</span></span>
+<span>  <span class="va">tmp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span> <span class="va">tmp</span>, <span class="st">"pred"</span><span class="op">=</span><span class="va">ParHat</span><span class="op">$</span><span class="va">x_tj</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span> <span class="op">)</span></span>
 <span>  <span class="va">SD</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">sdrep</span>,what<span class="op">=</span><span class="st">"Std."</span><span class="op">)</span><span class="op">$</span><span class="va">x_tj</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span></span>
-<span>  <span class="va">tmp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span> <span class="va">tmp</span>, <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>               <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">SD</span><span class="op">)</span>,<span class="fl">0</span>,<span class="va">SD</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
+<span>  <span class="va">tmp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span> <span class="va">tmp</span>, <span class="st">"lower"</span><span class="op">=</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">SD</span><span class="op">)</span>,<span class="fl">0</span>,<span class="va">SD</span><span class="op">)</span>,</span>
+<span>                    <span class="st">"upper"</span><span class="op">=</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">SD</span><span class="op">)</span>,<span class="fl">0</span>,<span class="va">SD</span><span class="op">)</span> <span class="op">)</span></span>
 <span>  <span class="co">#</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span> x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span>, y<span class="op">=</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, ylim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">tmp</span>,na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>        type<span class="op">=</span><span class="st">"p"</span>, main<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, pch<span class="op">=</span><span class="fl">20</span>, cex<span class="op">=</span><span class="fl">2</span> <span class="op">)</span></span>
@@ -403,11 +406,10 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span>         col<span class="op">=</span><span class="st">"blue"</span>, lty<span class="op">=</span><span class="st">"solid"</span> <span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/polygon.html" class="external-link">polygon</a></span><span class="op">(</span> x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>           y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span>,<span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">0.2</span><span class="op">)</span>, border<span class="op">=</span><span class="cn">NA</span> <span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vignette_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Ax3man.github.io/phylopath/" class="external-link">phylopath</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -445,7 +447,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <p>Finally, we replicate an analysis involving a trophic cascade
 involving sea stars predators, sea urchin consumers, and kelp
 producers.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">sea_otter</span><span class="op">)</span></span>
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="va">sea_otter</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">)</span></span>
 <span></span>
@@ -585,11 +587,7 @@ producers.</p>
 <span><span class="va">p2</span><span class="op">$</span><span class="va">layers</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">mapping</span><span class="op">$</span><span class="va">edge_width</span> <span class="op">=</span> <span class="fl">0.1</span></span>
 <span></span>
 <span><span class="va">longform</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/reshape/man/melt-24.html" class="external-link">melt</a></span><span class="op">(</span> <span class="va">sea_otter</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span>, as.is<span class="op">=</span><span class="cn">TRUE</span> <span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in type.convert.default(X[[i]], ...): 'as.is' should be specified by</span></span>
-<span><span class="co">#&gt; the caller; using TRUE</span></span>
 <span><span class="va">longform</span><span class="op">$</span><span class="va">X1</span> <span class="op">=</span> <span class="fl">1999</span><span class="op">:</span><span class="fl">2019</span><span class="op">[</span><span class="va">longform</span><span class="op">$</span><span class="va">X1</span><span class="op">]</span></span>
-<span><span class="co">#&gt; Warning in 1999:2019[longform$X1]: numerical expression has 1008 elements: only</span></span>
-<span><span class="co">#&gt; the first used</span></span>
 <span><span class="va">longform</span><span class="op">$</span><span class="va">Site</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span> <span class="st">"log_Kelp_"</span>, <span class="st">""</span>,</span>
 <span>                <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span> <span class="st">"log_Urchins_"</span>, <span class="st">""</span>,</span>
 <span>                <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span> <span class="st">"Pycno_"</span>, <span class="st">""</span>,</span>

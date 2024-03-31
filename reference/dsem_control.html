@@ -14,7 +14,7 @@ dsem"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathja
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@ dsem"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathja
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a>
     <a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a>
   </div>
 </li>
@@ -72,10 +73,13 @@ the format of this input is likely to change more rapidly than that of
 <span>  getsd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  run_model <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  gmrf_parameterization <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"separable"</span>, <span class="st">"projection"</span><span class="op">)</span>,</span>
 <span>  use_REML <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  profile <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  parameters <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  map <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  getJointPrecision <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  getJointPrecision <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  extra_convergence_checks <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -119,10 +123,23 @@ allowed. Passed to `control` in <code><a href="https://rdrr.io/r/stats/nlminb.ht
 instead to return the model inputs and compiled TMB object without running;</p></dd>
 
 
+<dt>gmrf_parameterization</dt>
+<dd><p>Parameterization to use for the Gaussian Markov 
+random field, where the default `separable` constructs a precision matrix
+that must be full rank, and the alternative `projection` constructs
+a full-rank and IID precision for variables over time, and then projects
+this using the inverse-cholesky of the precision, where this projection
+can be rank-deficient.</p></dd>
+
+
 <dt>use_REML</dt>
 <dd><p>Boolean indicating whether to treat non-variance fixed effects as random,
 either to motigate bias in estimated variance parameters or improve efficiency for
 parameter estimation given correlated fixed and random effects</p></dd>
+
+
+<dt>profile</dt>
+<dd><p>Parameters to profile out of the likelihood (this subset will be appended to <code>random</code> with Laplace approximation disabled).</p></dd>
 
 
 <dt>parameters</dt>
@@ -138,6 +155,11 @@ to override this default and then pass to <code><a href="https://rdrr.io/pkg/TMB
 <dt>getJointPrecision</dt>
 <dd><p>whether to get the joint precision matrix.  Passed
 to <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code>.</p></dd>
+
+
+<dt>extra_convergence_checks</dt>
+<dd><p>Boolean indicating whether to run extra checks on model
+convergence.</p></dd>
 
 </dl></div>
     <div class="section level2">

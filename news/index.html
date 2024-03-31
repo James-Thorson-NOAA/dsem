@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,6 +24,7 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a>
     <a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a>
   </div>
 </li>
@@ -51,7 +52,18 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.1.0" id="dsem-110">dsem 1.1.0<a class="anchor" aria-label="anchor" href="#dsem-110"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.2.0" id="dsem-120">dsem 1.2.0<a class="anchor" aria-label="anchor" href="#dsem-120"></a></h2><p class="text-muted">CRAN release: 2024-03-31</p>
+<ul><li>Adding option to specify covariance via argument <code>covs</code>
+</li>
+<li>Adding options to specify gmrf_parameterization=“projection”</li>
+<li>Adding vigette outlining how to fit dynamic factor analysis</li>
+<li>Fix bug arising when <code>tsdata</code> had two or more columns sharing a single variable name</li>
+<li>Adding <code>make_dfa</code> helper function</li>
+<li>Updating bering_sea dataset to include extra year of cold-pool, and changing vignette to match the published specification and results</li>
+<li>Updating the lag indexing for the Klein-I model in the vignette to use positive values for lags, and updating saved MCMC results to match that corrected specification</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.1.0" id="dsem-110">dsem 1.1.0<a class="anchor" aria-label="anchor" href="#dsem-110"></a></h2><p class="text-muted">CRAN release: 2024-02-17</p>
 <ul><li>Adding option to specify covariance in Gamma</li>
 </ul></div>
     <div class="section level2">
