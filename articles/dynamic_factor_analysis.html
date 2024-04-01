@@ -217,11 +217,10 @@ using a full-rank covariance so far.</p>
 <div class="section level2">
 <h2 id="reduced-rank-factor-model-with-measurement-errors">Reduced-rank factor model with measurement errors<a class="anchor" aria-label="anchor" href="#reduced-rank-factor-model-with-measurement-errors"></a>
 </h2>
-<p>Next, we can specify three factors factors while eliminating
-additional process error and estimating measurement errors. This
-requires us to switch to
-<code>gmrf_parameterization = "projection"</code>, so that we can fit a
-rank-deficient Gaussian Markov random field:</p>
+<p>Next, we can specify two factors factors while eliminating additional
+process error and estimating measurement errors. This requires us to
+switch to <code>gmrf_parameterization = "projection"</code>, so that we
+can fit a rank-deficient Gaussian Markov random field:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Add factors to data</span></span>
 <span><span class="va">tsdata</span> <span class="op">=</span> <span class="va">harborSealWA</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJI"</span>,<span class="st">"EBays"</span>,<span class="st">"SJF"</span>,<span class="st">"PSnd"</span>,<span class="st">"HC"</span><span class="op">)</span><span class="op">]</span></span>
