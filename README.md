@@ -21,7 +21,7 @@ The model has several advantages:
 * It is rapidly fitted as a Gaussian Markov random field (GMRF) in a Generalized Linear Mixed Model (GLMM), with speed and asymptotics associated with each
 * It allows granular control over the number of parameters (and restrictions on parameters) used to structure the covariance among variables and over time,
 
-_phylosem_ is specifically intended as a minimal implementation, and uses standard packages to simplify input/output formatting:
+_dsem_ is specifically intended as a minimal implementation, and uses standard packages to simplify input/output formatting:
 
 * Input: time-series defined using class _ts_, with `NA` for missing values
 * Input: structural trade-offs specified using syntax defined by package _sem_

@@ -140,7 +140,7 @@ These estimated states follow the data more closely and have smaller estimated c
 
 ## Reduced-rank factor model with measurement errors
 
-Next, we can specify three factors factors while eliminating additional process error and estimating measurement errors.  This requires us to switch to `gmrf_parameterization = "projection"`, so that we can fit a rank-deficient Gaussian Markov random field:
+Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires us to switch to `gmrf_parameterization = "projection"`, so that we can fit a rank-deficient Gaussian Markov random field:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
