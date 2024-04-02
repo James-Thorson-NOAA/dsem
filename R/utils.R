@@ -6,37 +6,36 @@
 #' @param warn give warning?
 #' @return logical: TRUE if the binary versions match
 #' @importFrom utils packageVersion
-#' @export
-checkDepPackageVersion <- function(dep_pkg = "TMB",
-                                   this_pkg = "dsem",
-                                   write_file = FALSE,
-                                   warn = TRUE) {
-    cur_dep_version <- as.character(packageVersion(dep_pkg))
-    fn <- sprintf("%s-version", dep_pkg)
-    if (write_file) {
-        cat(sprintf("current %s version=%s: writing file\n", dep_pkg, cur_dep_version))
-        writeLines(cur_dep_version, con = fn)
-        return(cur_dep_version)
-    }
-    fn <- system.file(fn, package=this_pkg)
-    built_dep_version <- scan(file=fn, what=character(), quiet=TRUE)
-    result_ok <- identical(built_dep_version, cur_dep_version)
-    if(warn && !result_ok) {
-        warning(
-            "Package version inconsistency detected.\n",
-            sprintf("%s was built with %s version %s",
-                    this_pkg, dep_pkg, built_dep_version),
-            "\n",
-            sprintf("Current %s version is %s",
-                    dep_pkg, cur_dep_version),
-            "\n",
-            sprintf("Please re-install %s from source ", this_pkg),
-            "or restore original ",
-            sQuote(dep_pkg), " package (see '?reinstalling' for more information)"
-        )
-    }
-    return(result_ok)
-}
+#checkDepPackageVersion <- function(dep_pkg = "TMB",
+#                                   this_pkg = "dsem",
+#                                   write_file = FALSE,
+#                                   warn = TRUE) {
+#    cur_dep_version <- as.character(packageVersion(dep_pkg))
+#    fn <- sprintf("%s-version", dep_pkg)
+#    if (write_file) {
+#        cat(sprintf("current %s version=%s: writing file\n", dep_pkg, cur_dep_version))
+#        writeLines(cur_dep_version, con = fn)
+#        return(cur_dep_version)
+#    }
+#    fn <- system.file(fn, package=this_pkg)
+#    built_dep_version <- scan(file=fn, what=character(), quiet=TRUE)
+#    result_ok <- identical(built_dep_version, cur_dep_version)
+#    if(warn && !result_ok) {
+#        warning(
+#            "Package version inconsistency detected.\n",
+#            sprintf("%s was built with %s version %s",
+#                    this_pkg, dep_pkg, built_dep_version),
+#            "\n",
+#            sprintf("Current %s version is %s",
+#                    dep_pkg, cur_dep_version),
+#            "\n",
+#            sprintf("Please re-install %s from source ", this_pkg),
+#            "or restore original ",
+#            sQuote(dep_pkg), " package (see '?reinstalling' for more information)"
+#        )
+#    }
+#    return(result_ok)
+#}
 
 #' @name reinstalling
 #' @rdname reinstalling
