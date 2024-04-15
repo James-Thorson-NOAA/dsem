@@ -120,6 +120,7 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
+          prior_negloglike = NULL,
           control = dsem_control(),
           covs = colnames(tsdata) ){
 
@@ -217,13 +218,15 @@ function( sem,
   }
 
   # Build object
-  obj = MakeADFun( data=Data,
+  obj = TMB::MakeADFun( data=Data,
                    parameters=Params,
                    random=Random,
                    map=Map,
                    profile = control$profile,
-                   DLL="dsem" )
+                   DLL="dsem",
+                   silent = TRUE )
   if(control$quiet==FALSE) list_parameters(obj)
+  # bundle
   internal = list(
     sem = sem,
     tsdata = tsdata,
@@ -232,6 +235,26 @@ function( sem,
     control = control,
     covs = covs
   )
+
+  # Parse priors
+  if( !is.null(prior_negloglike) ){
+    # prior_negloglike = \(obj) -dnorm(obj$par[1],0,1,log=TRUE)
+    prior_value = tryCatch( expr = prior_negloglike(obj) )
+    if( is.na(prior_value) ) stop("Check `prior_negloglike(obj$par)`")
+    obj$fn_orig = obj$fn
+    obj$gr_orig = obj$gr
+
+    # BUild prior evaluator
+    require(RTMB)
+    priors_obj = RTMB::MakeADFun( func = prior_negloglike, 
+                                  parameters = list(par=obj$par), 
+                                  silent = TRUE )
+    obj$fn = \(pars) obj$fn_orig(pars) + priors_obj$fn(pars)
+    obj$gr = \(pars) obj$gr_orig(pars) + priors_obj$gr(pars)
+    internal$priors_obj = priors_obj
+  }
+  
+  # Further bundle
   out = list( "obj"=obj,
               "ram"=ram,
               "sem_full"=out$model,
@@ -245,7 +268,6 @@ function( sem,
   }
 
   # Fit
-  obj$env$beSilent()       # if(!is.null(Random))
   #out$opt = fit_tmb( obj,
   #                   quiet = control$quiet,
   #                   control = list(eval.max=10000, iter.max=10000, trace=ifelse(control$quiet==TRUE,0,1) ),
@@ -298,7 +320,8 @@ function( sem,
     if( is.null(Hess_fixed) ){
       Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
     }
-    out$sdrep = sdreport( obj,
+    out$sdrep = TMB::sdreport( obj,
+                          par.fixed = out$opt$par,
                           hessian.fixed = Hess_fixed,
                           getJointPrecision = control$getJointPrecision )
   }else{
