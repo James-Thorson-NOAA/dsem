@@ -873,9 +873,10 @@ logLik.dsem <- function(object, ...) {
 as_fitted_DAG <-
 function( fit,
           lag = 0,
-          what = "Estimate",
+          what = c("Estimate","Std_Error","p_value"),
           direction = 1 ){
 
+  what = match.arg(what)
   coefs = summary( fit )
   coefs = coefs[ which(coefs[,2]==lag), ]
   coefs = coefs[ which(coefs[,'direction'] %in% direction), ]

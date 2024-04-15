@@ -4,7 +4,12 @@
 \alias{as_fitted_DAG}
 \title{Convert output from package dsem to phylopath}
 \usage{
-as_fitted_DAG(fit, lag = 0, what = "Estimate", direction = 1)
+as_fitted_DAG(
+  fit,
+  lag = 0,
+  what = c("Estimate", "Std_Error", "p_value"),
+  direction = 1
+)
 }
 \arguments{
 \item{fit}{Output from \code{\link{dsem}}}

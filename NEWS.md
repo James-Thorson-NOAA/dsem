@@ -1,3 +1,8 @@
+# dsem 1.2.1
+
+* removing `checkDepPackageVersion(dep_pkg="Matrix", this_pkg="TMB")` from `.onLoad()`
+  as requested by K. Kristensen
+
 # dsem 1.2.0
 
 * Adding option to specify covariance via argument `covs`
