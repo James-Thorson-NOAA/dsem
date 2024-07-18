@@ -14,6 +14,7 @@ dsem_control(
   quiet = FALSE,
   run_model = TRUE,
   gmrf_parameterization = c("separable", "projection"),
+  constant_variance = c("conditional", "marginal"),
   use_REML = TRUE,
   profile = NULL,
   parameters = NULL,
@@ -51,6 +52,11 @@ that must be full rank, and the alternative `projection` constructs
 a full-rank and IID precision for variables over time, and then projects
 this using the inverse-cholesky of the precision, where this projection
 can be rank-deficient.}
+
+\item{constant_variance}{Whether to specify a constant conditional variance 
+\eqn{ \mathbf{Gamma Gamma}^t}, which results in a changing marginal variance      
+along the specified causal graph, or instead specify a constant marginal variance
+such that \eqn{ \mathbf{Gamma}} is rescaled to achieve this constraint.}
 
 \item{use_REML}{Boolean indicating whether to treat non-variance fixed effects as random,
 either to motigate bias in estimated variance parameters or improve efficiency for

@@ -16,7 +16,9 @@ Type objective_function<Type>::operator() ()
   using namespace density;
 
   // Data
-  DATA_IVECTOR( options ); // options(0) -> full rank or rank-reduced GMRF
+  DATA_IVECTOR( options ); 
+  // options(0) -> 0: full rank;  1: rank-reduced GMRF
+  // options(1) -> 0: constant conditional variance;  1: constant marginal variance
   //DATA_INTEGER( resimulate_gmrf );
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
@@ -68,11 +70,49 @@ Type objective_function<Type>::operator() ()
     }
     //if(RAM(r,0)==2) Gammainv_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = 1 / tmp;
   }
-
-  // solve(I - Rho) %*% x
   Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
+  
+  // Compute inverse
   Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseIminusRho_kk;
   inverseIminusRho_kk.compute(IminusRho_kk);
+
+  // Rescale I-Rho if using constant marginal variance
+  if( options(1)==1 ){
+    //matrix<Type> invIminusRho_kk = atomic::matinv(); // Requires dense Gamma and Rho from above
+    Eigen::SparseMatrix<Type> invIminusRho_kk;
+    
+    // Doesn't work
+    //invIminusRho_kk = IminusRho_kk.inverse();
+    // WORKS:  Based on: https://github.com/kaskr/adcomp/issues/74
+    invIminusRho_kk = inverseIminusRho_kk.solve(I_kk);
+    REPORT( invIminusRho_kk );
+    
+    // Hadamard squared
+    // See: https://eigen.tuxfamily.org/dox/group__QuickRefPage.html
+    Eigen::SparseMatrix<Type> squared_invIminusRho_kk(n_k, n_k);
+    squared_invIminusRho_kk = invIminusRho_kk.cwiseProduct(invIminusRho_kk);
+    REPORT( squared_invIminusRho_kk );
+    
+    // Rowsums
+    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > invsquared_invIminusRho_kk;
+    invsquared_invIminusRho_kk.compute(squared_invIminusRho_kk);
+    matrix<Type> ones_k1( n_k, 1 );
+    ones_k1.setOnes();
+    matrix<Type> margvar_k1 = invsquared_invIminusRho_kk.solve(ones_k1);
+    REPORT( ones_k1 );
+    REPORT( margvar_k1 );
+    
+    // Operations
+    Eigen::SparseMatrix<Type> invmargsd_kk(n_k, n_k);
+    for( int k=0; k<n_k; k++ ){
+      invmargsd_kk.coeffRef(k,k) = pow( margvar_k1(k,0), -0.5 );
+    }
+    IminusRho_kk = invmargsd_kk * IminusRho_kk;
+    REPORT( invmargsd_kk );
+    
+    // Recompute inverse
+    inverseIminusRho_kk.compute(IminusRho_kk);
+  }
   
   // Calculate effect of initial condition -- SPARSE version
   vector<Type> delta_k( n_k );

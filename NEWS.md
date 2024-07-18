@@ -1,3 +1,9 @@
+# dsem 1.3.0
+
+* Adding option to specify constant marginal variance, as alternative to existing
+  calculation which results in a constant conditional variance but a changing marginal 
+  variance along the causal graph
+
 # dsem 1.2.1
 
 * removing `checkDepPackageVersion(dep_pkg="Matrix", this_pkg="TMB")` from `.onLoad()`

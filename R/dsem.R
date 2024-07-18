@@ -160,7 +160,13 @@ function( sem,
   }
 
   #
-  Data = list( "options" = ifelse(control$gmrf_parameterization=="separable",0,1),
+  options = c(
+    ifelse(control$gmrf_parameterization=="separable", 0, 1),
+    ifelse(control$constant_variance=="conditional", 0, 1)
+  )
+  
+  #
+  Data = list( "options" = options,
                "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
@@ -337,6 +343,10 @@ function( sem,
 #'        a full-rank and IID precision for variables over time, and then projects
 #'        this using the inverse-cholesky of the precision, where this projection
 #'        can be rank-deficient.
+#' @param constant_variance Whether to specify a constant conditional variance 
+#'        \eqn{ \mathbf{Gamma Gamma}^t}, which results in a changing marginal variance      
+#'        along the specified causal graph, or instead specify a constant marginal variance
+#'        such that \eqn{ \mathbf{Gamma}} is rescaled to achieve this constraint.
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
 #' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
 #'        either to motigate bias in estimated variance parameters or improve efficiency for
@@ -364,7 +374,8 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
-          gmrf_parameterization = c("separable","projection"),
+          gmrf_parameterization = c("separable", "projection"),
+          constant_variance = c("conditional", "marginal"),
           use_REML = TRUE,
           profile = NULL,
           parameters = NULL,
@@ -373,6 +384,7 @@ function( nlminb_loops = 1,
           extra_convergence_checks = TRUE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
+  constant_variance = match.arg(constant_variance)
 
   # Return
   structure( list(
@@ -385,6 +397,7 @@ function( nlminb_loops = 1,
     quiet = quiet,
     run_model = run_model,
     gmrf_parameterization = gmrf_parameterization,
+    constant_variance = constant_variance,
     use_REML = use_REML,
     profile = profile,
     parameters = parameters,
