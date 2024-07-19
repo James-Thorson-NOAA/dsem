@@ -162,7 +162,7 @@ function( sem,
   #
   options = c(
     ifelse(control$gmrf_parameterization=="separable", 0, 1),
-    ifelse(control$constant_variance=="conditional", 0, 1)
+    switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
   )
   
   #
@@ -375,7 +375,7 @@ function( nlminb_loops = 1,
           quiet = FALSE,
           run_model = TRUE,
           gmrf_parameterization = c("separable", "projection"),
-          constant_variance = c("conditional", "marginal"),
+          constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
           parameters = NULL,

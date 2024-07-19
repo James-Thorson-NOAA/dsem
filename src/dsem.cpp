@@ -72,46 +72,61 @@ Type objective_function<Type>::operator() ()
   }
   Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
   
-  // Compute inverse
+  // Compute inverse LU-decomposition
   Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseIminusRho_kk;
   inverseIminusRho_kk.compute(IminusRho_kk);
 
-  // Rescale I-Rho if using constant marginal variance
-  if( options(1)==1 ){
-    //matrix<Type> invIminusRho_kk = atomic::matinv(); // Requires dense Gamma and Rho from above
+  // Rescale I-Rho and Gamma if using constant marginal variance options
+  if( (options(1)==1) | (options(1)==2) ){
     Eigen::SparseMatrix<Type> invIminusRho_kk;
     
-    // Doesn't work
-    //invIminusRho_kk = IminusRho_kk.inverse();
     // WORKS:  Based on: https://github.com/kaskr/adcomp/issues/74
     invIminusRho_kk = inverseIminusRho_kk.solve(I_kk);
-    REPORT( invIminusRho_kk );
     
-    // Hadamard squared
+    // Hadamard squared LU-decomposition
     // See: https://eigen.tuxfamily.org/dox/group__QuickRefPage.html
     Eigen::SparseMatrix<Type> squared_invIminusRho_kk(n_k, n_k);
     squared_invIminusRho_kk = invIminusRho_kk.cwiseProduct(invIminusRho_kk);
-    REPORT( squared_invIminusRho_kk );
-    
-    // Rowsums
     Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > invsquared_invIminusRho_kk;
     invsquared_invIminusRho_kk.compute(squared_invIminusRho_kk);
-    matrix<Type> ones_k1( n_k, 1 );
-    ones_k1.setOnes();
-    matrix<Type> margvar_k1 = invsquared_invIminusRho_kk.solve(ones_k1);
-    REPORT( ones_k1 );
-    REPORT( margvar_k1 );
     
-    // Operations
-    Eigen::SparseMatrix<Type> invmargsd_kk(n_k, n_k);
-    for( int k=0; k<n_k; k++ ){
-      invmargsd_kk.coeffRef(k,k) = pow( margvar_k1(k,0), -0.5 );
+    if( options(1) == 1 ){
+      // 1-matrix
+      matrix<Type> ones_k1( n_k, 1 );
+      ones_k1.setOnes();
+
+      // Calculate diag( t(Gamma) * Gamma )
+      Eigen::SparseMatrix<Type> squared_Gamma_kk = Gamma_kk.cwiseProduct(Gamma_kk);
+      matrix<Type> sigma2_k1 = squared_Gamma_kk.transpose() * ones_k1;
+
+      // Rowsums
+      matrix<Type> margvar_k1 = invsquared_invIminusRho_kk.solve(sigma2_k1);
+      
+      // Rescale IminusRho_kk and Gamma
+      Eigen::SparseMatrix<Type> invmargsd_kk(n_k, n_k);
+      Eigen::SparseMatrix<Type> invsigma_kk(n_k, n_k);
+      for( int k=0; k<n_k; k++ ){
+        invmargsd_kk.coeffRef(k,k) = pow( margvar_k1(k,0), -0.5 );
+        invsigma_kk.coeffRef(k,k) = pow( sigma2_k1(k,0), -0.5 );
+      }
+      IminusRho_kk = invmargsd_kk * IminusRho_kk;
+      Gamma_kk = invsigma_kk * Gamma_kk;
+      
+      // Recompute inverse LU-decomposition
+      inverseIminusRho_kk.compute(IminusRho_kk);
+    }else{
+      // calculate diag(Gamma)^2
+      matrix<Type> targetvar_k1( n_k, 1 );
+      for( int k=0; k<n_k; k++ ){
+        targetvar_k1(k,0) = Gamma_kk.coeffRef(k,k) * Gamma_kk.coeffRef(k,k);
+      }
+      
+      // Rescale Gamma
+      matrix<Type> margvar_k1 = invsquared_invIminusRho_kk.solve(targetvar_k1);
+      for( int k=0; k<n_k; k++ ){
+        Gamma_kk.coeffRef(k,k) = pow( margvar_k1(k,0), 0.5 );
+      }
     }
-    IminusRho_kk = invmargsd_kk * IminusRho_kk;
-    REPORT( invmargsd_kk );
-    
-    // Recompute inverse
-    inverseIminusRho_kk.compute(IminusRho_kk);
   }
   
   // Calculate effect of initial condition -- SPARSE version
