@@ -77,7 +77,7 @@ Type objective_function<Type>::operator() ()
   inverseIminusRho_kk.compute(IminusRho_kk);
 
   // Rescale I-Rho and Gamma if using constant marginal variance options
-  if( (options(1)==1) | (options(1)==2) ){
+  if( (options(1)==1) || (options(1)==2) ){
     Eigen::SparseMatrix<Type> invIminusRho_kk;
     
     // WORKS:  Based on: https://github.com/kaskr/adcomp/issues/74
