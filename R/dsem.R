@@ -344,9 +344,16 @@ function( sem,
 #'        this using the inverse-cholesky of the precision, where this projection
 #'        can be rank-deficient.
 #' @param constant_variance Whether to specify a constant conditional variance 
-#'        \eqn{ \mathbf{Gamma Gamma}^t}, which results in a changing marginal variance      
-#'        along the specified causal graph, or instead specify a constant marginal variance
-#'        such that \eqn{ \mathbf{Gamma}} is rescaled to achieve this constraint.
+#'        \eqn{ \mathbf{Gamma Gamma}^t} using the default \code{constant_variance="conditional"}, 
+#'        which results in a changing marginal variance      
+#'        along the specified causal graph when lagged paths are present. Alternatively, the user can
+#'        specify a constant marginal variance using \code{constant_variance="diagonal"}
+#'        or \code{constant_variance="marginal"},
+#'        such that \eqn{ \mathbf{Gamma}} and \eqn{\mathbf{I-P}} are rescaled to achieve this constraint.  
+#'        All options
+#'        are equivalent when the model includes no lags (only simultaneous effects) and
+#'        no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
+#'        are equivalent when the model includes no covariances. 
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
 #' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
 #'        either to motigate bias in estimated variance parameters or improve efficiency for
