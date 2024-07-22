@@ -30,7 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
+<li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
@@ -62,7 +62,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/vignettes/vignette.Rmd" class="external-link"><code>vignettes/vignette.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.3.0/vignettes/vignette.Rmd" class="external-link"><code>vignettes/vignette.Rmd</code></a></small>
       <div class="d-none name"><code>vignette.Rmd</code></div>
     </div>
 
@@ -259,14 +259,14 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span>  U <span class="op">=</span> <span class="st">"zero"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">kem.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atsa-es.github.io/MARSS/reference/MARSS.html" class="external-link">MARSS</a></span><span class="op">(</span><span class="va">z.royale.dat</span>, model <span class="op">=</span> <span class="va">royale.model.1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Success! abstol and log-log tests passed at 16 iterations.</span></span>
+<span><span class="co">#&gt; Success! algorithm run for 15 iterations. abstol and log-log tests passed.</span></span>
 <span><span class="co">#&gt; Alert: conv.test.slope.tol is 0.5.</span></span>
 <span><span class="co">#&gt; Test with smaller values (&lt;0.1) to ensure convergence.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; MARSS fit is</span></span>
 <span><span class="co">#&gt; Estimation method: kem </span></span>
 <span><span class="co">#&gt; Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001</span></span>
-<span><span class="co">#&gt; Estimation converged in 16 iterations. </span></span>
+<span><span class="co">#&gt; Algorithm ran 15 (=minit) iterations and convergence was reached. </span></span>
 <span><span class="co">#&gt; Log-likelihood: -3.21765 </span></span>
 <span><span class="co">#&gt; AIC: 22.4353   AICc: 23.70964   </span></span>
 <span><span class="co">#&gt;  </span></span>
@@ -323,10 +323,10 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymax<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">upper</span><span class="op">)</span>,ymin<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">lower</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                 width<span class="op">=</span><span class="fl">0.25</span>, position<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span><span class="fl">0.9</span><span class="op">)</span><span class="op">)</span>  <span class="co">#</span></span>
 <span><span class="va">p3</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span> <span class="fu"><a href="../reference/as_fitted_DAG.html">as_fitted_DAG</a></span><span class="op">(</span><span class="va">fit</span>, lag<span class="op">=</span><span class="fl">1</span><span class="op">)</span>, rotation<span class="op">=</span><span class="fl">0</span> <span class="op">)</span> <span class="op">+</span></span>
-<span>     <span class="fu"><a href="https://rdrr.io/pkg/ggraph/man/geom_edge_loop.html" class="external-link">geom_edge_loop</a></span><span class="op">(</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span> label<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">weight</span>,<span class="fl">2</span><span class="op">)</span>, direction<span class="op">=</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="co">#arrow=arrow(), , angle_calc="along", label_dodge=grid::unit(10,"points") )</span></span>
+<span>     <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_loop.html" class="external-link">geom_edge_loop</a></span><span class="op">(</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span> label<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">weight</span>,<span class="fl">2</span><span class="op">)</span>, direction<span class="op">=</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="co">#arrow=arrow(), , angle_calc="along", label_dodge=grid::unit(10,"points") )</span></span>
 <span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.1</span>,<span class="fl">0</span><span class="op">)</span> <span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/ggpubr/man/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span> <span class="va">p1</span>, <span class="va">p2</span>, <span class="va">p3</span>,</span>
+<span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span> <span class="va">p1</span>, <span class="va">p2</span>, <span class="va">p3</span>,</span>
 <span>           labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Time-series data"</span>, <span class="st">"Estimated effects"</span>, <span class="st">"Fitted path digram"</span><span class="op">)</span>,</span>
 <span>           ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vignette_files/figure-html/unnamed-chunk-7-1.png" width="480"></p>
@@ -421,7 +421,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span><span class="co">#grid.arrange( arrangeGrob( p0+ggtitle("timeseries"),</span></span>
 <span><span class="co">#              arrangeGrob( p1+ggtitle("Estimated path diagram"),</span></span>
 <span><span class="co">#                           p2+ggtitle("Estimated p-values"), nrow=2), ncol=2 ) )</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/ggpubr/man/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Simultaneous effects"</span>, <span class="st">"Two-sided p-value"</span><span class="op">)</span>,</span>
+<span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Simultaneous effects"</span>, <span class="st">"Two-sided p-value"</span><span class="op">)</span>,</span>
 <span>                    ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vignette_files/figure-html/unnamed-chunk-10-1.png" width="768"></p>
 <p>These results are further discussed in the paper describing dsem.</p>
@@ -582,7 +582,7 @@ producers.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span> rows<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">Site</span><span class="op">)</span>, scales<span class="op">=</span><span class="st">"free"</span> <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span> <span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/ggpubr/man/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
+<span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                    <span class="va">p2</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Simultaneous effects"</span>, <span class="st">"Two-sided p-value"</span><span class="op">)</span>,</span>
 <span>                    ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>

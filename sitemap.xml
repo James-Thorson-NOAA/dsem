@@ -6,6 +6,7 @@
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/news/index.html</loc></url>
+<url><loc>/reference/TMBAIC.html</loc></url>
 <url><loc>/reference/as_fitted_DAG.html</loc></url>
 <url><loc>/reference/as_sem.html</loc></url>
 <url><loc>/reference/bering_sea.html</loc></url>
@@ -26,7 +27,6 @@
 <url><loc>/reference/sea_otter.html</loc></url>
 <url><loc>/reference/simulate.dsem.html</loc></url>
 <url><loc>/reference/summary.dsem.html</loc></url>
-<url><loc>/reference/TMBAIC.html</loc></url>
 <url><loc>/reference/vcov.dsem.html</loc></url>
 </urlset>
 
