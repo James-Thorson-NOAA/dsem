@@ -160,7 +160,13 @@ function( sem,
   }
 
   #
-  Data = list( "options" = ifelse(control$gmrf_parameterization=="separable",0,1),
+  options = c(
+    ifelse(control$gmrf_parameterization=="separable", 0, 1),
+    switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
+  )
+  
+  #
+  Data = list( "options" = options,
                "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
@@ -337,6 +343,20 @@ function( sem,
 #'        a full-rank and IID precision for variables over time, and then projects
 #'        this using the inverse-cholesky of the precision, where this projection
 #'        can be rank-deficient.
+#' @param constant_variance Whether to specify a constant conditional variance 
+#'        \eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
+#'        which results in a changing marginal variance      
+#'        along the specified causal graph when lagged paths are present. Alternatively, the user can
+#'        specify a constant marginal variance using \code{constant_variance="diagonal"}
+#'        or \code{constant_variance="marginal"},
+#'        such that \eqn{ \mathbf{\Gamma}} and \eqn{\mathbf{I-P}} are rescaled to achieve this constraint.  
+#'        All options
+#'        are equivalent when the model includes no lags (only simultaneous effects) and
+#'        no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
+#'        are equivalent when the model includes no covariances. Given some exogenous covariance, 
+#'        \code{constant_variance = "marginal"} preserves the conditional correlation and has
+#'        changing conditional variance, while \code{constant_variance = "marginal"} has changing
+#'        conditional correlation along the causal graph.  
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
 #' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
 #'        either to motigate bias in estimated variance parameters or improve efficiency for
@@ -364,7 +384,8 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
-          gmrf_parameterization = c("separable","projection"),
+          gmrf_parameterization = c("separable", "projection"),
+          constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
           parameters = NULL,
@@ -373,6 +394,7 @@ function( nlminb_loops = 1,
           extra_convergence_checks = TRUE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
+  constant_variance = match.arg(constant_variance)
 
   # Return
   structure( list(
@@ -385,6 +407,7 @@ function( nlminb_loops = 1,
     quiet = quiet,
     run_model = run_model,
     gmrf_parameterization = gmrf_parameterization,
+    constant_variance = constant_variance,
     use_REML = use_REML,
     profile = profile,
     parameters = parameters,

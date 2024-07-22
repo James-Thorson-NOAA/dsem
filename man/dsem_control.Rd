@@ -14,6 +14,7 @@ dsem_control(
   quiet = FALSE,
   run_model = TRUE,
   gmrf_parameterization = c("separable", "projection"),
+  constant_variance = c("conditional", "marginal", "diagonal"),
   use_REML = TRUE,
   profile = NULL,
   parameters = NULL,
@@ -51,6 +52,21 @@ that must be full rank, and the alternative `projection` constructs
 a full-rank and IID precision for variables over time, and then projects
 this using the inverse-cholesky of the precision, where this projection
 can be rank-deficient.}
+
+\item{constant_variance}{Whether to specify a constant conditional variance 
+\eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
+which results in a changing marginal variance      
+along the specified causal graph when lagged paths are present. Alternatively, the user can
+specify a constant marginal variance using \code{constant_variance="diagonal"}
+or \code{constant_variance="marginal"},
+such that \eqn{ \mathbf{\Gamma}} and \eqn{\mathbf{I-P}} are rescaled to achieve this constraint.  
+All options
+are equivalent when the model includes no lags (only simultaneous effects) and
+no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
+are equivalent when the model includes no covariances. Given some exogenous covariance, 
+\code{constant_variance = "marginal"} preserves the conditional correlation and has
+changing conditional variance, while \code{constant_variance = "marginal"} has changing
+conditional correlation along the causal graph.}
 
 \item{use_REML}{Boolean indicating whether to treat non-variance fixed effects as random,
 either to motigate bias in estimated variance parameters or improve efficiency for
