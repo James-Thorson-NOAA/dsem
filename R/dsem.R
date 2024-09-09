@@ -285,7 +285,7 @@ function( sem,
       warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
     }
     # Hessian check ... condition and positive definite
-    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par))) )
     Eigen_fixed = eigen( Hess_fixed, only.values=TRUE )
     if( (max(Eigen_fixed$values)/min(Eigen_fixed$values)) > 1e6 ){
       # See McCullough and Vinod 2003
@@ -302,7 +302,7 @@ function( sem,
   if( isTRUE(control$getsd) ){
     if( isTRUE(control$verbose) ) message("Running sdreport")
     if( is.null(Hess_fixed) ){
-      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par)))  )
     }
     out$sdrep = sdreport( obj,
                           hessian.fixed = Hess_fixed,
@@ -852,7 +852,7 @@ function( object,
   return(out)
 }
 
-#' @title Marglinal log-likelihood
+#' @title Marginal log-likelihood
 #'
 #' @description Extract the (marginal) log-likelihood of a dsem model
 #'
