@@ -4,10 +4,13 @@
 \alias{loo_residuals}
 \title{Calculate leave-one-out residuals}
 \usage{
-loo_residuals(object, ...)
+loo_residuals(object, nsim = 100, ...)
 }
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
+
+\item{nsim}{Number of simulations to use if \code{family!="fixed"} for some variable,
+such that simulation residuals are required.}
 
 \item{...}{Not used}
 }

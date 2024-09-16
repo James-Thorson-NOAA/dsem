@@ -5,6 +5,8 @@
 #'              a jacknife (i.e., leave-one-out predictive distribution)
 #'
 #' @param object Output from \code{\link{dsem}}
+#' @param nsim Number of simulations to use if \code{family!="fixed"} for some variable,
+#'        such that simulation residuals are required.
 #' @param ... Not used
 #'
 #' @details
