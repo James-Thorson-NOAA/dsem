@@ -7,6 +7,9 @@
 #' @param object Output from \code{\link{dsem}}
 #' @param nsim Number of simulations to use if \code{family!="fixed"} for some variable,
 #'        such that simulation residuals are required.
+#' @param what whether to return quantile residuals, or samples from the leave-one-out predictive
+#'        distribution of data, or a table of leave-one-out predictions and standard errors for the
+#'        latent state
 #' @param ... Not used
 #'
 #' @details
@@ -27,9 +30,11 @@
 loo_residuals <-
 function( object,
           nsim = 100,
+          what = c("quantiles","samples","loo"),
           ... ){
 
   # Extract and make object
+  what = match.arg(what)
   tsdata = object$internal$tsdata
   parlist = object$obj$env$parList()
   df = expand.grid( time(tsdata), colnames(tsdata) )
@@ -84,13 +89,18 @@ function( object,
   }
 
   # Compute quantile residuals
+  resid_tjr = array( NA, dim=c(dim(tsdata),nsim) )
   if( all(object$internal$family == "fixed") ){
+    # analytical quantile residuals
     resid_tj = array( NA, dim=dim(tsdata) )
     resid_tj[cbind(df[,1],df[,2])] = pnorm( q=df$obs, mean=df$est, sd=df$se )
+    # Simulations from predictive distribution for use in DHARMa etc
+    for(z in 1:nrow(df) ){
+      resid_tjr[df[z,1],df[z,2],] = rnorm( n=nsim, mean=df[z,'est'], sd=df[z,'se'] )
+    }
   }else{
     # Sample from leave-one-out predictive distribution for states
     resid_rz = apply( df, MARGIN=1, FUN=\(vec){rnorm(n=nsim, mean=as.numeric(vec['est']), sd=as.numeric(vec['se']))} )
-    resid_tjr = array( NA, dim=c(dim(tsdata),nsim) )
     # Sample from predictive distribution of data given states
     for(r in 1:nrow(resid_rz) ){
       parameters = object$obj$env$parList()
@@ -107,5 +117,7 @@ function( object,
     # Calculate quantile residuals
     resid_tj = apply( resid_tjr > outer(tsdata,rep(1,nsim)), MARGIN=1:2, FUN=mean )
   }
-  return( resid_tj )
+  if(what=="quantiles") return( resid_tj )
+  if(what=="samples") return( resid_tjr )
+  if(what=="loo") return( df )
 }

@@ -4,13 +4,17 @@
 \alias{loo_residuals}
 \title{Calculate leave-one-out residuals}
 \usage{
-loo_residuals(object, nsim = 100, ...)
+loo_residuals(object, nsim = 100, what = c("quantiles", "samples", "loo"), ...)
 }
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
 
 \item{nsim}{Number of simulations to use if \code{family!="fixed"} for some variable,
 such that simulation residuals are required.}
+
+\item{what}{whether to return quantile residuals, or samples from the leave-one-out predictive
+distribution of data, or a table of leave-one-out predictions and standard errors for the
+latent state}
 
 \item{...}{Not used}
 }
