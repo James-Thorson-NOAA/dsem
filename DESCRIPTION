@@ -31,7 +31,8 @@ Suggests:
     ggraph,
     grid,
     vars,
-    testthat
+    testthat,
+    DHARMa
 Enhances:
     rstan,
     tmbstan
