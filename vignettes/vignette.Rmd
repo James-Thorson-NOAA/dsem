@@ -59,6 +59,21 @@ knitr::kable( m1, digits=3)
 
 This shows that linear and dynamic structural equation models give identical estimates of the single path coefficient.
 
+We can also calculate leave-one-out residuals and display them using DHARMa:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# sample-based quantile residuals displayed using DHARMa
+samples = loo_residuals(fit, what="samples")
+which_use = which(!is.na(data))
+fittedPredictedResponse = loo_residuals(fit, what="loo")
+res = DHARMa::createDHARMa( simulatedResponse = apply(samples,MARGIN=3,FUN=as.vector)[which_use,],
+                            observedResponse = unlist(data)[which_use],
+                            fittedPredictedResponse = fittedPredictedResponse$est )
+plot(res)
+```
+
+This shows no pattern in the quantile-quantile plot, as expected given that we have a correctly specified model
+
 ## Comparison with dynamic linear models
 
 We first demonstrate that `dsem` gives identical results to `dynlm` for a well-known econometric model, the Klein-1 model.

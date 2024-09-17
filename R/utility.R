@@ -45,7 +45,7 @@ function( object,
   # Loop through observations
   for(r in 1:nrow(df) ){
     ts_r = tsdata
-    ts_r[df[r,1],df[r,2]] = NA
+    ts_r[match(df[r,1],time(tsdata)),match(df[r,2],colnames(tsdata))] = NA
 
     #
     control = object$internal$control
@@ -84,8 +84,8 @@ function( object,
                   objective = obj$fn,
                   gradient = obj$gr )
     sdrep = TMB::sdreport( obj )
-    df[r,'est'] = as.list(sdrep, what="Estimate")$x_tj[df[r,1],df[r,2]]
-    df[r,'se'] = as.list(sdrep, what="Std. Error")$x_tj[df[r,1],df[r,2]]
+    df[r,'est'] = as.list(sdrep, what="Estimate")$x_tj[match(df[r,1],time(tsdata)),match(df[r,2],colnames(tsdata))]
+    df[r,'se'] = as.list(sdrep, what="Std. Error")$x_tj[match(df[r,1],time(tsdata)),match(df[r,2],colnames(tsdata))]
   }
 
   # Compute quantile residuals
@@ -93,10 +93,10 @@ function( object,
   if( all(object$internal$family == "fixed") ){
     # analytical quantile residuals
     resid_tj = array( NA, dim=dim(tsdata) )
-    resid_tj[cbind(df[,1],df[,2])] = pnorm( q=df$obs, mean=df$est, sd=df$se )
+    resid_tj[cbind(match(df[,1],time(tsdata)),match(df[,2],colnames(tsdata)))] = pnorm( q=df$obs, mean=df$est, sd=df$se )
     # Simulations from predictive distribution for use in DHARMa etc
     for(z in 1:nrow(df) ){
-      resid_tjr[df[z,1],df[z,2],] = rnorm( n=nsim, mean=df[z,'est'], sd=df[z,'se'] )
+      resid_tjr[match(df[z,1],time(tsdata)),match(df[z,2],colnames(tsdata)),] = rnorm( n=nsim, mean=df[z,'est'], sd=df[z,'se'] )
     }
   }else{
     # Sample from leave-one-out predictive distribution for states
