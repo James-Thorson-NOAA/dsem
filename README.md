@@ -31,4 +31,8 @@ _dsem_ is specifically intended as a minimal implementation, and uses standard p
 
 Please see package vignettes for more details regarding syntax and features.
 
+### Citation
+
+Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024). Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms. Methods in Ecology and Evolution 15(4): 744-755. https://doi.org/10.1111/2041-210X.14289
+
 
