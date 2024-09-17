@@ -10,6 +10,7 @@
 #' @param what whether to return quantile residuals, or samples from the leave-one-out predictive
 #'        distribution of data, or a table of leave-one-out predictions and standard errors for the
 #'        latent state
+#' @param track_progress whether to track runtimes on terminal
 #' @param ... Not used
 #'
 #' @details
@@ -31,6 +32,7 @@ loo_residuals <-
 function( object,
           nsim = 100,
           what = c("quantiles","samples","loo"),
+          track_progress = TRUE,
           ... ){
 
   # Extract and make object
@@ -44,6 +46,9 @@ function( object,
 
   # Loop through observations
   for(r in 1:nrow(df) ){
+    if( (r %% floor(nrow(df)/10))==1 ){
+      if(isTRUE(track_progress)) message("Running leave-one-out fit ",r," of ",nrow(df)," at ",Sys.time())
+    }
     ts_r = tsdata
     ts_r[match(df[r,1],time(tsdata)),match(df[r,2],colnames(tsdata))] = NA
 

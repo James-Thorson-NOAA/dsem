@@ -4,7 +4,13 @@
 \alias{loo_residuals}
 \title{Calculate leave-one-out residuals}
 \usage{
-loo_residuals(object, nsim = 100, what = c("quantiles", "samples", "loo"), ...)
+loo_residuals(
+  object,
+  nsim = 100,
+  what = c("quantiles", "samples", "loo"),
+  track_progress = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
@@ -15,6 +21,8 @@ such that simulation residuals are required.}
 \item{what}{whether to return quantile residuals, or samples from the leave-one-out predictive
 distribution of data, or a table of leave-one-out predictions and standard errors for the
 latent state}
+
+\item{track_progress}{whether to track runtimes on terminal}
 
 \item{...}{Not used}
 }
