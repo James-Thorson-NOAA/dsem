@@ -14,6 +14,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+set.seed(101)
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
@@ -72,7 +73,14 @@ res = DHARMa::createDHARMa( simulatedResponse = apply(samples,MARGIN=3,FUN=as.ve
 plot(res)
 ```
 
-This shows no pattern in the quantile-quantile plot, as expected given that we have a correctly specified model
+This shows no pattern in the quantile-quantile plot, as expected given that we have a correctly specified model.  We can also confirm that this gives identical to results to the linear model:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+res = loo_residuals(fit, what="quantiles")
+res0 = resid(Lm,"response")
+plot( x=res0/sd(res0), y=qnorm(res[,2]), xlab="linear model residuals", ylab="dsem residuals" )
+abline(a=0,b=1)
+```
 
 ## Comparison with dynamic linear models
 
