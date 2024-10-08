@@ -11,7 +11,7 @@ dsem"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,9 @@ the format of this input is likely to change more rapidly than that of
 <span>  parameters <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  map <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  getJointPrecision <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  extra_convergence_checks <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  extra_convergence_checks <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  lower <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
+<span>  upper <span class="op">=</span> <span class="cn">Inf</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -166,6 +168,16 @@ to <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-lin
 <dt id="arg-extra-convergence-checks">extra_convergence_checks<a class="anchor" aria-label="anchor" href="#arg-extra-convergence-checks"></a></dt>
 <dd><p>Boolean indicating whether to run extra checks on model
 convergence.</p></dd>
+
+
+<dt id="arg-lower">lower<a class="anchor" aria-label="anchor" href="#arg-lower"></a></dt>
+<dd><p>vectors of lower bounds, replicated to be as long as start and passed to <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>.
+If unspecified, all parameters are assumed to be unconstrained.</p></dd>
+
+
+<dt id="arg-upper">upper<a class="anchor" aria-label="anchor" href="#arg-upper"></a></dt>
+<dd><p>vectors of upper bounds, replicated to be as long as start and passed to <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>.
+If unspecified, all parameters are assumed to be unconstrained.</p></dd>
 
 </dl></div>
     <div class="section level2">
