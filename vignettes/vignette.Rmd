@@ -63,22 +63,30 @@ This shows that linear and dynamic structural equation models give identical est
 We can also calculate leave-one-out residuals and display them using DHARMa:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
-# sample-based quantile residuals displayed using DHARMa
+# sample-based quantile residuals
 samples = loo_residuals(fit, what="samples", track_progress=FALSE)
 which_use = which(!is.na(data))
-fittedPredictedResponse = loo_residuals(fit, what="loo", track_progress=FALSE)
-res = DHARMa::createDHARMa( simulatedResponse = apply(samples,MARGIN=3,FUN=as.vector)[which_use,],
-                            observedResponse = unlist(data)[which_use],
-                            fittedPredictedResponse = fittedPredictedResponse$est )
+fitResp = loo_residuals( fit, what="loo", track_progress=FALSE)
+simResp = apply(samples, MARGIN=3, FUN=as.vector)[which_use,]
+
+# Build and display DHARMa object
+res = DHARMa::createDHARMa(
+        simulatedResponse = simResp,
+        observedResponse = unlist(data)[which_use],
+        fittedPredictedResponse = fitResp )
 plot(res)
 ```
 
 This shows no pattern in the quantile-quantile plot, as expected given that we have a correctly specified model.  We can also confirm that this gives identical to results to the linear model:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# Get DSEM Loo residuals and LM working residuals
 res = loo_residuals(fit, what="quantiles", track_progress=FALSE)
 res0 = resid(Lm,"working")
-plot( x=res0, y=qnorm(res[,2]), xlab="linear model residuals", ylab="dsem residuals" )
+
+# Plot comparison
+plot( x=res0, y=qnorm(res[,2]),
+      xlab="linear model residuals", ylab="dsem residuals" )
 abline(a=0,b=1)
 ```
 
@@ -92,7 +100,7 @@ TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
 # dynlm
 fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
-fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)                 #
+fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)
 fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = TS)
 
 # dsem
@@ -120,7 +128,7 @@ fit = dsem( sem=sem,
               quiet = TRUE,
               newton_loops = 0) )
 
-# Compile
+# Compile results
 m1 = rbind( summary(fm_cons)$coef[-1,],
             summary(fm_inv)$coef[-1,],
             summary(fm_pwage)$coef[-1,] )[,1:2]
@@ -131,8 +139,7 @@ m = rbind(
 )
 m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
 
-# ggplot estimates
-
+# ggplot display of estimates
 longform = melt( as.data.frame(KleinI) )
   longform$year = rep( time(KleinI), 9 )
 p1 = ggplot( data=longform, aes(x=year, y=value) ) +
