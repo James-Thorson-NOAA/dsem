@@ -158,6 +158,11 @@ function( sem,
   if( ncol(tsdata) != length(unique(colnames(tsdata))) ){
     stop("Please check `colnames(tsdata)` to confirm that all variables (columns) have a unique name")
   }
+  if( !all(control$lower == -Inf) | !all(control$upper == Inf) ){
+    if( control$newton_loops > 0 ){
+      stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
+    }
+  }
 
   #
   options = c(
@@ -264,6 +269,8 @@ function( sem,
     out$opt = nlminb( start = out$opt$par,
                   objective = obj$fn,
                   gradient = obj$gr,
+                  upper = control$upper,
+                  lower = control$lower,
                   control = list( eval.max = control$eval.max,
                                   iter.max = control$iter.max,
                                   trace = control$trace ) )
@@ -369,6 +376,10 @@ function( sem,
 #'        to \code{\link[TMB]{sdreport}}.
 #' @param extra_convergence_checks Boolean indicating whether to run extra checks on model
 #'        convergence.
+#' @param lower vectors of lower bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+#'        If unspecified, all parameters are assumed to be unconstrained.
+#' @param upper vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+#'        If unspecified, all parameters are assumed to be unconstrained.
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -391,7 +402,9 @@ function( nlminb_loops = 1,
           parameters = NULL,
           map = NULL,
           getJointPrecision = FALSE,
-          extra_convergence_checks = TRUE ){
+          extra_convergence_checks = TRUE,
+          lower = -Inf,
+          upper = Inf ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -413,7 +426,9 @@ function( nlminb_loops = 1,
     parameters = parameters,
     map = map,
     getJointPrecision = getJointPrecision,
-    extra_convergence_checks = extra_convergence_checks
+    extra_convergence_checks = extra_convergence_checks,
+    lower = lower,
+    upper = upper
   ), class = "dsem_control" )
 }
 

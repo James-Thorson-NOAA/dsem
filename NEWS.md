@@ -1,3 +1,7 @@
+# dsem 1.4.0
+
+* Adding option for lower and upper bounds
+
 # dsem 1.3.0
 
 * Adding option to specify constant marginal variance, as alternative to existing
