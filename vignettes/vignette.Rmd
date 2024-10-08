@@ -64,9 +64,9 @@ We can also calculate leave-one-out residuals and display them using DHARMa:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # sample-based quantile residuals displayed using DHARMa
-samples = loo_residuals(fit, what="samples")
+samples = loo_residuals(fit, what="samples", track_progress=FALSE)
 which_use = which(!is.na(data))
-fittedPredictedResponse = loo_residuals(fit, what="loo")
+fittedPredictedResponse = loo_residuals(fit, what="loo", track_progress=FALSE)
 res = DHARMa::createDHARMa( simulatedResponse = apply(samples,MARGIN=3,FUN=as.vector)[which_use,],
                             observedResponse = unlist(data)[which_use],
                             fittedPredictedResponse = fittedPredictedResponse$est )
@@ -76,9 +76,9 @@ plot(res)
 This shows no pattern in the quantile-quantile plot, as expected given that we have a correctly specified model.  We can also confirm that this gives identical to results to the linear model:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
-res = loo_residuals(fit, what="quantiles")
-res0 = resid(Lm,"response")
-plot( x=res0/sd(res0), y=qnorm(res[,2]), xlab="linear model residuals", ylab="dsem residuals" )
+res = loo_residuals(fit, what="quantiles", track_progress=FALSE)
+res0 = resid(Lm,"working")
+plot( x=res0, y=qnorm(res[,2]), xlab="linear model residuals", ylab="dsem residuals" )
 abline(a=0,b=1)
 ```
 
