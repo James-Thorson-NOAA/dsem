@@ -27,7 +27,7 @@
 #' @importFrom stats sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
 #' @importFrom Matrix solve Cholesky
 #' @importFrom sem sem
-#' @importFrom igraph plot.igraph graph_from_data_frame
+#' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
 #' @importFrom grid arrow
 #' @importFrom methods is
