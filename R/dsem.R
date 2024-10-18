@@ -561,28 +561,29 @@ function( x,
     plot( pg, layout = coords, ... )
   }
   if(style=="ggraph"){
-    #g <- igraph::graph_from_adjacency_matrix( as_fitted_DAG(x),
-    #                                          weighted = TRUE)
+    # Modified from phylopath::plot.DAG
     algorithm = 'sugiyama'
     manual_layout = NULL
     text_size = 6
     box_x = 12
     box_y = 8
-    edge_width = 1.5
-    curvature = 0.02
+    edge_width = 1
+    curvature = 0
     rotation = 0
     flip_x = FALSE
     flip_y = FALSE
     l = ggraph::create_layout(pg, 'igraph', algorithm = algorithm)
     arrow = grid::arrow(type = 'closed', 18, grid::unit(15, 'points'))
-    ggraph::ggraph(l) +
+    gplot = ggraph::ggraph(l) +
       ggraph::geom_edge_arc(
+        aes(label = label),
         strength = curvature, arrow = arrow, edge_width = edge_width,
         end_cap = ggraph::rectangle(box_x, box_y, 'mm'),
         start_cap = ggraph::rectangle(box_x, box_y, 'mm')
       ) +
       ggraph::geom_node_text(ggplot2::aes_(label = ~name), size = text_size) +
       ggraph::theme_graph(base_family = 'sans')
+    plot(gplot)
   }
   return(invisible(pg))
 }
