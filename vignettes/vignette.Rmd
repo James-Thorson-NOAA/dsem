@@ -66,7 +66,7 @@ We can also calculate leave-one-out residuals and display them using DHARMa:
 # sample-based quantile residuals
 samples = loo_residuals(fit, what="samples", track_progress=FALSE)
 which_use = which(!is.na(data))
-fitResp = loo_residuals( fit, what="loo", track_progress=FALSE)
+fitResp = loo_residuals( fit, what="loo", track_progress=FALSE)[,'est']
 simResp = apply(samples, MARGIN=3, FUN=as.vector)[which_use,]
 
 # Build and display DHARMa object

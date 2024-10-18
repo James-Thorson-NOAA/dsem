@@ -30,7 +30,6 @@ Suggests:
     MARSS,
     ggplot2,
     ggpubr,
-    ggraph,
     grid,
     vars,
     testthat,
