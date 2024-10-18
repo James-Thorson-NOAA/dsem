@@ -14,6 +14,8 @@ Imports:
     Matrix,
     sem,
     igraph,
+    ggraph,
+    grid,
     methods
 Depends:
     R (>= 4.0.0),

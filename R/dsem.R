@@ -28,6 +28,8 @@
 #' @importFrom Matrix solve Cholesky
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame
+#' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
+#' @importFrom grid arrow
 #' @importFrom methods is
 #'
 #' @details
@@ -504,8 +506,11 @@ function( object, ... ){
 #'
 #' @param x Output from \code{\link{dsem}}
 #' @param y Not used
-#' @param edge_label Whether to plot parameter names or estimated values
+#' @param edge_label Whether to plot parameter names, estimated values,
+#'        or estimated values along with stars indicating significance at
+#'        0.05, 0.01, or 0.001 levels (based on two-sided Wald tests)
 #' @param digits integer indicating the number of decimal places to be used
+#' @param style Whether to make a graph using \code{igraph} or \code{ggraph}
 #' @param ... arguments passed to \code{\link[igraph]{plot.igraph}}
 #'
 #' @details
@@ -520,12 +525,15 @@ function( object, ... ){
 plot.dsem <-
 function( x,
           y,
-          edge_label = c("name","value"),
+          edge_label = c("name","value","value_and_stars"),
           digits = 2,
+          style = c("igraph","ggraph"),
           ... ){
 
-  # Extract stuff
+  style = match.arg(style)
   edge_label = match.arg(edge_label)
+
+  # Extract stuff
   out = summary(x)
 
   # Format inputs
@@ -535,12 +543,47 @@ function( x,
   if( edge_label=="value"){
     DF$label = round(out$Estimate, digits=digits)
   }
+  if( edge_label == "value_and_stars" ){
+    DF$label = round(out$Estimate, digits=digits)
+    add_stars = cut(out[,'p_value'], breaks=c(1,0.05,0.01,0.001,0) )
+    add_stars = c("***","**","*","")[as.numeric(add_stars)]
+    DF$label = paste0(DF$label, add_stars)
+  }
 
   # Create and plotgraph
   pg <- graph_from_data_frame( d = DF,
                                directed = TRUE,
                                vertices = data.frame(vertices) )
-  plot( pg, ... )
+
+  # Two plot styles
+  if(style=="igraph"){
+    coords = layout_(pg, with_sugiyama())
+    plot( pg, layout = coords, ... )
+  }
+  if(style=="ggraph"){
+    #g <- igraph::graph_from_adjacency_matrix( as_fitted_DAG(x),
+    #                                          weighted = TRUE)
+    algorithm = 'sugiyama'
+    manual_layout = NULL
+    text_size = 6
+    box_x = 12
+    box_y = 8
+    edge_width = 1.5
+    curvature = 0.02
+    rotation = 0
+    flip_x = FALSE
+    flip_y = FALSE
+    l = ggraph::create_layout(pg, 'igraph', algorithm = algorithm)
+    arrow = grid::arrow(type = 'closed', 18, grid::unit(15, 'points'))
+    ggraph::ggraph(l) +
+      ggraph::geom_edge_arc(
+        strength = curvature, arrow = arrow, edge_width = edge_width,
+        end_cap = ggraph::rectangle(box_x, box_y, 'mm'),
+        start_cap = ggraph::rectangle(box_x, box_y, 'mm')
+      ) +
+      ggraph::geom_node_text(ggplot2::aes_(label = ~name), size = text_size) +
+      ggraph::theme_graph(base_family = 'sans')
+  }
   return(invisible(pg))
 }
 
