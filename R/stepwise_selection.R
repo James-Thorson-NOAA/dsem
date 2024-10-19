@@ -3,9 +3,15 @@
 #'
 #' @description Plot from a fitted \code{dsem} model
 #'
-#' @param model_options Output from \code{\link{dsem}}
-#' @param y Not used
-#' @param ... arguments passed to \code{\link[igraph]{plot.igraph}}
+#' @param model_options character-vector containing sem elements
+#'        that could be included or dropped depending upon their
+#'        parsimony
+#' @param model_shared character-vector containing sem elements
+#'        that must be included regardless of parsimony
+#' @param quiet whether to avoid displaying progress to terminal
+#' @param ... arguments passed to \code{\link{dsem}},
+#'        other than \code{sem} e.g., \code{tsdata}, \code{family}
+#'        etc.
 #'
 #' @details
 #' This function conducts stepwise (i.e., forwards and backwards) model

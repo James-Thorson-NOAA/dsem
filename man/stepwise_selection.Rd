@@ -7,11 +7,18 @@
 stepwise_selection(model_options, model_shared, quiet = FALSE, ...)
 }
 \arguments{
-\item{model_options}{Output from \code{\link{dsem}}}
+\item{model_options}{character-vector containing sem elements
+that could be included or dropped depending upon their
+parsimony}
 
-\item{...}{arguments passed to \code{\link[igraph]{plot.igraph}}}
+\item{model_shared}{character-vector containing sem elements
+that must be included regardless of parsimony}
 
-\item{y}{Not used}
+\item{quiet}{whether to avoid displaying progress to terminal}
+
+\item{...}{arguments passed to \code{\link{dsem}},
+other than \code{sem} e.g., \code{tsdata}, \code{family}
+etc.}
 }
 \value{
 An object (list) that includes:

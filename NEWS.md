@@ -1,6 +1,9 @@
 # dsem 1.4.0
 
 * Adding option for lower and upper bounds
+* Adding `stepwise_selection` for automated stepwise model selection
+* Adding `plot` option to use `ggraph` as alternative to previous `igraph`
+  option
 
 # dsem 1.3.0
 
