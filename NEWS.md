@@ -4,6 +4,8 @@
 * Adding `stepwise_selection` for automated stepwise model selection
 * Adding `plot` option to use `ggraph` as alternative to previous `igraph`
   option
+* Adding `convert_equations` to extend `sem::specifyEquations` and simplify
+  specification for large models
 
 # dsem 1.3.0
 

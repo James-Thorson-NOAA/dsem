@@ -92,18 +92,13 @@ abline(a=0,b=1)
 
 ## Comparison with dynamic linear models
 
-We first demonstrate that `dsem` gives identical results to `dynlm` for a well-known econometric model, the Klein-1 model.
+We next demonstrate that `dsem` using a well-known econometric model, the Klein-1 model.
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 data(KleinI, package="AER")
 TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
-# dynlm
-fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
-fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)
-fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = TS)
-
-# dsem
+# Specify by declaring each arrow and lag
 sem = "
   # Link, lag, param_name
   cprofits -> consumption, 0, a1
@@ -127,6 +122,35 @@ fit = dsem( sem=sem,
             control = dsem_control(
               quiet = TRUE,
               newton_loops = 0) )
+```
+
+This model could instead be specified using equation-and-lag notation, which makes the model structure more clear:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# Specify using equations
+equations = "
+  consumption = a1*cprofits + a2*lag[cprofits,1]+ a3*pwage + a3*gwage
+  invest = b1*cprofits + b2*lag[cprofits,1] + b3*capital
+  pwage = c1*time + c2*gnp + c3*lag[gnp,1]
+"
+
+# Convert and run
+sem = convert_equations(equations)
+fit = dsem( sem = sem,
+            tsdata = tsdata,
+            estimate_delta0 = TRUE,
+            control = dsem_control(
+              quiet = TRUE,
+              newton_loops = 0) )
+```
+
+We first demonstrate that `dsem` gives identical results to `dynlm`:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# dynlm
+fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
+fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)
+fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = TS)
 
 # Compile results
 m1 = rbind( summary(fm_cons)$coef[-1,],

@@ -34,9 +34,8 @@
 #' To set a start value for a free parameter, enclose the numeric
 #' start value in parentheses after the parameter name, as parameter(value).
 #'
-#'
 #' @export
-equation_to_text <-
+convert_equations <-
 function(equations){
 
   # Local functions
