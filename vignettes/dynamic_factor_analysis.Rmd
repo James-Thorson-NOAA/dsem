@@ -153,9 +153,34 @@ tsdata = ts( cbind(tsdata, newcols), start=1978)
 # Scale and center (matches with MARSS does when fitting a DFA)
 tsdata = scale( tsdata, center=TRUE, scale=TRUE )
 
-#
-sem = make_dfa( variables = c("SJI","EBays","SJF","PSnd","HC"),
-                n_factors = n_factors )
+# Automated version
+#sem = make_dfa( variables = c("SJI","EBays","SJF","PSnd","HC"),
+#                n_factors = n_factors )
+# Manual specification to show structure, using equations-and-lags interface
+equations = "
+  # Loadings of variables onto factors
+  SJI = L11(0.1) * F1
+  EBays = L12(0.1) * F1 + L22(0.1) * F2
+  SJF = L13(0.1) * F1 + L23(0.1) * F2
+  PSnd = L14(0.1) * F1 + L24(0.1) * F2
+  HC = L15(0.1) * F1 + L25(0.1) * F2
+
+  # random walk for factors
+  F1 = NA(1) * lag[F1,1]
+  F2 = NA(1) * lag[F2,1]
+
+  # Unit variance for factors
+  V(F1) = NA(1)
+  V(F2) = NA(1)
+
+  # Zero residual variance for variables
+  V(SJI) = NA(0)
+  V(EBays) = NA(0)
+  V(SJF) = NA(0)
+  V(PSnd) = NA(0)
+  V(HC) = NA(0)
+"
+sem = convert_equations(equations)
 
 # Initial fit
 mydsem0 = dsem( tsdata = tsdata,

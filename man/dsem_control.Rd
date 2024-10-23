@@ -66,7 +66,7 @@ All options
 are equivalent when the model includes no lags (only simultaneous effects) and
 no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
 are equivalent when the model includes no covariances. Given some exogenous covariance, 
-\code{constant_variance = "marginal"} preserves the conditional correlation and has
+\code{constant_variance = "diagonal"} preserves the conditional correlation and has
 changing conditional variance, while \code{constant_variance = "marginal"} has changing
 conditional correlation along the causal graph.}
 
