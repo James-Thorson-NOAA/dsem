@@ -4,7 +4,7 @@
 #'
 #' @param equations Specification for time-series structural equation model structure
 #'        including lagged or simultaneous effects.  See Details section in
-#'        \code{\link[dsem]{equations_to_text}} for more description
+#'        \code{\link[dsem]{convert_equations}} for more description
 #'
 #' @details
 #' The function modifies code copied from package
