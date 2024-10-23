@@ -217,9 +217,34 @@ can fit a rank-deficient Gaussian Markov random field:</p>
 <span><span class="co"># Scale and center (matches with MARSS does when fitting a DFA)</span></span>
 <span><span class="va">tsdata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span> <span class="va">tsdata</span>, center<span class="op">=</span><span class="cn">TRUE</span>, scale<span class="op">=</span><span class="cn">TRUE</span> <span class="op">)</span></span>
 <span></span>
-<span><span class="co">#</span></span>
-<span><span class="va">sem</span> <span class="op">=</span> <span class="fu"><a href="../reference/make_dfa.html">make_dfa</a></span><span class="op">(</span> variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJI"</span>,<span class="st">"EBays"</span>,<span class="st">"SJF"</span>,<span class="st">"PSnd"</span>,<span class="st">"HC"</span><span class="op">)</span>,</span>
-<span>                n_factors <span class="op">=</span> <span class="va">n_factors</span> <span class="op">)</span></span>
+<span><span class="co"># Automated version</span></span>
+<span><span class="co">#sem = make_dfa( variables = c("SJI","EBays","SJF","PSnd","HC"),</span></span>
+<span><span class="co">#                n_factors = n_factors )</span></span>
+<span><span class="co"># Manual specification to show structure, using equations-and-lags interface</span></span>
+<span><span class="va">equations</span> <span class="op">=</span> <span class="st">"</span></span>
+<span><span class="st">  # Loadings of variables onto factors</span></span>
+<span><span class="st">  SJI = L11(0.1) * F1</span></span>
+<span><span class="st">  EBays = L12(0.1) * F1 + L22(0.1) * F2</span></span>
+<span><span class="st">  SJF = L13(0.1) * F1 + L23(0.1) * F2</span></span>
+<span><span class="st">  PSnd = L14(0.1) * F1 + L24(0.1) * F2</span></span>
+<span><span class="st">  HC = L15(0.1) * F1 + L25(0.1) * F2</span></span>
+<span><span class="st"></span></span>
+<span><span class="st">  # random walk for factors</span></span>
+<span><span class="st">  F1 = NA(1) * lag[F1,1]</span></span>
+<span><span class="st">  F2 = NA(1) * lag[F2,1]</span></span>
+<span><span class="st"></span></span>
+<span><span class="st">  # Unit variance for factors</span></span>
+<span><span class="st">  V(F1) = NA(1)</span></span>
+<span><span class="st">  V(F2) = NA(1)</span></span>
+<span><span class="st"></span></span>
+<span><span class="st">  # Zero residual variance for variables</span></span>
+<span><span class="st">  V(SJI) = NA(0)</span></span>
+<span><span class="st">  V(EBays) = NA(0)</span></span>
+<span><span class="st">  V(SJF) = NA(0)</span></span>
+<span><span class="st">  V(PSnd) = NA(0)</span></span>
+<span><span class="st">  V(HC) = NA(0)</span></span>
+<span><span class="st">"</span></span>
+<span><span class="va">sem</span> <span class="op">=</span> <span class="fu"><a href="../reference/convert_equations.html">convert_equations</a></span><span class="op">(</span><span class="va">equations</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Initial fit</span></span>
 <span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
@@ -358,37 +383,37 @@ compare the three options in terms of estimated loadings:</p>
 <tr class="odd">
 <td align="left">Z.31</td>
 <td align="right">-0.465</td>
-<td align="right">0.368</td>
+<td align="right">0.218</td>
 <td align="right">0.356</td>
 </tr>
 <tr class="even">
 <td align="left">Z.41</td>
 <td align="right">-0.382</td>
-<td align="right">0.299</td>
+<td align="right">0.368</td>
 <td align="right">0.292</td>
 </tr>
 <tr class="odd">
 <td align="left">Z.51</td>
 <td align="right">0.075</td>
-<td align="right">-0.128</td>
+<td align="right">-0.150</td>
 <td align="right">-0.065</td>
 </tr>
 <tr class="even">
 <td align="left">Z.22</td>
 <td align="right">0.213</td>
-<td align="right">0.218</td>
+<td align="right">0.299</td>
 <td align="right">0.213</td>
 </tr>
 <tr class="odd">
 <td align="left">Z.32</td>
 <td align="right">-0.134</td>
-<td align="right">-0.150</td>
+<td align="right">-0.088</td>
 <td align="right">-0.157</td>
 </tr>
 <tr class="even">
 <td align="left">Z.42</td>
 <td align="right">-0.078</td>
-<td align="right">-0.088</td>
+<td align="right">-0.128</td>
 <td align="right">-0.095</td>
 </tr>
 <tr class="odd">
