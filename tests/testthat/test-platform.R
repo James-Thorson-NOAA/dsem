@@ -3,23 +3,23 @@ test_that("dsem example is working ", {
   #skip_on_ci()
   sem = "
     Profits -> Consumption, 0, a2
-    Profits -> Consumption, -1, a3
+    Profits -> Consumption, 1, a3
     Priv_wage -> Consumption, 0, a4
     Gov_wage -> Consumption, 0, a4
     Consumption <-> Consumption, 0, v1
-    Consumption -> Consumption, -1, ar1
-    Consumption -> Consumption, -2, ar2
+    Consumption -> Consumption, 1, ar1
+    Consumption -> Consumption, 2, ar2
     Profits -> Investment, 0, b2
-    Profits -> Investment, -1, b3
-    Capital_stock -> Investment, -1, b4
+    Profits -> Investment, 1, b3
+    Capital_stock -> Investment, 1, b4
     Investment <-> Investment, 0, v2
     neg_Gov_wage <-> neg_Gov_wage, 0, v3
     GNP -> Priv_wage, 0, c2
     Taxes -> Priv_wage, 0, c2
     neg_Gov_wage -> Priv_wage, 0, c2
-    GNP -> Priv_wage, -1, c3
-    Taxes -> Priv_wage, -1, c3
-    neg_Gov_wage -> Priv_wage, -1, c3
+    GNP -> Priv_wage, 1, c3
+    Taxes -> Priv_wage, 1, c3
+    neg_Gov_wage -> Priv_wage, 1, c3
     Time -> Priv_wage, 0, c4
     Priv_wage <-> Priv_wage, 0, v4
     GNP <-> GNP, 0, v5

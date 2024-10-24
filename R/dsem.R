@@ -25,7 +25,7 @@
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
 #' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
-#' @importFrom Matrix solve Cholesky
+#' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
