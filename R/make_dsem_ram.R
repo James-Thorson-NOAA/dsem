@@ -368,8 +368,10 @@ function( sem,
     #}
   }
   #rownames(ram) = NULL
-  ram = rbind( cbind(1, sapply(mat2triplet(drop0(P_kk)),cbind)),
-               cbind(2, sapply(mat2triplet(drop0(G_kk)),cbind)) )
+  #f = \(x) sapply(mat2triplet(drop0(x)),cbind)
+  f = \(x) matrix(unlist(drop0(x)))
+  ram = rbind( cbind(1, f(P_kk)),
+               cbind(2, f(G_kk)) )
   ram = data.frame( ram, startvalues[ram[,4]] )
   colnames(ram) = c("heads", "to", "from", "parameter", "start")
 
