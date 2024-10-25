@@ -369,7 +369,7 @@ function( sem,
   }
   #rownames(ram) = NULL
   #f = \(x) sapply(mat2triplet(drop0(x)),cbind)
-  f = \(x) matrix(unlist(drop0(x)))
+  f = \(x) matrix(unlist(drop0(x)),ncol=3)
   ram = rbind( cbind(1, f(P_kk)),
                cbind(2, f(G_kk)) )
   ram = data.frame( ram, startvalues[ram[,4]] )
