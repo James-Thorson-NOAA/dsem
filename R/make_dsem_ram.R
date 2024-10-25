@@ -332,7 +332,7 @@ function( sem,
   }
 
   # Loop through paths
-  G_kk = P_kk = sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) )   # Make with a zero
+  P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
   #P_kk = new("dgCMatrix")
   #P_kk = Matrix()
   #P_kk@Dim <- as.integer(rep(length(variables)*length(times),2))
@@ -369,7 +369,7 @@ function( sem,
   }
   #rownames(ram) = NULL
   #f = \(x) sapply(mat2triplet(drop0(x)),cbind)
-  f = \(x) matrix(unlist(mat2triplet(drop0(x))),ncol=3)
+  f = \(x) matrix(unlist(mat2triplet(x)),ncol=3)
   ram = rbind( cbind(1, f(P_kk)),
                cbind(2, f(G_kk)) )
   ram = data.frame( ram, startvalues[ram[,4]] )
