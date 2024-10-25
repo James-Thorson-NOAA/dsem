@@ -332,7 +332,7 @@ function( sem,
   }
 
   # Loop through paths
-  P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
+  G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
   #P_kk = new("dgCMatrix")
   #P_kk = Matrix()
   #P_kk@Dim <- as.integer(rep(length(variables)*length(times),2))
@@ -350,9 +350,9 @@ function( sem,
                          dims = rep(length(variables),2) )
     tmp_kk = kronecker(P_jj, L_tt)
     if(abs(as.numeric(model[i,'direction']))==1){
-      P_kk = P_kk + tmp_kk * par.nos[i]
+      P_kk = P_kk + tmp_kk * i
     }else{
-      G_kk = G_kk + tmp_kk * par.nos[i]
+      G_kk = G_kk + tmp_kk * i
     }
     #for( t in seq_along(times) ){
     #  # Get index for "from"
@@ -372,7 +372,9 @@ function( sem,
   f = \(x) matrix(unlist(mat2triplet(x)),ncol=3)
   ram = rbind( cbind(1, f(P_kk)),
                cbind(2, f(G_kk)) )
-  ram = data.frame( ram, startvalues[ram[,4]] )
+  ram = data.frame( ram[,1:3,drop=FALSE],
+                    as.numeric(par.nos)[ram[,4]],
+                    as.numeric(startvalues)[ram[,4]] )
   colnames(ram) = c("heads", "to", "from", "parameter", "start")
 
   #
