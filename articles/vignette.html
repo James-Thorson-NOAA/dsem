@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
+<li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
@@ -62,7 +62,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/dev/vignettes/vignette.Rmd" class="external-link"><code>vignettes/vignette.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/vignettes/vignette.Rmd" class="external-link"><code>vignettes/vignette.Rmd</code></a></small>
       <div class="d-none name"><code>vignette.Rmd</code></div>
     </div>
 
@@ -80,96 +80,21 @@ equation models (DSEMs) with a simple user-interface and generic
 specification of simultaneous and lagged effects in a non-recursive
 structure. We here highlight a few features in particular.</p>
 <div class="section level2">
-<h2 id="comparison-with-linear-models">Comparison with linear models<a class="anchor" aria-label="anchor" href="#comparison-with-linear-models"></a>
-</h2>
-<p>We first show that <code>dsem</code> is identical to a linear model.
-To do so, we simulate data with a single response and single
-predictor:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># simulate normal distribution</span></span>
-<span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">x</span>, y<span class="op">=</span><span class="va">y</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Fit as linear model</span></span>
-<span><span class="va">Lm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, data<span class="op">=</span><span class="va">data</span> <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Fit as DSEM</span></span>
-<span><span class="va">fit</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> sem <span class="op">=</span> <span class="st">"x -&gt; y, 0, beta"</span>,</span>
-<span>            tsdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>,</span>
-<span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">)</span></span>
-<span><span class="co">#&gt; 1 regions found.</span></span>
-<span><span class="co">#&gt; Using 1 threads</span></span>
-<span><span class="co">#&gt; 1 regions found.</span></span>
-<span><span class="co">#&gt; Using 1 threads</span></span>
-<span></span>
-<span><span class="co"># Display output</span></span>
-<span><span class="va">m1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  <span class="st">"lm"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">Lm</span><span class="op">)</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="fl">2</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>,</span>
-<span>  <span class="st">"dsem"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">9</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span> <span class="va">m1</span>, digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
-<thead><tr class="header">
-<th align="left"></th>
-<th align="right">Estimate</th>
-<th align="right">Std_Error</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left">lm</td>
-<td align="right">0.616</td>
-<td align="right">0.108</td>
-</tr>
-<tr class="even">
-<td align="left">dsem</td>
-<td align="right">0.616</td>
-<td align="right">0.107</td>
-</tr>
-</tbody>
-</table>
-<p>This shows that linear and dynamic structural equation models give
-identical estimates of the single path coefficient.</p>
-<p>We can also calculate leave-one-out residuals and display them using
-DHARMa:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># sample-based quantile residuals</span></span>
-<span><span class="va">samples</span> <span class="op">=</span> <span class="fu"><a href="../reference/loo_residuals.html">loo_residuals</a></span><span class="op">(</span><span class="va">fit</span>, what<span class="op">=</span><span class="st">"samples"</span>, track_progress<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">which_use</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fitResp</span> <span class="op">=</span> <span class="fu"><a href="../reference/loo_residuals.html">loo_residuals</a></span><span class="op">(</span> <span class="va">fit</span>, what<span class="op">=</span><span class="st">"loo"</span>, track_progress<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span><span class="op">[</span>,<span class="st">'est'</span><span class="op">]</span></span>
-<span><span class="va">simResp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">samples</span>, MARGIN<span class="op">=</span><span class="fl">3</span>, FUN<span class="op">=</span><span class="va">as.vector</span><span class="op">)</span><span class="op">[</span><span class="va">which_use</span>,<span class="op">]</span></span>
-<span></span>
-<span><span class="co"># Build and display DHARMa object</span></span>
-<span><span class="va">res</span> <span class="op">=</span> <span class="fu">DHARMa</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DHARMa/man/createDHARMa.html" class="external-link">createDHARMa</a></span><span class="op">(</span></span>
-<span>        simulatedResponse <span class="op">=</span> <span class="va">simResp</span>,</span>
-<span>        observedResponse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="va">which_use</span><span class="op">]</span>,</span>
-<span>        fittedPredictedResponse <span class="op">=</span> <span class="va">fitResp</span> <span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-3-1.png" width="672"></p>
-<p>This shows no pattern in the quantile-quantile plot, as expected
-given that we have a correctly specified model. We can also confirm that
-this gives identical to results to the linear model:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get DSEM Loo residuals and LM working residuals</span></span>
-<span><span class="va">res</span> <span class="op">=</span> <span class="fu"><a href="../reference/loo_residuals.html">loo_residuals</a></span><span class="op">(</span><span class="va">fit</span>, what<span class="op">=</span><span class="st">"quantiles"</span>, track_progress<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">res0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">Lm</span>,<span class="st">"working"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Plot comparison</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span> x<span class="op">=</span><span class="va">res0</span>, y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="va">res</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>      xlab<span class="op">=</span><span class="st">"linear model residuals"</span>, ylab<span class="op">=</span><span class="st">"dsem residuals"</span> <span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>a<span class="op">=</span><span class="fl">0</span>,b<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-4-1.png" width="672"></p>
-</div>
-<div class="section level2">
 <h2 id="comparison-with-dynamic-linear-models">Comparison with dynamic linear models<a class="anchor" aria-label="anchor" href="#comparison-with-dynamic-linear-models"></a>
 </h2>
-<p>We next demonstrate that <code>dsem</code> using a well-known
-econometric model, the Klein-1 model.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>We first demonstrate that <code>dsem</code> gives identical results
+to <code>dynlm</code> for a well-known econometric model, the Klein-1
+model.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">KleinI</span>, package<span class="op">=</span><span class="st">"AER"</span><span class="op">)</span></span>
 <span><span class="va">TS</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">KleinI</span>, <span class="st">"time"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">KleinI</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1931</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Specify by declaring each arrow and lag</span></span>
+<span><span class="co"># dynlm</span></span>
+<span><span class="va">fm_cons</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dynlm/man/dynlm.html" class="external-link">dynlm</a></span><span class="op">(</span><span class="va">consumption</span> <span class="op">~</span> <span class="va">cprofits</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">cprofits</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pwage</span> <span class="op">+</span> <span class="va">gwage</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">TS</span><span class="op">)</span></span>
+<span><span class="va">fm_inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dynlm/man/dynlm.html" class="external-link">dynlm</a></span><span class="op">(</span><span class="va">invest</span> <span class="op">~</span> <span class="va">cprofits</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">cprofits</span><span class="op">)</span> <span class="op">+</span> <span class="va">capital</span>, data <span class="op">=</span> <span class="va">TS</span><span class="op">)</span>                 <span class="co">#</span></span>
+<span><span class="va">fm_pwage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dynlm/man/dynlm.html" class="external-link">dynlm</a></span><span class="op">(</span><span class="va">pwage</span> <span class="op">~</span> <span class="va">gnp</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">gnp</span><span class="op">)</span> <span class="op">+</span> <span class="va">time</span>, data <span class="op">=</span> <span class="va">TS</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># dsem</span></span>
 <span><span class="va">sem</span> <span class="op">=</span> <span class="st">"</span></span>
 <span><span class="st">  # Link, lag, param_name</span></span>
 <span><span class="st">  cprofits -&gt; consumption, 0, a1</span></span>
@@ -192,34 +117,13 @@ econometric model, the Klein-1 model.</p>
 <span>            estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span></span>
 <span>              quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>              newton_loops <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">)</span></span></code></pre></div>
-<p>This model could instead be specified using equation-and-lag
-notation, which makes the model structure more clear:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Specify using equations</span></span>
-<span><span class="va">equations</span> <span class="op">=</span> <span class="st">"</span></span>
-<span><span class="st">  consumption = a1*cprofits + a2*lag[cprofits,1]+ a3*pwage + a3*gwage</span></span>
-<span><span class="st">  invest = b1*cprofits + b2*lag[cprofits,1] + b3*capital</span></span>
-<span><span class="st">  pwage = c1*time + c2*gnp + c3*lag[gnp,1]</span></span>
-<span><span class="st">"</span></span>
+<span>              newton_loops <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">)</span></span>
+<span><span class="co">#&gt; 1 regions found.</span></span>
+<span><span class="co">#&gt; Using 1 threads</span></span>
+<span><span class="co">#&gt; 1 regions found.</span></span>
+<span><span class="co">#&gt; Using 1 threads</span></span>
 <span></span>
-<span><span class="co"># Convert and run</span></span>
-<span><span class="va">sem</span> <span class="op">=</span> <span class="fu"><a href="../reference/convert_equations.html">convert_equations</a></span><span class="op">(</span><span class="va">equations</span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>            tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
-<span>            estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span></span>
-<span>              quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>              newton_loops <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">)</span></span></code></pre></div>
-<p>We first demonstrate that <code>dsem</code> gives identical results
-to <code>dynlm</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># dynlm</span></span>
-<span><span class="va">fm_cons</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dynlm/man/dynlm.html" class="external-link">dynlm</a></span><span class="op">(</span><span class="va">consumption</span> <span class="op">~</span> <span class="va">cprofits</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">cprofits</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">pwage</span> <span class="op">+</span> <span class="va">gwage</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">TS</span><span class="op">)</span></span>
-<span><span class="va">fm_inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dynlm/man/dynlm.html" class="external-link">dynlm</a></span><span class="op">(</span><span class="va">invest</span> <span class="op">~</span> <span class="va">cprofits</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">cprofits</span><span class="op">)</span> <span class="op">+</span> <span class="va">capital</span>, data <span class="op">=</span> <span class="va">TS</span><span class="op">)</span></span>
-<span><span class="va">fm_pwage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dynlm/man/dynlm.html" class="external-link">dynlm</a></span><span class="op">(</span><span class="va">pwage</span> <span class="op">~</span> <span class="va">gnp</span> <span class="op">+</span> <span class="fu">L</span><span class="op">(</span><span class="va">gnp</span><span class="op">)</span> <span class="op">+</span> <span class="va">time</span>, data <span class="op">=</span> <span class="va">TS</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Compile results</span></span>
+<span><span class="co"># Compile</span></span>
 <span><span class="va">m1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fm_cons</span><span class="op">)</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>,<span class="op">]</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fm_inv</span><span class="op">)</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>,<span class="op">]</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fm_pwage</span><span class="op">)</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>,<span class="op">]</span> <span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span></span>
@@ -230,7 +134,8 @@ to <code>dynlm</code>:</p>
 <span><span class="op">)</span></span>
 <span><span class="va">m</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">m</span>, <span class="st">"lower"</span><span class="op">=</span><span class="va">m</span><span class="op">$</span><span class="va">Estimate</span><span class="op">-</span><span class="va">m</span><span class="op">$</span><span class="va">Std..Error</span>, <span class="st">"upper"</span><span class="op">=</span><span class="va">m</span><span class="op">$</span><span class="va">Estimate</span><span class="op">+</span><span class="va">m</span><span class="op">$</span><span class="va">Std..Error</span> <span class="op">)</span></span>
 <span></span>
-<span><span class="co"># ggplot display of estimates</span></span>
+<span><span class="co"># ggplot estimates</span></span>
+<span></span>
 <span><span class="va">longform</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/reshape/man/melt-24.html" class="external-link">melt</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">KleinI</span><span class="op">)</span> <span class="op">)</span></span>
 <span>  <span class="va">longform</span><span class="op">$</span><span class="va">year</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/stats/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">KleinI</span><span class="op">)</span>, <span class="fl">9</span> <span class="op">)</span></span>
 <span><span class="va">p1</span> <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span> data<span class="op">=</span><span class="va">longform</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">year</span>, y<span class="op">=</span><span class="va">value</span><span class="op">)</span> <span class="op">)</span> <span class="op">+</span></span>
@@ -248,13 +153,13 @@ to <code>dynlm</code>:</p>
 <span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.2</span>,<span class="fl">1</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.2</span>,<span class="fl">0</span><span class="op">)</span> <span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<p><img src="vignette_files/figure-html/unnamed-chunk-2-1.png" width="672"></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p2</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-7-2.png" width="672"></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p><img src="vignette_files/figure-html/unnamed-chunk-2-2.png" width="672"></p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html" class="external-link">grid.arrange</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html" class="external-link">arrangeGrob</a></span><span class="op">(</span><span class="va">p3</span>, <span class="va">p4</span>, nrow<span class="op">=</span><span class="fl">2</span><span class="op">)</span> <span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-7-3.png" width="672"></p>
+<p><img src="vignette_files/figure-html/unnamed-chunk-2-3.png" width="672"></p>
 <p>Results show that both packages provide (almost) identical estimates
 and standard errors.</p>
 <p>We can also compare results using the Laplace approximation against
@@ -263,13 +168,13 @@ In this example, MCMC results in somewhat higher estimates of exogenous
 variance parameters (presumably because those follow a chi-squared
 distribution with positive skewness), but otherwise the two produce
 similar estimates.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">tmbstan</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># MCMC for both fixed and random effects</span></span>
 <span><span class="va">mcmc</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/tmbstan/man/tmbstan.html" class="external-link">tmbstan</a></span><span class="op">(</span> <span class="va">fit</span><span class="op">$</span><span class="va">obj</span>, init<span class="op">=</span><span class="st">"last.par.best"</span> <span class="op">)</span></span>
 <span><span class="va">summary_mcmc</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">mcmc</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># long-form data frame</span></span>
 <span><span class="va">m1</span> <span class="op">=</span> <span class="va">summary_mcmc</span><span class="op">$</span><span class="va">summary</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">17</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'mean'</span>,<span class="st">'sd'</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span> <span class="st">"b"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">m1</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
@@ -286,7 +191,7 @@ similar estimates.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span> position<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span><span class="fl">0.9</span><span class="op">)</span> <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymax<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">upper</span><span class="op">)</span>,ymin<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">lower</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                 width<span class="op">=</span><span class="fl">0.25</span>, position<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span><span class="fl">0.9</span><span class="op">)</span><span class="op">)</span>  <span class="co">#</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-11-1.png" width="100%"></p>
+<p><img src="vignette_files/figure-html/unnamed-chunk-6-1.png" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="comparison-with-vector-autoregressive-models">Comparison with vector autoregressive models<a class="anchor" aria-label="anchor" href="#comparison-with-vector-autoregressive-models"></a>
@@ -306,7 +211,7 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <p>Here, we compare fits using <code>dsem</code> with
 <code>dynlm</code>, as well as a vector autoregressive model package
 <code>vars</code>, and finally with <code>MARSS</code>.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">isle_royale</span><span class="op">)</span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">isle_royale</span><span class="op">[</span>,<span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, start<span class="op">=</span><span class="fl">1959</span><span class="op">)</span></span>
 <span></span>
@@ -354,14 +259,14 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span>  U <span class="op">=</span> <span class="st">"zero"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">kem.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atsa-es.github.io/MARSS/reference/MARSS.html" class="external-link">MARSS</a></span><span class="op">(</span><span class="va">z.royale.dat</span>, model <span class="op">=</span> <span class="va">royale.model.1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Success! algorithm run for 15 iterations. abstol and log-log tests passed.</span></span>
+<span><span class="co">#&gt; Success! abstol and log-log tests passed at 16 iterations.</span></span>
 <span><span class="co">#&gt; Alert: conv.test.slope.tol is 0.5.</span></span>
 <span><span class="co">#&gt; Test with smaller values (&lt;0.1) to ensure convergence.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; MARSS fit is</span></span>
 <span><span class="co">#&gt; Estimation method: kem </span></span>
 <span><span class="co">#&gt; Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001</span></span>
-<span><span class="co">#&gt; Algorithm ran 15 (=minit) iterations and convergence was reached. </span></span>
+<span><span class="co">#&gt; Estimation converged in 16 iterations. </span></span>
 <span><span class="co">#&gt; Log-likelihood: -3.21765 </span></span>
 <span><span class="co">#&gt; AIC: 22.4353   AICc: 23.70964   </span></span>
 <span><span class="co">#&gt;  </span></span>
@@ -424,7 +329,7 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span> <span class="va">p1</span>, <span class="va">p2</span>, <span class="va">p3</span>,</span>
 <span>           labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Time-series data"</span>, <span class="st">"Estimated effects"</span>, <span class="st">"Fitted path digram"</span><span class="op">)</span>,</span>
 <span>           ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-12-1.png" width="480"></p>
+<p><img src="vignette_files/figure-html/unnamed-chunk-7-1.png" width="480"></p>
 <p>Results again show that <code>dsem</code> can estimate parameters for
 a vector autoregressive model (VAM), and it exactly matches results from
 <code>vars</code>, using <code>dynlm</code>, or using
@@ -435,7 +340,7 @@ a vector autoregressive model (VAM), and it exactly matches results from
 </h2>
 <p>We next replicate an analysis involving climate, forage fishes,
 stomach contents, and recruitment of a predatory fish.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span></span>
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="va">bering_sea</span> <span class="op">)</span></span>
 <span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">'fixed'</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span><span class="op">)</span></span>
@@ -469,7 +374,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span>use_REML<span class="op">=</span><span class="cn">FALSE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">)</span></span>
 <span><span class="va">ParHat</span> <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">obj</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="fu">parList</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># summary( fit )</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Timeseries plot</span></span>
 <span><span class="va">oldpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span> mfcol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span>, mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">0</span><span class="op">)</span>, mgp<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">0.5</span>,<span class="fl">0</span><span class="op">)</span>, tck<span class="op">=</span><span class="op">-</span><span class="fl">0.02</span> <span class="op">)</span></span>
@@ -488,8 +393,8 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span>           y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span>,<span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">0.2</span><span class="op">)</span>, border<span class="op">=</span><span class="cn">NA</span> <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-14-1.png" width="672"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p><img src="vignette_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Ax3man.github.io/phylopath/" class="external-link">phylopath</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -518,7 +423,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span><span class="co">#                           p2+ggtitle("Estimated p-values"), nrow=2), ncol=2 ) )</span></span>
 <span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Simultaneous effects"</span>, <span class="st">"Two-sided p-value"</span><span class="op">)</span>,</span>
 <span>                    ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-15-1.png" width="768"></p>
+<p><img src="vignette_files/figure-html/unnamed-chunk-10-1.png" width="768"></p>
 <p>These results are further discussed in the paper describing dsem.</p>
 </div>
 <div class="section level2">
@@ -527,7 +432,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <p>Finally, we replicate an analysis involving a trophic cascade
 involving sea stars predators, sea urchin consumers, and kelp
 producers.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">sea_otter</span><span class="op">)</span></span>
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="va">sea_otter</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">)</span></span>
 <span></span>
@@ -681,7 +586,7 @@ producers.</p>
 <span>                    <span class="va">p2</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Simultaneous effects"</span>, <span class="st">"Two-sided p-value"</span><span class="op">)</span>,</span>
 <span>                    ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-16-1.png" width="480"></p>
+<p><img src="vignette_files/figure-html/unnamed-chunk-11-1.png" width="480"></p>
 <p>Again, these results are further discussed in the paper describing
 dsem.</p>
 </div>
