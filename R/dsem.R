@@ -287,6 +287,7 @@ function( sem,
     out$opt$par = out$opt$par - solve(h, g)
     out$opt$objective = obj$fn(out$opt$par)
   }
+  out$internal$parhat = obj$env$parList()
 
   if( isTRUE(control$extra_convergence_checks) ){
     # Gradient checks

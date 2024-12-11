@@ -122,7 +122,8 @@ plot( fit, edge_label="value" )
 **Introducing the package, its features, and comparison with other software
 (to cite when using dsem):**
 
-Thorson, J. T., Andrews, A., Essington, T., Large, S. (In review).
+Thorson, J. T., Andrews, A., Essington, T., Large, S. (2024).
 Dynamic structural equation models synthesize
 ecosystem dynamics constrained by ecological mechanisms.
+Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
 }
