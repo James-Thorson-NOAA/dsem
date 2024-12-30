@@ -14,12 +14,15 @@ dsem_control(
   quiet = FALSE,
   run_model = TRUE,
   gmrf_parameterization = c("separable", "projection"),
+  constant_variance = c("conditional", "marginal", "diagonal"),
   use_REML = TRUE,
   profile = NULL,
   parameters = NULL,
   map = NULL,
   getJointPrecision = FALSE,
-  extra_convergence_checks = TRUE
+  extra_convergence_checks = TRUE,
+  lower = -Inf,
+  upper = Inf
 )
 }
 \arguments{
@@ -52,6 +55,21 @@ a full-rank and IID precision for variables over time, and then projects
 this using the inverse-cholesky of the precision, where this projection
 can be rank-deficient.}
 
+\item{constant_variance}{Whether to specify a constant conditional variance 
+\eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
+which results in a changing marginal variance      
+along the specified causal graph when lagged paths are present. Alternatively, the user can
+specify a constant marginal variance using \code{constant_variance="diagonal"}
+or \code{constant_variance="marginal"},
+such that \eqn{ \mathbf{\Gamma}} and \eqn{\mathbf{I-P}} are rescaled to achieve this constraint.  
+All options
+are equivalent when the model includes no lags (only simultaneous effects) and
+no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
+are equivalent when the model includes no covariances. Given some exogenous covariance, 
+\code{constant_variance = "diagonal"} preserves the conditional correlation and has
+changing conditional variance, while \code{constant_variance = "marginal"} has changing
+conditional correlation along the causal graph.}
+
 \item{use_REML}{Boolean indicating whether to treat non-variance fixed effects as random,
 either to motigate bias in estimated variance parameters or improve efficiency for
 parameter estimation given correlated fixed and random effects}
@@ -69,6 +87,12 @@ to \code{\link[TMB]{sdreport}}.}
 
 \item{extra_convergence_checks}{Boolean indicating whether to run extra checks on model
 convergence.}
+
+\item{lower}{vectors of lower bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+If unspecified, all parameters are assumed to be unconstrained.}
+
+\item{upper}{vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+If unspecified, all parameters are assumed to be unconstrained.}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

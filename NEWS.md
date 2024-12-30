@@ -1,3 +1,18 @@
+# dsem 1.4.0
+
+* Adding option for lower and upper bounds
+* Adding `stepwise_selection` for automated stepwise model selection
+* Adding `plot` option to use `ggraph` as alternative to previous `igraph`
+  option
+* Adding `convert_equations` to extend `sem::specifyEquations` and simplify
+  specification for large models
+
+# dsem 1.3.0
+
+* Adding option to specify constant marginal variance, as alternative to existing
+  calculation which results in a constant conditional variance but a changing marginal 
+  variance along the causal graph
+
 # dsem 1.2.1
 
 * removing `checkDepPackageVersion(dep_pkg="Matrix", this_pkg="TMB")` from `.onLoad()`

@@ -24,10 +24,12 @@
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
-#' @importFrom Matrix solve Cholesky
+#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
+#' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0
 #' @importFrom sem sem
-#' @importFrom igraph plot.igraph graph_from_data_frame
+#' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
+#' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
+#' @importFrom grid arrow
 #' @importFrom methods is
 #'
 #' @details
@@ -78,9 +80,10 @@
 #' **Introducing the package, its features, and comparison with other software
 #' (to cite when using dsem):**
 #'
-#' Thorson, J. T., Andrews, A., Essington, T., Large, S. (In review).
+#' Thorson, J. T., Andrews, A., Essington, T., Large, S. (2024).
 #' Dynamic structural equation models synthesize
 #' ecosystem dynamics constrained by ecological mechanisms.
+#' Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
 #'
 #' @examples
 #' # Define model
@@ -159,9 +162,20 @@ function( sem,
   if( ncol(tsdata) != length(unique(colnames(tsdata))) ){
     stop("Please check `colnames(tsdata)` to confirm that all variables (columns) have a unique name")
   }
+  if( !all(control$lower == -Inf) | !all(control$upper == Inf) ){
+    if( control$newton_loops > 0 ){
+      stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
+    }
+  }
 
   #
-  Data = list( "options" = ifelse(control$gmrf_parameterization=="separable",0,1),
+  options = c(
+    ifelse(control$gmrf_parameterization=="separable", 0, 1),
+    switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
+  )
+  
+  #
+  Data = list( "options" = options,
                "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
@@ -280,6 +294,8 @@ function( sem,
     out$opt = nlminb( start = out$opt$par,
                   objective = obj$fn,
                   gradient = obj$gr,
+                  upper = control$upper,
+                  lower = control$lower,
                   control = list( eval.max = control$eval.max,
                                   iter.max = control$iter.max,
                                   trace = control$trace ) )
@@ -293,6 +309,7 @@ function( sem,
     out$opt$par = out$opt$par - solve(h, g)
     out$opt$objective = obj$fn(out$opt$par)
   }
+  out$internal$parhat = obj$env$parList()
 
   if( isTRUE(control$extra_convergence_checks) ){
     # Gradient checks
@@ -301,7 +318,7 @@ function( sem,
       warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
     }
     # Hessian check ... condition and positive definite
-    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par))) )
     Eigen_fixed = eigen( Hess_fixed, only.values=TRUE )
     if( (max(Eigen_fixed$values)/min(Eigen_fixed$values)) > 1e6 ){
       # See McCullough and Vinod 2003
@@ -318,7 +335,7 @@ function( sem,
   if( isTRUE(control$getsd) ){
     if( isTRUE(control$verbose) ) message("Running sdreport")
     if( is.null(Hess_fixed) ){
-      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par)))  )
     }
     out$sdrep = TMB::sdreport( obj,
                           par.fixed = out$opt$par,
@@ -360,6 +377,20 @@ function( sem,
 #'        a full-rank and IID precision for variables over time, and then projects
 #'        this using the inverse-cholesky of the precision, where this projection
 #'        can be rank-deficient.
+#' @param constant_variance Whether to specify a constant conditional variance 
+#'        \eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
+#'        which results in a changing marginal variance      
+#'        along the specified causal graph when lagged paths are present. Alternatively, the user can
+#'        specify a constant marginal variance using \code{constant_variance="diagonal"}
+#'        or \code{constant_variance="marginal"},
+#'        such that \eqn{ \mathbf{\Gamma}} and \eqn{\mathbf{I-P}} are rescaled to achieve this constraint.  
+#'        All options
+#'        are equivalent when the model includes no lags (only simultaneous effects) and
+#'        no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
+#'        are equivalent when the model includes no covariances. Given some exogenous covariance, 
+#'        \code{constant_variance = "diagonal"} preserves the conditional correlation and has
+#'        changing conditional variance, while \code{constant_variance = "marginal"} has changing
+#'        conditional correlation along the causal graph.  
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
 #' @param use_REML Boolean indicating whether to treat non-variance fixed effects as random,
 #'        either to motigate bias in estimated variance parameters or improve efficiency for
@@ -372,6 +403,10 @@ function( sem,
 #'        to \code{\link[TMB]{sdreport}}.
 #' @param extra_convergence_checks Boolean indicating whether to run extra checks on model
 #'        convergence.
+#' @param lower vectors of lower bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+#'        If unspecified, all parameters are assumed to be unconstrained.
+#' @param upper vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+#'        If unspecified, all parameters are assumed to be unconstrained.
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -387,15 +422,19 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
-          gmrf_parameterization = c("separable","projection"),
+          gmrf_parameterization = c("separable", "projection"),
+          constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
           parameters = NULL,
           map = NULL,
           getJointPrecision = FALSE,
-          extra_convergence_checks = TRUE ){
+          extra_convergence_checks = TRUE,
+          lower = -Inf,
+          upper = Inf ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
+  constant_variance = match.arg(constant_variance)
 
   # Return
   structure( list(
@@ -408,12 +447,15 @@ function( nlminb_loops = 1,
     quiet = quiet,
     run_model = run_model,
     gmrf_parameterization = gmrf_parameterization,
+    constant_variance = constant_variance,
     use_REML = use_REML,
     profile = profile,
     parameters = parameters,
     map = map,
     getJointPrecision = getJointPrecision,
-    extra_convergence_checks = extra_convergence_checks
+    extra_convergence_checks = extra_convergence_checks,
+    lower = lower,
+    upper = upper
   ), class = "dsem_control" )
 }
 
@@ -489,8 +531,11 @@ function( object, ... ){
 #'
 #' @param x Output from \code{\link{dsem}}
 #' @param y Not used
-#' @param edge_label Whether to plot parameter names or estimated values
+#' @param edge_label Whether to plot parameter names, estimated values,
+#'        or estimated values along with stars indicating significance at
+#'        0.05, 0.01, or 0.001 levels (based on two-sided Wald tests)
 #' @param digits integer indicating the number of decimal places to be used
+#' @param style Whether to make a graph using \code{igraph} or \code{ggraph}
 #' @param ... arguments passed to \code{\link[igraph]{plot.igraph}}
 #'
 #' @details
@@ -505,12 +550,15 @@ function( object, ... ){
 plot.dsem <-
 function( x,
           y,
-          edge_label = c("name","value"),
+          edge_label = c("name","value","value_and_stars"),
           digits = 2,
+          style = c("igraph","ggraph"),
           ... ){
 
-  # Extract stuff
+  style = match.arg(style)
   edge_label = match.arg(edge_label)
+
+  # Extract stuff
   out = summary(x)
 
   # Format inputs
@@ -520,12 +568,48 @@ function( x,
   if( edge_label=="value"){
     DF$label = round(out$Estimate, digits=digits)
   }
+  if( edge_label == "value_and_stars" ){
+    DF$label = round(out$Estimate, digits=digits)
+    add_stars = cut(out[,'p_value'], breaks=c(1,0.05,0.01,0.001,0) )
+    add_stars = c("***","**","*","")[as.numeric(add_stars)]
+    DF$label = paste0(DF$label, add_stars)
+  }
 
   # Create and plotgraph
   pg <- graph_from_data_frame( d = DF,
                                directed = TRUE,
                                vertices = data.frame(vertices) )
-  plot( pg, ... )
+
+  # Two plot styles
+  if(style=="igraph"){
+    coords = layout_(pg, with_sugiyama())
+    plot( pg, layout = coords, ... )
+  }
+  if(style=="ggraph"){
+    # Modified from phylopath::plot.DAG
+    algorithm = 'sugiyama'
+    manual_layout = NULL
+    text_size = 6
+    box_x = 12
+    box_y = 8
+    edge_width = 1
+    curvature = 0
+    rotation = 0
+    flip_x = FALSE
+    flip_y = FALSE
+    l = ggraph::create_layout(pg, 'igraph', algorithm = algorithm)
+    arrow = grid::arrow(type = 'closed', 18, grid::unit(15, 'points'))
+    gplot = ggraph::ggraph(l) +
+      ggraph::geom_edge_arc(
+        aes(label = label),
+        strength = curvature, arrow = arrow, edge_width = edge_width,
+        end_cap = ggraph::rectangle(box_x, box_y, 'mm'),
+        start_cap = ggraph::rectangle(box_x, box_y, 'mm')
+      ) +
+      ggraph::geom_node_text(ggplot2::aes_(label = ~name), size = text_size) +
+      ggraph::theme_graph(base_family = 'sans')
+    plot(gplot)
+  }
   return(invisible(pg))
 }
 
@@ -852,7 +936,7 @@ function( object,
   return(out)
 }
 
-#' @title Marglinal log-likelihood
+#' @title Marginal log-likelihood
 #'
 #' @description Extract the (marginal) log-likelihood of a dsem model
 #'

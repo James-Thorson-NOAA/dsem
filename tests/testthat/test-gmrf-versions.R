@@ -49,6 +49,81 @@ test_that("dsem gmrf-parameterization options ", {
   expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 })
 
+test_that("dsem constant-variance options ", {
+  data(isle_royale)
+  data = ts( log(isle_royale[,2:3]), start=1959)
+  
+  # Show that constant_variance = "marginal" has constant marginal variance *with* crosscorrelation
+  sem = "
+    # Link, lag, param_name
+    wolves -> wolves, 1, arW
+    moose -> wolves, 1, MtoW
+    wolves -> moose, 1, WtoM
+    moose -> moose, 1, arM
+    moose <-> wolves, 0, NA, 0.2
+  "
+  # initial build of object
+  fit = dsem( sem = sem,
+               tsdata = data,
+               estimate_delta0 = TRUE,
+               control = dsem_control(
+                 nlminb_loops = 1,
+                 newton_loops = 0,
+                 getsd = FALSE,
+                 constant_variance = "marginal") )
+  margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_kk))), dim=dim(data))
+  expect_equal( apply(margvar,MARGIN=2,FUN=sd), c(0,0), tolerance=0.05 )
+
+  # Show that constant_variance = "diagonal" has constant marginal variance *without* crosscorrelation 
+  sem = "
+    # Link, lag, param_name
+    wolves -> wolves, 1, arW
+    moose -> wolves, 1, MtoW
+    wolves -> moose, 1, WtoM
+    moose -> moose, 1, arM
+  "
+  fit = dsem( sem = sem,
+               tsdata = data,
+               estimate_delta0 = TRUE,
+               control = dsem_control(
+                 nlminb_loops = 1,
+                 newton_loops = 0,
+                 getsd = FALSE,
+                 constant_variance = "diagonal") )
+  margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_kk))), dim=dim(data))
+  expect_equal( apply(margvar,MARGIN=2,FUN=sd), c(0,0), tolerance=0.01 )
+
+  # Show that marginal variance increases
+  sem = "
+    # Link, lag, param_name
+    wolves -> wolves, 1, arW
+    moose -> wolves, 1, MtoW
+    wolves -> moose, 1, WtoM
+    moose -> moose, 1, arM
+  "
+  fit0 = dsem( sem = sem,
+               tsdata = data,
+               estimate_delta0 = FALSE,
+               control = dsem_control(
+                 nlminb_loops = 1,
+                 newton_loops = 0,
+                 getsd = FALSE,
+                 constant_variance = "conditional") )
+  parameters = fit0$obj$env$parList()
+    parameters$delta0_j = rep( 0, ncol(data) )
+  fit = dsem( sem = sem,
+               tsdata = data,
+               estimate_delta0 = TRUE,
+               control = dsem_control(
+                 nlminb_loops = 1,
+                 newton_loops = 0,
+                 getsd = FALSE,
+                 constant_variance = "conditional",
+                 parameters = parameters) )
+  margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_kk))), dim=dim(data))
+})
+
+
 #test_that("dfa using dsem is working ", {
 #  data(isle_royale)
 #  data = ts( cbind(log(isle_royale[,2:3]), "F"=NA), start=1959)

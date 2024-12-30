@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsem.R
 \name{logLik.dsem}
 \alias{logLik.dsem}
-\title{Marglinal log-likelihood}
+\title{Marginal log-likelihood}
 \usage{
 \method{logLik}{dsem}(object, ...)
 }
