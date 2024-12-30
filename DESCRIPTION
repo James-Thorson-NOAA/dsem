@@ -14,6 +14,7 @@ Imports:
     Matrix,
     sem,
     igraph,
+    RTMB
     ggraph,
     grid,
     methods
