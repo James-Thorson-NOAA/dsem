@@ -9,6 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
+  prior_negloglike = NULL,
   control = dsem_control(),
   covs = colnames(tsdata)
 )
@@ -28,6 +29,12 @@ Other options correspond to different specifications of measurement error.}
 \item{estimate_delta0}{Boolean indicating whether to estimate deviations from equilibrium in initial year
 as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 the stationary distribution}
+
+\item{prior_negloglike}{A user-provided function that takes as input the vector of fixed effects out$obj$par
+returns the negative log-prior probability. For example
+\code{prior_negloglike = function(par) -1 * dnorm( par[1], mean=0, sd=0.1, log=TRUE)}
+specifies a normal prior probability
+for the for the first fixed effect with mean of zero and logsd of 0.1}
 
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
 settings, and see documentation for that function for details.}

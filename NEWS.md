@@ -6,6 +6,8 @@
   option
 * Adding `convert_equations` to extend `sem::specifyEquations` and simplify
   specification for large models
+* Adding argument `prior_negloglike` as interface to specify Bayesian priors
+  and/or likelihood penalties
 
 # dsem 1.3.0
 
