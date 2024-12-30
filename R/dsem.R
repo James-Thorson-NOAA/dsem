@@ -22,7 +22,7 @@
 #'        save time for models with many variables.
 #' @param prior_negloglike A user-provided function that takes as input the vector of fixed effects out$obj$par
 #'        returns the negative log-prior probability. For example
-#'        \code{prior_negloglike = function(par) -1 * dnorm( par[1], mean=0, sd=0.1, log=TRUE)}
+#'        \code{prior_negloglike = function(obj) -1 * dnorm( obj$par[1], mean=0, sd=0.1, log=TRUE)}
 #'        specifies a normal prior probability
 #'        for the for the first fixed effect with mean of zero and logsd of 0.1
 #' @param control Output from \code{\link{dsem_control}}, used to define user
