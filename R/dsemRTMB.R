@@ -5,7 +5,7 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
-          prior_negloglike = NULL,
+          log_prior = function(p) 0,
           control = dsem_control(),
           covs = colnames(tsdata) ){
 
@@ -49,6 +49,14 @@ function( sem,
   n_t = nrow(y_tj)
   n_j = ncol(y_tj)
   n_k = prod(dim(y_tj))
+
+  # Load data in environment for function "dBdt"
+  data4 = local({
+                  "c" <- ADoverload("c")
+                  "[<-" <- ADoverload("[<-")
+                  environment()
+  })
+  environment(log_prior) <- data4
 
   # Construct parameters
   if( is.null(control$parameters) ){
@@ -110,11 +118,12 @@ function( sem,
   cmb <- function(f, ...) function(p) f(p, ...) ## Helper to make closure
   #f(parlist, model, tsdata, family)
   obj = RTMB::MakeADFun(
-          func = cmb( get_jnll,
+          func = cmb( compute_nll,
                       model = model,
                       y_tj = y_tj,
                       family = family,
-                      options = options ),
+                      options = options,
+                      log_prior = log_prior ),
           parameters = Params,
           random = Random,
           map = Map,

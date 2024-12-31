@@ -1,5 +1,5 @@
 
-devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE, dep=FALSE )
+#devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE, dep=FALSE )
 
 library(dsem)
 library(RTMB)
@@ -44,11 +44,15 @@ Map$lnsigma_j = factor( rep(NA,ncol(tsdata)) )
 Params = fit0$tmb_inputs$parameters
 Params$lnsigma_j[] = log(0.1)
 
+#
+prior_negloglike = \(obj) -dnorm(obj$par[1],0,0.1,log=TRUE)
+
 # Fit model
 fit = dsem( sem=sem,
             tsdata = tsdata,
             estimate_delta0 = TRUE,
             family = rep("normal",ncol(tsdata)),
+            prior_negloglike = prior_negloglike,
             control = dsem_control( quiet=TRUE,
                                     run_model = TRUE,
                                     use_REML = TRUE,
@@ -62,20 +66,29 @@ if( FALSE ){
   covs = colnames(tsdata)
 }
 
-#
+
+###################
+# dsemRTMB
+###################
+
+# Files
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "make_matrices.R") )
-source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "get_jnll.R") )
+source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "compute_nll.R") )
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "read_model.R") )
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "dsemRTMB.R") )
+
+# Define prior
+log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.1, log=TRUE)
+
 fitRTMB = dsemRTMB( sem = sem,
             tsdata = tsdata,
             estimate_delta0 = TRUE,
             family = rep("normal",ncol(tsdata)),
+            log_prior = log_prior,
             control = dsem_control( quiet = FALSE,
                                     run_model = TRUE,
                                     use_REML = TRUE,
                                     gmrf_parameterization = "projection",
-                                    trace = 1,
                                     map = Map,
                                     parameters = Params ) )
 obj = fitRTMB$obj

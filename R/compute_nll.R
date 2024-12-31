@@ -1,10 +1,11 @@
 # model function
-get_jnll <-
+compute_nll <-
 function( parlist,
           model,
           y_tj,
           family,
-          options ) {
+          options,
+          log_prior ) {
   # options[1] -> 0: full rank;  1: rank-reduced GMRF
   # options[2] -> 0: constant conditional variance;  1: constant marginal variance
 
@@ -61,7 +62,9 @@ function( parlist,
     # Full rank GMRF
     z_tj = x_tj
 
-    # Doesn't work
+    # Doesn't work ... mat2triplet not implemented
+    #V_kk = matrix(0, nrow=n_k, ncol=n_k)
+    #REPORT( V_kk )
     #V_kk = as.matrix(V_kk)
     #invV_kk = solve(V_kk)
     #Qtmp_kk = invV_kk
@@ -75,6 +78,8 @@ function( parlist,
     Q_kk = t(IminusRho_kk) %*% invV_kk %*% IminusRho_kk
 
     # Experiment
+    #IminusRho_dense = as.matrix( IminusRho_kk )
+    #V_dense = as.matrix( V_kk )
     #Q_RHS = solve(V_kk, IminusRho_kk)
     #Q_kk = t(IminusRho_kk) %*% Q_RHS
 
@@ -157,8 +162,12 @@ function( parlist,
       devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * pow(2 * ( (y_tj[t,j]-mu_tj[t,j])/mu_tj[t,j] - log(y_tj[t,j]/mu_tj[t,j]) ), 0.5);
     }
   }}
+
+  # Calculate priors
+  log_prior_value = log_prior( parlist )
+
   jnll = -1 * sum(loglik_tj);
-  jnll = jnll + jnll_gmrf;
+  jnll = jnll + jnll_gmrf - log_prior_value;
 
   #
   REPORT( loglik_tj )
@@ -175,6 +184,7 @@ function( parlist,
   REPORT( jnll )
   REPORT( loglik_tj )
   REPORT( jnll_gmrf )
+  REPORT( log_prior_value )
   #SIMULATE{
   #  REPORT( y_tj )
   #}

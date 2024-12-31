@@ -264,7 +264,7 @@ function( sem,
     obj$gr_orig = obj$gr
 
     # BUild prior evaluator
-    requireNamespace(RTMB)
+    requireNamespace("RTMB")
     priors_obj = RTMB::MakeADFun( func = prior_negloglike, 
                                   parameters = list(par=obj$par), 
                                   silent = TRUE )
