@@ -2,8 +2,11 @@
 get_jnll <-
 function( parlist,
           model,
-          tsdata,
-          family ) {
+          y_tj,
+          family,
+          options ) {
+  # options[1] -> 0: full rank;  1: rank-reduced GMRF
+  # options[2] -> 0: constant conditional variance;  1: constant marginal variance
 
   "c" <- ADoverload("c")
   "[<-" <- ADoverload("[<-")
@@ -19,9 +22,9 @@ function( parlist,
   n_z = length(unique(model$parameter))
   #n_p2 = length(unique(subset(model,direction==2)$parameter))
   #n_p1 = length(unique(subset(model,direction==1)$parameter))
-  n_t = nrow(tsdata)
-  n_j = ncol(tsdata)
-  n_k = prod(dim(tsdata))
+  n_t = nrow(y_tj)
+  n_j = ncol(y_tj)
+  n_k = prod(dim(y_tj))
 
   # Unpack
   #model_unique = model[match(unique(model$parameter),model$parameter),]
@@ -32,15 +35,15 @@ function( parlist,
   ram = make_matrices(
             beta_p = beta_z,
             model = model,
-            times = as.numeric(time(tsdata)),
-            variables = colnames(tsdata) )
+            times = as.numeric(time(y_tj)),
+            variables = colnames(y_tj) )
 
   # Assemble
   Rho_kk = AD(ram$P_kk)
   IminusRho_kk = Diagonal(n_k) - Rho_kk
   # Assemble variance
-  Gamma_kk = invV_kk = AD(ram$G_kk)
-  invV_kk@x = 1 / Gamma_kk@x^2
+  Gamma_kk = AD(ram$G_kk)
+  V_kk = t(Gamma_kk) %*% Gamma_kk
 
   # Calculate effect of initial condition -- SPARSE version
   delta_tj = matrix( 0, nrow=n_t, ncol=n_j )
@@ -52,12 +55,47 @@ function( parlist,
 
   #
   xhat_tj = outer( rep(1,n_t), mu_j )
-  z_tj = x_tj
 
   # Probability of GMRF
-  Q_kk = t(IminusRho_kk) %*% invV_kk %*% IminusRho_kk
-  jnll_gmrf = -1 * dgmrf( as.vector(z_tj), mu=as.vector(xhat_tj + delta_tj), Q=Q_kk, log=TRUE )
-  REPORT( Q_kk )
+  if( options[1] == 0 ){
+    # Full rank GMRF
+    z_tj = x_tj
+
+    # Doesn't work
+    #V_kk = as.matrix(V_kk)
+    #invV_kk = solve(V_kk)
+    #Qtmp_kk = invV_kk
+    #Qtmp_kk = AD(Qtmp_kk)
+    #REPORT( Qtmp_kk )
+    #Q_kk = Qtmp_kk
+
+    # Works
+    invV_kk = AD(ram$G_kk)
+    invV_kk@x = 1 / Gamma_kk@x^2
+    Q_kk = t(IminusRho_kk) %*% invV_kk %*% IminusRho_kk
+
+    # Experiment
+    #Q_RHS = solve(V_kk, IminusRho_kk)
+    #Q_kk = t(IminusRho_kk) %*% Q_RHS
+
+    # Fine from here
+    jnll_gmrf = -1 * dgmrf( as.vector(z_tj), mu=as.vector(xhat_tj + delta_tj), Q=Q_kk, log=TRUE )
+    #jnll_gmrf = 0
+    REPORT( Q_kk )
+  }else{
+    # Reduced rank projection .. dgmrf is lower precision than GMRF in CPP
+    #jnll_gmrf = -1 * dgmrf( as.vector(x_tj), mu=rep(1,n_k), Q=Diagonal(n_k), log=TRUE )
+    jnll_gmrf = -1 * sum( dnorm(x_tj, mean=0, sd=1, log=TRUE) )
+
+    #
+    z_k1 = as.vector(x_tj)
+    z_k2 = Gamma_kk %*% z_k1
+    z_k3 = solve(IminusRho_kk, z_k2)
+    z_tj = matrix(as.vector(z_k3), nrow=n_t, ncol=n_j) + xhat_tj + delta_tj
+    REPORT( z_k1 )
+    REPORT( z_k2 )
+    REPORT( z_k3 )
+  }
 
   # Likelihood of data | random effects
   loglik_tj = mu_tj = devresid_tj = matrix( 0, nrow=n_t, ncol=n_j )
@@ -125,22 +163,23 @@ function( parlist,
   #
   REPORT( loglik_tj )
   REPORT( jnll_gmrf )
-  REPORT( xhat_tj ); # needed to simulate new GMRF in R
-  #REPORT( delta_k ); # FIXME>  Eliminate in simulate.dsem
-  REPORT( delta_tj ); # needed to simulate new GMRF in R
-  REPORT( Rho_kk );
-  REPORT( Gamma_kk );
-  REPORT( mu_tj );
-  REPORT( devresid_tj );
-  REPORT( IminusRho_kk );
-  REPORT( jnll );
-  REPORT( loglik_tj );
-  REPORT( jnll_gmrf );
+  REPORT( xhat_tj ) # needed to simulate new GMRF in R
+  #REPORT( delta_k ) # FIXME>  Eliminate in simulate.dsem
+  REPORT( delta_tj ) # needed to simulate new GMRF in R
+  REPORT( Rho_kk )
+  REPORT( Gamma_kk )
+  REPORT( mu_tj )
+  REPORT( devresid_tj )
+  REPORT( IminusRho_kk )
+  REPORT( V_kk )
+  REPORT( jnll )
+  REPORT( loglik_tj )
+  REPORT( jnll_gmrf )
   #SIMULATE{
-  #  REPORT( y_tj );
+  #  REPORT( y_tj )
   #}
-  REPORT( z_tj );
-  ADREPORT( z_tj );
+  REPORT( z_tj )
+  ADREPORT( z_tj )
 
   jnll
 }

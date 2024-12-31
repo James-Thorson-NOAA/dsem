@@ -44,16 +44,22 @@ function( sem,
   )
   y_tj = tsdata
 
+  #
+  n_z = length(unique(model$parameter))
+  n_t = nrow(y_tj)
+  n_j = ncol(y_tj)
+  n_k = prod(dim(y_tj))
+
   # Construct parameters
   if( is.null(control$parameters) ){
     Params = list(
       #beta_p2 = subset(model,direction==2)$start,
       #beta_p1 = subset(model,direction==1)$start,
-      beta_z = 0.01 * rnorm(n_p),
+      beta_z = 0.01 * rnorm(n_z),
       lnsigma_j = rep(0, n_j),
       mu_j = rep(0, n_j),
       delta0_j = rep(0, n_j),
-      x_tj = ifelse( is.na(tsdata), 0, tsdata )
+      x_tj = ifelse( is.na(y_tj), 0, y_tj )
     )
     #if( control$gmrf_parameterization=="separable" ){
     #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
@@ -82,11 +88,11 @@ function( sem,
   # Construct map
   if( is.null(control$map) ){
     Map = list()
-    Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (family[col(tsdata)] %in% c("normal","binomial","poisson","gamma")), seq_len(prod(dim(tsdata))), NA ))
+    Map$x_tj = factor(ifelse( is.na(as.vector(y_tj)) | (family[col(y_tj)] %in% c("normal","binomial","poisson","gamma")), seq_len(n_k), NA ))
     Map$lnsigma_j = factor( ifelse(family=="fixed", NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
-    Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
+    Map$mu_j = factor( ifelse(colSums(!is.na(y_tj))==0, NA, seq_len(n_j)) )
   }else{
     Map = control$map
   }
@@ -106,8 +112,9 @@ function( sem,
   obj = RTMB::MakeADFun(
           func = cmb( get_jnll,
                       model = model,
-                      tsdata = tsdata,
-                      family = family ),
+                      y_tj = y_tj,
+                      family = family,
+                      options = options ),
           parameters = Params,
           random = Random,
           map = Map,

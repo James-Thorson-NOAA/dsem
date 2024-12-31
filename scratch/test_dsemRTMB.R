@@ -1,6 +1,9 @@
 
+devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE, dep=FALSE )
+
 library(dsem)
 library(RTMB)
+library(Matrix)
 
 # Define model
 sem = "
@@ -24,12 +27,34 @@ tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
                "gwage","invest","capital")]
 
 # Fit model
+fit0 = dsem( sem=sem,
+            tsdata = tsdata,
+            estimate_delta0 = TRUE,
+            family = rep("normal",ncol(tsdata)),
+            control = dsem_control( quiet=TRUE,
+                                    run_model = FALSE,
+                                    use_REML = TRUE,
+                                    gmrf_parameterization = "projection" ) )
+#ParHat = fit$internal$parhat
+#Rep = fit$obj$report()
+
+#
+Map = fit0$tmb_inputs$map
+Map$lnsigma_j = factor( rep(NA,ncol(tsdata)) )
+Params = fit0$tmb_inputs$parameters
+Params$lnsigma_j[] = log(0.1)
+
+# Fit model
 fit = dsem( sem=sem,
             tsdata = tsdata,
             estimate_delta0 = TRUE,
-            control = dsem_control( quiet=TRUE ) )
-#ParHat = fit$internal$parhat
-#Rep = fit$obj$report()
+            family = rep("normal",ncol(tsdata)),
+            control = dsem_control( quiet=TRUE,
+                                    run_model = TRUE,
+                                    use_REML = TRUE,
+                                    gmrf_parameterization = "projection",
+                                    map = Map,
+                                    parameters = Params ) )
 
 # RUN dsemRTMB line-by-line
 if( FALSE ){
@@ -45,5 +70,39 @@ source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "dsemRTMB.R") 
 fitRTMB = dsemRTMB( sem = sem,
             tsdata = tsdata,
             estimate_delta0 = TRUE,
-            control = dsem_control( quiet = TRUE) )
+            family = rep("normal",ncol(tsdata)),
+            control = dsem_control( quiet = FALSE,
+                                    run_model = TRUE,
+                                    use_REML = TRUE,
+                                    gmrf_parameterization = "projection",
+                                    trace = 1,
+                                    map = Map,
+                                    parameters = Params ) )
+obj = fitRTMB$obj
+obj$fn(obj$par)
+obj$gr(obj$par)
 
+#
+#obj$fn( fit$opt$par )
+rep0 = fitRTMB$obj$report( fit$obj$env$last.par.best )
+rep1 = fit$obj$report( fit$obj$env$last.par.best )
+
+#
+fitRTMB$obj$gr( fit$opt$par )
+
+range(fit$opt$par - fitRTMB$opt$par)
+
+#
+if( FALSE ){
+  Rep = fitRTMB$obj$report()
+  dgmrf( as.vector(Rep$z_tj), mu=as.vector(Rep$xhat_tj + Rep$delta_tj), Q=Rep$Q_kk, log=TRUE )
+  solve(Rep$V_kk, Rep$IminusRho_kk)
+
+  fit$tmb_inputs$parameters$x_tj
+  fitRTMB$tmb_inputs$parameters$x_tj
+  fit$obj$report()$jnll_gmrf
+  fitRTMB$obj$report()$jnll_gmrf
+
+  #
+  sum(dnorm( fit$tmb_inputs$parameters$x_tj, log=TRUE ))
+}
