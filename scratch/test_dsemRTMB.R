@@ -78,7 +78,7 @@ source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "read_model.R"
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "dsemRTMB.R") )
 
 # Define prior
-log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.1, log=TRUE)
+log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.01, log=TRUE)
 
 fitRTMB = dsemRTMB( sem = sem,
             tsdata = tsdata,
@@ -91,19 +91,42 @@ fitRTMB = dsemRTMB( sem = sem,
                                     gmrf_parameterization = "projection",
                                     map = Map,
                                     parameters = Params ) )
+
+#
 obj = fitRTMB$obj
-obj$fn(obj$par)
-obj$gr(obj$par)
+type = tapply( summary(fit)[,'direction'], INDEX=as.numeric(summary(fit)[,'parameter']), FUN=max )
+lower = rep( -Inf, length(obj$par) )
+lower[names(obj$par)=="beta_z"] = ifelse( type==2, 0, -Inf )
+upper = rep( Inf, length(obj$par) )
 
-#
-#obj$fn( fit$opt$par )
-rep0 = fitRTMB$obj$report( fit$obj$env$last.par.best )
-rep1 = fit$obj$report( fit$obj$env$last.par.best )
+# Check bounds on priors
+cbind( obj$par, lower, upper )
 
-#
-fitRTMB$obj$gr( fit$opt$par )
+# Run MCMC
+library(tmbstan)
+mcmc = tmbstan( obj,
+                lower = lower,
+                upper = upper,
+                init = 'last.par.best',
+                laplace = FALSE )
+traceplot(mcmc, pars=unique(names(obj$par)), inc_warmup=TRUE)
 
-range(fit$opt$par - fitRTMB$opt$par)
+
+if( FALSE ){
+  obj = fitRTMB$obj
+  obj$fn(obj$par)
+  obj$gr(obj$par)
+
+  #
+  #obj$fn( fit$opt$par )
+  rep0 = fitRTMB$obj$report( fit$obj$env$last.par.best )
+  rep1 = fit$obj$report( fit$obj$env$last.par.best )
+
+  #
+  fitRTMB$obj$gr( fit$opt$par )
+
+  range(fit$opt$par - fitRTMB$opt$par)
+}
 
 #
 if( FALSE ){
