@@ -69,11 +69,6 @@ function( sem,
       delta0_j = rep(0, n_j),
       x_tj = ifelse( is.na(y_tj), 0, y_tj )
     )
-    #if( control$gmrf_parameterization=="separable" ){
-    #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
-    #}else{
-    #  Params$eps_tj = ifelse( is.na(tsdata), 0, tsdata )
-    #}
 
     # Turn off initial conditions
     if( estimate_delta0==FALSE ){
@@ -113,8 +108,6 @@ function( sem,
   }
 
   # Build object
-  #source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "make_matrices.R") )
-  #source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "get_jnll.R") )
   cmb <- function(f, ...) function(p) f(p, ...) ## Helper to make closure
   #f(parlist, model, tsdata, family)
   obj = RTMB::MakeADFun(
@@ -130,36 +123,6 @@ function( sem,
           profile = control$profile,
           silent = TRUE )
 
-  #
-  if( FALSE ){
-    repRTMB = obj$report()
-    range(Rep$Gamma_kk - repRTMB$Gamma_kk)
-    range(Rep$Rho_kk - repRTMB$Rho_kk)
-    range(Rep$Q_kk - repRTMB$Q_kk)
-    range(Rep$mu_tj - repRTMB$mu_tj)
-    range(Rep$delta_tj - repRTMB$delta_tj)
-    range(Rep$xhat_tj - repRTMB$xhat_tj)
-    range(Rep$jnll_gmrf - repRTMB$jnll_gmrf)
-
-    #
-    dgmrf( repRTMB$z_tj, mu=repRTMB$xhat_tj + repRTMB$delta_tj, Q=repRTMB$Q_kk, log=TRUE )
-    dgmrf( Rep$z_tj, mu=Rep$xhat_tj + Rep$delta_tj, Q=Rep$Q_kk, log=TRUE )
-    dgmrf( as.vector(Rep$z_tj), mu=as.vector(Rep$xhat_tj + Rep$delta_tj), Q=Rep$Q_kk, log=TRUE )
-    mvtnorm::dmvnorm( as.vector(Rep$z_tj - (Rep$xhat_tj + Rep$delta_tj)), sigma=as.matrix(solve(Rep$Q_kk)), log=TRUE )
-    dGMRF( as.vector(Rep$z_tj), mu=as.vector(Rep$xhat_tj + Rep$delta_tj), Q=Rep$Q_kk )
-
-    #
-    Rep = fit$obj$report( fit$obj$env$last.par )
-
-    #
-    example = list(
-      y = repRTMB$z_tj,
-      mu = repRTMB$xhat_tj + repRTMB$delta_tj,
-      Q = Rep$Q_kk
-    )
-    saveRDS( example, file=file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\scratch)','example.RDS') )
-  }
-
   if(control$quiet==FALSE) list_parameters(obj)
   # bundle
   internal = list(
@@ -170,24 +133,6 @@ function( sem,
     control = control,
     covs = covs
   )
-
-  # Parse priors
-#  if( !is.null(prior_negloglike) ){
-#    # prior_negloglike = \(obj) -dnorm(obj$par[1],0,1,log=TRUE)
-#    prior_value = tryCatch( expr = prior_negloglike(obj) )
-#    if( is.na(prior_value) ) stop("Check `prior_negloglike(obj$par)`")
-#    obj$fn_orig = obj$fn
-#    obj$gr_orig = obj$gr
-#
-#    # BUild prior evaluator
-#    requireNamespace(RTMB)
-#    priors_obj = RTMB::MakeADFun( func = prior_negloglike,
-#                                  parameters = list(par=obj$par),
-#                                  silent = TRUE )
-#    obj$fn = \(pars) obj$fn_orig(pars) + priors_obj$fn(pars)
-#    obj$gr = \(pars) obj$gr_orig(pars) + priors_obj$gr(pars)
-#    internal$priors_obj = priors_obj
-#  }
 
   # Further bundle
   out = list( "obj" = obj,

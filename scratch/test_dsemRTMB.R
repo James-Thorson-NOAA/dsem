@@ -57,6 +57,7 @@ fit = dsem( sem=sem,
                                     run_model = TRUE,
                                     use_REML = TRUE,
                                     gmrf_parameterization = "projection",
+                                    constant_variance = c("conditional", "marginal", "diagonal")[2], # marginal not working
                                     map = Map,
                                     parameters = Params ) )
 
@@ -78,19 +79,34 @@ source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "read_model.R"
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "dsemRTMB.R") )
 
 # Define prior
-log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.01, log=TRUE)
+log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.1, log=TRUE)
 
 fitRTMB = dsemRTMB( sem = sem,
             tsdata = tsdata,
             estimate_delta0 = TRUE,
             family = rep("normal",ncol(tsdata)),
             log_prior = log_prior,
-            control = dsem_control( quiet = FALSE,
+            control = dsem_control( quiet = TRUE,
                                     run_model = TRUE,
                                     use_REML = TRUE,
                                     gmrf_parameterization = "projection",
+                                    constant_variance = c("conditional", "marginal", "diagonal")[2], # marginal not working
                                     map = Map,
                                     parameters = Params ) )
+#Rep = fitRTMB$obj$report()
+range(fit$opt$par - fitRTMB$opt$par)
+
+if( FALSE ){
+  Rep = fitRTMB$obj$report()
+  dgmrf( as.vector(Rep$z_tj), mu=as.vector(Rep$xhat_tj + Rep$delta_tj), Q=Rep$Q0_kk, log=TRUE )
+
+  example = list(
+    Gamma_kk = Rep$Gamma_kk,
+    Rho_kk = Rep$Rho_kk
+  )
+  saveRDS( example, file=file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\scratch)',"example.RDS"))
+  # Use in example2.R
+}
 
 #
 obj = fitRTMB$obj

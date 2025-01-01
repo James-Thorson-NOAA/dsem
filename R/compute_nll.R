@@ -12,6 +12,24 @@ function( parlist,
   "c" <- ADoverload("c")
   "[<-" <- ADoverload("[<-")
 
+  # Temporary fix for solve(adsparse) returning dense-matrix
+  sparse_solve = function(x){
+    invx = solve(x)
+    if( RTMB:::ad_context() ){
+      out = sparseMatrix(
+                    i = row(invx),
+                    j = col(invx),
+                    x = 1,
+               )
+      out = AD(out)
+      out@x = invx
+      #out = drop0(out)    # drop0 doesn't work
+      return(out)
+    }else{
+      return(invx)
+    }
+  }
+
   # Unpack parameters explicitly
   beta_z = parlist$beta_z
   delta0_j = parlist$delta0_j
@@ -46,6 +64,47 @@ function( parlist,
   Gamma_kk = AD(ram$G_kk)
   V_kk = t(Gamma_kk) %*% Gamma_kk
 
+  # Rescale I-Rho and Gamma if using constant marginal variance options
+  if( (options[2]==1) || (options[2]==2) ){
+    invIminusRho_kk = sparse_solve(IminusRho_kk)     # solve(adsparse) returns dense-matrix
+    #print(class(invIminusRho_kk))
+
+    # Hadamard squared LU-decomposition
+    # See: https://eigen.tuxfamily.org/dox/group__QuickRefPage.html
+    squared_invIminusRho_kk = invIminusRho_kk
+    #print(class(squared_invIminusRho_kk))
+    #print(invIminusRho_kk)
+    #REPORT( invIminusRho_kk )
+    squared_invIminusRho_kk@x = squared_invIminusRho_kk@x^2
+
+    if( options[2] == 1 ){
+      # 1-matrix
+      ones_k1 = matrix(1, nrow=n_k, ncol=1)
+
+      # Calculate diag( t(Gamma) * Gamma )
+      squared_Gamma_kk = Gamma_kk
+      squared_Gamma_kk@x = squared_Gamma_kk@x^2
+      sigma2_k1 = t(squared_Gamma_kk) %*% ones_k1;
+
+      # Rowsums
+      margvar_k = solve(squared_invIminusRho_kk, sigma2_k1)
+
+      # Rescale IminusRho_kk and Gamma
+      invmargsd_kk = invsigma_kk = AD(Diagonal(n_k))
+      invmargsd_kk@x = 1 / sqrt(margvar_k)
+      invsigma_kk@x = 1 / sqrt(sigma2_k1)
+      IminusRho_kk = invmargsd_kk %*% IminusRho_kk;
+      Gamma_kk = invsigma_kk %*% Gamma_kk;
+    }else{
+      # calculate diag(Gamma)^2
+      targetvar_k = diag(Gamma_kk)^2
+
+      # Rescale Gamma
+      margvar_k = solve(squared_invIminusRho_kk, targetvar_k)
+      diag(Gamma_kk) = sqrt(margvar_k)
+    }
+  }
+
   # Calculate effect of initial condition -- SPARSE version
   delta_tj = matrix( 0, nrow=n_t, ncol=n_j )
   if( length(delta0_j)>0 ){
@@ -62,34 +121,20 @@ function( parlist,
     # Full rank GMRF
     z_tj = x_tj
 
-    # Doesn't work ... mat2triplet not implemented
-    #V_kk = matrix(0, nrow=n_k, ncol=n_k)
-    #REPORT( V_kk )
-    #V_kk = as.matrix(V_kk)
-    #invV_kk = solve(V_kk)
-    #Qtmp_kk = invV_kk
-    #Qtmp_kk = AD(Qtmp_kk)
-    #REPORT( Qtmp_kk )
-    #Q_kk = Qtmp_kk
+    # Works for diagonal
+    #invV_kk = AD(ram$G_kk)
+    #invV_kk@x = 1 / Gamma_kk@x^2
+    #Q_kk = t(IminusRho_kk) %*% invV_kk %*% IminusRho_kk
 
-    # Works
-    invV_kk = AD(ram$G_kk)
-    invV_kk@x = 1 / Gamma_kk@x^2
+    # Works in general
+    invV_kk = sparse_solve( V_kk )
     Q_kk = t(IminusRho_kk) %*% invV_kk %*% IminusRho_kk
-
-    # Experiment
-    #IminusRho_dense = as.matrix( IminusRho_kk )
-    #V_dense = as.matrix( V_kk )
-    #Q_RHS = solve(V_kk, IminusRho_kk)
-    #Q_kk = t(IminusRho_kk) %*% Q_RHS
 
     # Fine from here
     jnll_gmrf = -1 * dgmrf( as.vector(z_tj), mu=as.vector(xhat_tj + delta_tj), Q=Q_kk, log=TRUE )
-    #jnll_gmrf = 0
     REPORT( Q_kk )
   }else{
     # Reduced rank projection .. dgmrf is lower precision than GMRF in CPP
-    #jnll_gmrf = -1 * dgmrf( as.vector(x_tj), mu=rep(1,n_k), Q=Diagonal(n_k), log=TRUE )
     jnll_gmrf = -1 * sum( dnorm(x_tj, mean=0, sd=1, log=TRUE) )
 
     #
