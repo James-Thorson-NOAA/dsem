@@ -208,8 +208,8 @@ function( parlist,
   # Calculate priors
   log_prior_value = log_prior( parlist )
 
-  jnll = -1 * sum(loglik_tj);
-  jnll = jnll + jnll_gmrf - log_prior_value;
+  jnll = -1 * sum(loglik_tj)
+  jnll = jnll + jnll_gmrf - sum(log_prior_value)
 
   #
   REPORT( loglik_tj )
