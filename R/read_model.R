@@ -10,10 +10,7 @@
 #' @param quiet Boolean indicating whether to print messages to terminal
 #'
 #' @details
-#' \strong{RAM specification using arrow-and-lag notation}
-#'
-#'
-#' @export
+#' See \code{\link{make_dsem_ram.R}} for details
 read_model <-
 function( sem,
           times,

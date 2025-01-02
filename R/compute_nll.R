@@ -72,9 +72,6 @@ function( parlist,
     # Hadamard squared LU-decomposition
     # See: https://eigen.tuxfamily.org/dox/group__QuickRefPage.html
     squared_invIminusRho_kk = invIminusRho_kk
-    #print(class(squared_invIminusRho_kk))
-    #print(invIminusRho_kk)
-    #REPORT( invIminusRho_kk )
     squared_invIminusRho_kk@x = squared_invIminusRho_kk@x^2
 
     if( options[2] == 1 ){

@@ -1,5 +1,23 @@
-
-
+#' @title Fit dynamic structural equation model
+#'
+#' @description Fits a dynamic structural equation model
+#'
+#' @inheritParams dsem
+#'
+#' @param log_prior A user-provided function that takes as input the list of
+#'        parameters \code{out$obj$env$parList()} where \code{out} is the output from
+#'        \code{dsemRTMB()}, and returns the log-prior probability.  For example
+#'        \code{log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.1, log=TRUE)}
+#'        specifies a normal prior probability for the first path coefficient
+#'        with mean of zero and sd of 0.1
+#'
+#' @details
+#' See \code{\link{dsem}} for details
+#'
+#' @return
+#' An object (list) of class `dsem`, fitted using RTMB
+#'
+#' @export
 dsemRTMB <-
 function( sem,
           tsdata,
