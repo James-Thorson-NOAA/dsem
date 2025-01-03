@@ -67,6 +67,8 @@ if( FALSE ){
   covs = colnames(tsdata)
 }
 
+#
+fit$obj$simulate()$y_tj
 
 ###################
 # dsemRTMB
@@ -95,6 +97,9 @@ fitRTMB = dsemRTMB( sem = sem,
                                     parameters = Params ) )
 #Rep = fitRTMB$obj$report()
 range(fit$opt$par - fitRTMB$opt$par)
+
+#
+fitRTMB$obj$simulate()
 
 if( FALSE ){
   Rep = fitRTMB$obj$report()
@@ -158,3 +163,5 @@ if( FALSE ){
   #
   sum(dnorm( fit$tmb_inputs$parameters$x_tj, log=TRUE ))
 }
+
+#
