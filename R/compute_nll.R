@@ -5,7 +5,9 @@ function( parlist,
           y_tj,
           family,
           options,
-          log_prior ) {
+          log_prior,
+          simulate_data = FALSE,
+          simulate_gmrf = FALSE ) {
   # options[1] -> 0: full rank;  1: rank-reduced GMRF
   # options[2] -> 0: constant conditional variance;  1: constant marginal variance
 
@@ -130,9 +132,19 @@ function( parlist,
     # Fine from here
     jnll_gmrf = -1 * dgmrf( as.vector(z_tj), mu=as.vector(xhat_tj + delta_tj), Q=Q_kk, log=TRUE )
     REPORT( Q_kk )
+
+    # Only simulate GMRF if also simulating new data
+    if( isTRUE(simulate_data) & isTRUE(simulate_gmrf) ){
+      x_tj[] = z_tj[] = rgmrf( mu=as.vector(xhat_tj + delta_tj), Q=Q_kk )
+    }
   }else{
     # Reduced rank projection .. dgmrf is lower precision than GMRF in CPP
     jnll_gmrf = -1 * sum( dnorm(x_tj, mean=0, sd=1, log=TRUE) )
+
+    # Only simulate GMRF if also simulating new data
+    if( isTRUE(simulate_data) & isTRUE(simulate_gmrf) ){
+      x_tj[] = rnorm(n=prod(dim(x_tj)), mean=0, sd=1)
+    }
 
     #
     z_k1 = as.vector(x_tj)
@@ -153,9 +165,9 @@ function( parlist,
     if( family[j]=="fixed" ){
       mu_tj[t,j] = z_tj[t,j];
       if(!is.na(y_tj[t,j])){
-        #SIMULATE{
-        #  y_tj[t,j] = mu_tj[t,j];
-        #}
+        if( isTRUE(simulate_data) ){
+          y_tj[t,j] = mu_tj[t,j];
+        }
       }
       devresid_tj[t,j] = 0;
     }
@@ -164,9 +176,9 @@ function( parlist,
       mu_tj[t,j] = z_tj[t,j];
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dnorm( y_tj[t,j], mu_tj[t,j], sigma_j[j], TRUE );
-        #SIMULATE{
-        #  y_tj[t,j] = rnorm( mu_tj[t,j], sigma_j[j] );
-        #}
+        if( isTRUE(simulate_data) ){
+          y_tj[t,j] = rnorm( n=1, mean=mu_tj[t,j], sd=sigma_j[j] )
+        }
       }
       devresid_tj[t,j] = y_tj[t,j] - mu_tj[t,j];
     }
@@ -175,9 +187,9 @@ function( parlist,
       mu_tj[t,j] = invlogit(z_tj[t,j]);
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dbinom( y_tj[t,j], Type(1.0), mu_tj[t,j], TRUE );
-        #SIMULATE{
-        #  y_tj[t,j] = rbinom( Type(1), mu_tj[t,j] );
-        #}
+        if( isTRUE(simulate_data) ){
+          y_tj[t,j] = rbinom( n=1, size=1, prob=mu_tj[t,j] );
+        }
       }
       devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * pow(-2*(((1-y_tj[t,j])*log(1-mu_tj[t,j]) + y_tj[t,j]*log(mu_tj[t,j]))), 0.5);
     }
@@ -186,9 +198,9 @@ function( parlist,
       mu_tj[t,j] = exp(z_tj[t,j]);
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dpois( y_tj[t,j], mu_tj[t,j], TRUE );
-        #SIMULATE{
-        #  y_tj[t,j] = rpois( mu_tj[t,j] );
-        #}
+        if( isTRUE(simulate_data) ){
+          y_tj[t,j] = rpois( n=1, lambda=mu_tj[t,j] );
+        }
       }
       devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * pow(2*(y_tj[t,j]*log((Type(1e-10) + y_tj[t,j])/mu_tj[t,j]) - (y_tj[t,j]-mu_tj[t,j])), 0.5);
     }
@@ -197,9 +209,9 @@ function( parlist,
       mu_tj[t,j] = exp(z_tj[t,j]);
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dgamma( y_tj[t,j], pow(sigma_j[j],-2), mu_tj[t,j]*pow(sigma_j[j],2), TRUE );
-        #SIMULATE{
-        #  y_tj[t,j] = rgamma( pow(sigma_j[j],-2), mu_tj[t,j]*pow(sigma_j[j],2) );
-        #}
+        if( isTRUE(simulate_data) ){
+          y_tj[t,j] = rgamma( n=1, shape=pow(sigma_j[j],-2), scale=mu_tj[t,j]*pow(sigma_j[j],2) );
+        }
       }
       devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * pow(2 * ( (y_tj[t,j]-mu_tj[t,j])/mu_tj[t,j] - log(y_tj[t,j]/mu_tj[t,j]) ), 0.5);
     }
@@ -233,7 +245,11 @@ function( parlist,
   REPORT( z_tj )
   ADREPORT( z_tj )
 
-  jnll
+  if( isTRUE(simulate_data) ){
+    list( y_tj=y_tj, z_tj=z_tj)
+  }else{
+    jnll
+  }
 }
 
 if( FALSE ){

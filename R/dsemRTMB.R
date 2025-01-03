@@ -195,6 +195,19 @@ function( sem,
   }
   out$internal$parhat = obj$env$parList()
 
+  #
+  out$simulator = function( parlist = obj$env$parList(),
+                        simulate_gmrf = TRUE ){
+    compute_nll( parlist = parlist,
+                 model = model,
+                 y_tj = y_tj,
+                 family = family,
+                 options = options,
+                 log_prior = log_prior,
+                 simulate_gmrf = simulate_gmrf,
+                 simulate_data = TRUE )
+  }
+
   if( isTRUE(control$extra_convergence_checks) ){
     # Gradient checks
     Grad_fixed = obj$gr( out$opt$par )

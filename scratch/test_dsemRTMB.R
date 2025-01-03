@@ -74,11 +74,14 @@ fit$obj$simulate()$y_tj
 # dsemRTMB
 ###################
 
+#devtools::install_github( "kaskr/RTMB/RTMB", force=TRUE, dep=FALSE )
+
 # Files
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "make_matrices.R") )
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "compute_nll.R") )
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "read_model.R") )
 source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "dsemRTMB.R") )
+source( file.path(R'(C:\Users\James.Thorson\Desktop\Git\dsem\R)', "rgmrf.R") )
 
 # Define prior
 log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.1, log=TRUE)
@@ -92,11 +95,18 @@ fitRTMB = dsemRTMB( sem = sem,
                                     run_model = TRUE,
                                     use_REML = TRUE,
                                     gmrf_parameterization = "projection",
-                                    constant_variance = c("conditional", "marginal", "diagonal")[2], # marginal not working
+                                    #constant_variance = c("conditional", "marginal", "diagonal")[2], # marginal not working
                                     map = Map,
                                     parameters = Params ) )
 #Rep = fitRTMB$obj$report()
 range(fit$opt$par - fitRTMB$opt$par)
+#fitRTMB$obj$report()
+
+fitRTMB$simulator(simulate_gmrf=FALSE)
+
+# Check that it works in a function (no scoping/environment problems)
+do_it = \(x) x$simulator(simulate_gmrf=FALSE)
+do_it( fitRTMB )
 
 #
 fitRTMB$obj$simulate()
