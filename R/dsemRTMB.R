@@ -11,6 +11,8 @@
 #'        specifies a normal prior probability for the first path coefficient
 #'        with mean of zero and sd of 0.1
 #'
+#' @importFrom Matrix solve Diagonal sparseMatrix drop0 kronecker
+#'
 #' @details
 #' See \code{\link{dsem}} for details
 #'

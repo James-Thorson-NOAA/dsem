@@ -39,17 +39,17 @@ function( beta_p,
   I_kk = Diagonal(nrow(P_kk))
 
   # Assemble
-  IminusP_kk = I_kk - P_kk
+  IminusP_kk = AD(I_kk - P_kk)
   invV_kk = AD(G_kk)
   invV_kk@x = 1 / G_kk@x^2
-  Q_kk = t(IminusP_kk) %*% invV_kk %*% IminusP_kk
+  #Q_kk = t(IminusP_kk) %*% invV_kk %*% IminusP_kk
 
   out = list(
     "P_kk" = P_kk,
     "G_kk" = G_kk,
     "invV_kk" = invV_kk,
-    "IminusP_kk" = IminusP_kk,
-    "Q_kk" = Q_kk
+    #"Q_kk" = Q_kk,     # NOT USED
+    "IminusP_kk" = IminusP_kk
   )
   return(out)
 }
