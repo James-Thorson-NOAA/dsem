@@ -58,6 +58,7 @@ An object (list) of class `dsem`. Elements include:
 \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 \item{interal}{Objects useful for package function, i.e., all arguments
                passed during the call}
+\item{run_time}{Total time to run model}
 }
 }
 \description{

@@ -75,6 +75,7 @@ fit$obj$simulate()$y_tj
 ###################
 
 #devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE, dep=FALSE )
+#devtools::install_github( "James-Thorson-NOAA/dsem@dev", force=TRUE, dep=FALSE )
 
 library(dsem)
 

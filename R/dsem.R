@@ -78,6 +78,7 @@
 #' \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 #' \item{interal}{Objects useful for package function, i.e., all arguments
 #'                passed during the call}
+#' \item{run_time}{Total time to run model}
 #' }
 #'
 #' @references
@@ -131,6 +132,7 @@ function( sem,
           prior_negloglike = NULL,
           control = dsem_control(),
           covs = colnames(tsdata) ){
+  start_time = Sys.time()
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
@@ -349,6 +351,7 @@ function( sem,
   }else{
     out$sdrep = NULL
   }
+  out$run_time = Sys.time() - start_time
 
   # output
   class(out) = "dsem"

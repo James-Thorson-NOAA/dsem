@@ -28,6 +28,7 @@ function( sem,
           log_prior = function(p) 0,
           control = dsem_control(),
           covs = colnames(tsdata) ){
+  start_time = Sys.time()
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
@@ -243,6 +244,7 @@ function( sem,
   }else{
     out$sdrep = NULL
   }
+  out$run_time = Sys.time() - start_time
 
   # output
   class(out) = "dsem"
