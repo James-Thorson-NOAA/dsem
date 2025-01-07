@@ -1,5 +1,6 @@
 
 #devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE, dep=FALSE )
+#devtools::install_github( "kaskr/RTMB/RTMB", force=TRUE, dep=FALSE )
 
 library(dsem)
 #library(RTMB)
@@ -147,6 +148,7 @@ fitRTMB = dsemRTMB( sem = sem,
 #Rep = fitRTMB$obj$report()
 range(fit$opt$par - fitRTMB$opt$par)
 #fitRTMB$obj$report()
+fitRTMB$obj$report()
 
 fitRTMB$simulator(simulate_gmrf=FALSE)
 

@@ -15,22 +15,23 @@ function( parlist,
   "[<-" <- ADoverload("[<-")
 
   # Temporary fix for solve(adsparse) returning dense-matrix
-  sparse_solve = function(x){
-    invx = solve(x)
-    if( RTMB:::ad_context() ){
-      out = sparseMatrix(
-                    i = row(invx),
-                    j = col(invx),
-                    x = 1,
-               )
-      out = AD(out)
-      out@x = invx
-      #out = drop0(out)    # drop0 doesn't work
-      return(out)
-    }else{
-      return(invx)
-    }
-  }
+  #sparse_solve = function(x){
+  #  invx = solve(x)
+  #  if( RTMB:::ad_context() ){
+  #    out = sparseMatrix(
+  #                  i = row(invx),
+  #                  j = col(invx),
+  #                  x = 1,
+  #             )
+  #    out = AD(out)
+  #    out@x = invx
+  #    #out = drop0(out)    # drop0 doesn't work
+  #    return(out)
+  #  }else{
+  #    return(invx)
+  #  }
+  #}
+  sparse_solve = solve
 
   # Unpack parameters explicitly
   beta_z = parlist$beta_z
@@ -65,11 +66,11 @@ function( parlist,
   # Assemble variance
   Gamma_kk = AD(ram$G_kk)
   V_kk = t(Gamma_kk) %*% Gamma_kk
+  #V_kk = crossprod( Gamma_kk, Gamma_kk ) # crossprod(A,B) = t(A) %*% B
 
   # Rescale I-Rho and Gamma if using constant marginal variance options
   if( (options[2]==1) || (options[2]==2) ){
     invIminusRho_kk = sparse_solve(IminusRho_kk)     # solve(adsparse) returns dense-matrix
-    #print(class(invIminusRho_kk))
 
     # Hadamard squared LU-decomposition
     # See: https://eigen.tuxfamily.org/dox/group__QuickRefPage.html
@@ -86,12 +87,12 @@ function( parlist,
       sigma2_k1 = t(squared_Gamma_kk) %*% ones_k1;
 
       # Rowsums
-      margvar_k = solve(squared_invIminusRho_kk, sigma2_k1)
+      margvar_k1 = solve(squared_invIminusRho_kk, sigma2_k1)
 
       # Rescale IminusRho_kk and Gamma
       invmargsd_kk = invsigma_kk = AD(Diagonal(n_k))
-      invmargsd_kk@x = 1 / sqrt(margvar_k)
-      invsigma_kk@x = 1 / sqrt(sigma2_k1)
+      invmargsd_kk@x = 1 / sqrt(margvar_k1[,1])
+      invsigma_kk@x = 1 / sqrt(sigma2_k1[,1])
       IminusRho_kk = invmargsd_kk %*% IminusRho_kk;
       Gamma_kk = invsigma_kk %*% Gamma_kk;
     }else{
