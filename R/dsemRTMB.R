@@ -13,7 +13,7 @@
 #'        \code{library(RTMB)} prior to running the model.
 #'
 #' @importFrom Matrix solve Diagonal sparseMatrix drop0 kronecker crossprod tcrossprod t diag
-#' @importFrom RTMB ADoverload AD dgmrf REPORT ADREPORT
+#' @importFrom RTMB ADoverload AD dgmrf REPORT ADREPORT dnorm dpois dbinom dgamma
 #'
 #' @details
 #' \code{dsemRTMB} is interchangeable with \code{\link{dsem}}, but uses RTMB
