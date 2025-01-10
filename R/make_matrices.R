@@ -4,6 +4,7 @@ function( beta_p,
           times,
           variables ){
 
+  model <- as.data.frame(model)
   if(missing(beta_p)){
     model_unique = model[match(unique(model$parameter),model$parameter),]
     beta_p =  as.numeric(model_unique$start)
