@@ -7,7 +7,9 @@
 * Adding `convert_equations` to extend `sem::specifyEquations` and simplify
   specification for large models
 * Adding argument `prior_negloglike` as interface to specify Bayesian priors
-  and/or likelihood penalties
+  and/or likelihood penalties in `dsem`
+* Adding `dsemRTMB` using RTMB as interchangeable alternative to `dsem` using
+  TMB
 
 # dsem 1.3.0
 

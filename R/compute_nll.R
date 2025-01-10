@@ -185,14 +185,14 @@ function( parlist,
     }
     # familycode = 2 :  binomial
     if( family[j]=="binomial" ){
-      mu_tj[t,j] = invlogit(z_tj[t,j]);
+      mu_tj[t,j] = plogis(z_tj[t,j]);
       if(!is.na(y_tj[t,j])){
-        loglik_tj[t,j] = dbinom( y_tj[t,j], Type(1.0), mu_tj[t,j], TRUE );
+        loglik_tj[t,j] = dbinom( y_tj[t,j], 1.0, mu_tj[t,j], TRUE );
         if( isTRUE(simulate_data) ){
           y_tj[t,j] = rbinom( n=1, size=1, prob=mu_tj[t,j] );
         }
       }
-      devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * pow(-2*(((1-y_tj[t,j])*log(1-mu_tj[t,j]) + y_tj[t,j]*log(mu_tj[t,j]))), 0.5);
+      devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * sqrt( -2*((1-y_tj[t,j])*log(1-mu_tj[t,j]) + y_tj[t,j]*log(mu_tj[t,j])) );
     }
     # familycode = 3 :  Poisson
     if( family[j]=="poisson" ){
@@ -203,7 +203,7 @@ function( parlist,
           y_tj[t,j] = rpois( n=1, lambda=mu_tj[t,j] );
         }
       }
-      devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * pow(2*(y_tj[t,j]*log((Type(1e-10) + y_tj[t,j])/mu_tj[t,j]) - (y_tj[t,j]-mu_tj[t,j])), 0.5);
+      devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * sqrt( 2*(y_tj[t,j]*log((1e-10 + y_tj[t,j])/mu_tj[t,j]) - (y_tj[t,j]-mu_tj[t,j])) );
     }
     # familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
     if( family[j]=="gamma" ){
@@ -214,7 +214,7 @@ function( parlist,
           y_tj[t,j] = rgamma( n=1, shape=pow(sigma_j[j],-2), scale=mu_tj[t,j]*pow(sigma_j[j],2) );
         }
       }
-      devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * pow(2 * ( (y_tj[t,j]-mu_tj[t,j])/mu_tj[t,j] - log(y_tj[t,j]/mu_tj[t,j]) ), 0.5);
+      devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * sqrt( 2*((y_tj[t,j]-mu_tj[t,j])/mu_tj[t,j] - log(y_tj[t,j]/mu_tj[t,j])) );
     }
   }}
 
@@ -251,11 +251,5 @@ function( parlist,
   }else{
     jnll
   }
-}
-
-if( FALSE ){
-  family = rep("fixed",ncol(tsdata))
-  y_tj = tsdata
-  estimate_delta0 = FALSE
 }
 

@@ -49,6 +49,13 @@ test_that("dsem example is working ", {
   # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 587.4755, tolerance=1e-2 )
 
+  #
+  fitRTMB = dsemRTMB( sem=sem,
+              tsdata=Z,
+              control = dsem_control(getsd=FALSE) )
+  # Check objective function
+  expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
+
   # Convert and plot using phylopath
   as_fitted_DAG(fit)
 

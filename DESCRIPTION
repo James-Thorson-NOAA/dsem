@@ -2,7 +2,7 @@ Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
 Version: 1.4.0
-Date: 2024-10-07
+Date: 2025-01-10
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -14,8 +14,9 @@ Imports:
     Matrix,
     sem,
     igraph,
-    RTMB,
+    RTMB (>= 1.7.0),
     ggraph,
+    ggplot2,
     grid,
     methods
 Depends:
@@ -29,7 +30,6 @@ Suggests:
     gridExtra,
     dynlm,
     MARSS,
-    ggplot2,
     ggpubr,
     grid,
     vars,

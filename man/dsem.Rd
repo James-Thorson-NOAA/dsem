@@ -34,7 +34,11 @@ the stationary distribution}
 returns the negative log-prior probability. For example
 \code{prior_negloglike = function(obj) -1 * dnorm( obj$par[1], mean=0, sd=0.1, log=TRUE)}
 specifies a normal prior probability
-for the for the first fixed effect with mean of zero and logsd of 0.1}
+for the for the first fixed effect with mean of zero and logsd of 0.1.
+NOTE:  this implementation does not work well with \code{tmbstan} and
+is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
+instead.  The option in \code{dsem} is mainly intended to validate its
+use in \code{dsemRTMB}}
 
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
 settings, and see documentation for that function for details.}

@@ -24,16 +24,21 @@
 #'        returns the negative log-prior probability. For example
 #'        \code{prior_negloglike = function(obj) -1 * dnorm( obj$par[1], mean=0, sd=0.1, log=TRUE)}
 #'        specifies a normal prior probability
-#'        for the for the first fixed effect with mean of zero and logsd of 0.1
+#'        for the for the first fixed effect with mean of zero and logsd of 0.1.
+#'        NOTE:  this implementation does not work well with \code{tmbstan} and
+#'        is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
+#'        instead.  The option in \code{dsem} is mainly intended to validate its
+#'        use in \code{dsemRTMB}
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
+#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<- rbinom rgamma rpois
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
+#' @importFrom ggplot2 aes
 #' @importFrom grid arrow
 #' @importFrom methods is
 #'
