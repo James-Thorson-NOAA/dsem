@@ -23,5 +23,5 @@ including lagged or simultaneous effects.  See Details section in
 \code{read_model} converts SEM arrow notation to \code{model} describing SEM parameters
 }
 \details{
-See \code{\link{make_dsem_ram.R}} for details
+See \code{\link{make_dsem_ram}} for details
 }

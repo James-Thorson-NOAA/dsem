@@ -611,6 +611,7 @@ function( x,
     rotation = 0
     flip_x = FALSE
     flip_y = FALSE
+    label = DF$label
     l = ggraph::create_layout(pg, 'igraph', algorithm = algorithm)
     arrow = grid::arrow(type = 'closed', 18, grid::unit(15, 'points'))
     gplot = ggraph::ggraph(l) +

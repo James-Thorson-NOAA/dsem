@@ -10,7 +10,7 @@
 #' @param quiet Boolean indicating whether to print messages to terminal
 #'
 #' @details
-#' See \code{\link{make_dsem_ram.R}} for details
+#' See \code{\link{make_dsem_ram}} for details
 read_model <-
 function( sem,
           times,
