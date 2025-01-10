@@ -9,7 +9,8 @@
 #'        \code{dsemRTMB()}, and returns the log-prior probability.  For example
 #'        \code{log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.1, log=TRUE)}
 #'        specifies a normal prior probability for the first path coefficient
-#'        with mean of zero and sd of 0.1
+#'        with mean of zero and sd of 0.1.  Note that the user must load RTMB using
+#'        \code{library(RTMB)} prior to running the model.
 #'
 #' @importFrom Matrix solve Diagonal sparseMatrix drop0 kronecker crossprod tcrossprod t diag
 #' @importFrom RTMB ADoverload AD dgmrf REPORT ADREPORT
@@ -73,7 +74,7 @@ function( sem,
   # General warnings
   if( isFALSE(control$quiet) ){
     tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
-    if( any((max(tsdata_SD)/min(tsdata_SD)) > 10, rm.na=TRUE) ){
+    if( any((max(tsdata_SD)/min(tsdata_SD)) > 100, rm.na=TRUE) ){
       warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
     }
   }

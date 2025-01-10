@@ -1,5 +1,12 @@
 
 test_that("priors interface is working ", {
+  #skip_on_cran()
+  #skip_on_ci()
+
+  # Requires loading RTMB
+  library(RTMB)
+
+  # Load data
   data(bering_sea)
 
   #
@@ -27,14 +34,32 @@ test_that("priors interface is working ", {
     log_PercentCop -> log_PercentCop, 1, AR9, 0.001
   "
 
-  # Run model
+  # Using fitRTMB
+  log_prior = function(p){
+    "c" <- ADoverload("c")
+    "[<-" <- ADoverload("[<-")
+    sum(dnorm( p$beta_z[9:16], mean=0, sd=0.25, log=TRUE))
+  }
+  fitRTMB = dsemRTMB( sem = sem,
+              tsdata = Z,
+              family = family,
+              log_prior = log_prior,
+              control = dsem_control( use_REML = FALSE) )
+
+  # Run model using dsem ... not working in testthat mode
+  neglog_prior = function(obj){
+    "c" <- ADoverload("c")
+    "[<-" <- ADoverload("[<-")
+    -1 * sum(dnorm( obj$par[9:16], mean=0, sd=0.25, log=TRUE))
+  }
   fit = dsem( sem=sem,
                tsdata=Z,
                family=family,
-               prior_negloglike = function(obj) -1 * sum(dnorm( obj$par[9:16], mean=0, sd=0.25, log=TRUE)),
+               prior_negloglike = neglog_prior,
                control = dsem_control(use_REML=FALSE) )
 
   # Check objective function
-  expect_equal( as.numeric(fit$opt$obj), 198.1363, tolerance=1e-2 )
+  expect_equal( as.numeric(fitRTMB$opt$obj), 198.1363, tolerance=1e-2 )
+  expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
 })
 

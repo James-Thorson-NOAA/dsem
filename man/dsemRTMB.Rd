@@ -35,7 +35,8 @@ parameters \code{out$obj$env$parList()} where \code{out} is the output from
 \code{dsemRTMB()}, and returns the log-prior probability.  For example
 \code{log_prior = function(p) dnorm( p$beta_z[1], mean=0, sd=0.1, log=TRUE)}
 specifies a normal prior probability for the first path coefficient
-with mean of zero and sd of 0.1}
+with mean of zero and sd of 0.1.  Note that the user must load RTMB using
+\code{library(RTMB)} prior to running the model.}
 
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
 settings, and see documentation for that function for details.}

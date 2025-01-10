@@ -28,7 +28,8 @@
 #'        NOTE:  this implementation does not work well with \code{tmbstan} and
 #'        is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
 #'        instead.  The option in \code{dsem} is mainly intended to validate its
-#'        use in \code{dsemRTMB}
+#'        use in \code{dsemRTMB}.  Note that the user must load RTMB using
+#'        \code{library(RTMB)} prior to running the model.
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
 #'
@@ -151,7 +152,7 @@ function( sem,
   # General warnings
   if( isFALSE(control$quiet) ){
     tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
-    if( any((max(tsdata_SD)/min(tsdata_SD)) > 10, rm.na=TRUE) ){
+    if( any((max(tsdata_SD)/min(tsdata_SD)) > 100, rm.na=TRUE) ){
       warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
     }
   }

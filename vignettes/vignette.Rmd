@@ -135,8 +135,8 @@ equations = "
 "
 
 # Convert and run
-sem = convert_equations(equations)
-fit = dsem( sem = sem,
+sem_equations = convert_equations(equations)
+fit = dsem( sem = sem_equations,
             tsdata = tsdata,
             estimate_delta0 = TRUE,
             control = dsem_control(

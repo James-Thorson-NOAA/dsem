@@ -46,7 +46,7 @@ function(equations){
   }
   par.start <- function(coef, eq) {
     if (length(grep("\\(", coef)) == 0) {
-        return(c(coef, "NA"))
+        return(c(coef, "0.01"))
     }
     par.start <- strsplit(coef, "\\(")[[1]]
     if (length(par.start) != 2)
