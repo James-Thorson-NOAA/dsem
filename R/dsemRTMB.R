@@ -74,7 +74,7 @@ function( sem,
   # General warnings
   if( isFALSE(control$quiet) ){
     tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
-    if( any((max(tsdata_SD)/min(tsdata_SD)) > 100, rm.na=TRUE) ){
+    if( any((max(tsdata_SD,rm.na=TRUE)/min(tsdata_SD,rm.na=TRUE)) > 100) ){
       warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
     }
   }
@@ -85,10 +85,11 @@ function( sem,
             variables = colnames(tsdata),
             covs = covs,
             quiet = FALSE )
-  ram = make_matrices(
-            model = model,
-            times = as.numeric(time(tsdata)),
-            variables = colnames(tsdata) )
+  #ram = make_matrices(
+  #          beta_p = rnorm(nrow(model)),
+  #          model = model,
+  #          times = as.numeric(time(tsdata)),
+  #          variables = colnames(tsdata) )
 
   #
   options = c(
@@ -189,7 +190,7 @@ function( sem,
 
   # Further bundle
   out = list( "obj" = obj,
-              "ram" = ram,
+              #"ram" = ram, # Not useful using RTMB structure
               "sem_full" = model,
               "tmb_inputs"=list("parameters"=Params, "random"=Random, "map"=Map),
               #"call" = match.call(),

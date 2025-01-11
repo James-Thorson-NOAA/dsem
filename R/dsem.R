@@ -152,8 +152,8 @@ function( sem,
   # General warnings
   if( isFALSE(control$quiet) ){
     tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
-    if( any((max(tsdata_SD)/min(tsdata_SD)) > 100, rm.na=TRUE) ){
-      warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
+    if( any((max(tsdata_SD,rm.na=TRUE)/min(tsdata_SD,rm.na=TRUE)) > 100) ){
+       warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
     }
   }
 

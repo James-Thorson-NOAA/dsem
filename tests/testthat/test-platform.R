@@ -137,3 +137,31 @@ test_that("bering sea example is stable ", {
   expect_equal( as.numeric(fit$opt$obj), 189.3005, tolerance=1e-2 )
 })
 
+test_that("Fixing parameters works ", {
+  sem = "
+    A -> B, 0, NA, 1
+    B -> C, 0, NA, 0.5
+    # Extra links
+    A -> D, 1, beta
+    B -> D, 1, beta
+  "
+  set.seed(101)
+  nobs = 40
+  A = rnorm(nobs)
+  B = A + rnorm(nobs)
+  C = 0.5 * B + rnorm(nobs)
+  D = rnorm(nobs)
+  tsdata = ts(cbind(A=A, B=B, C=C, D=D))
+
+  # Run models
+  fit = dsem( sem=sem,
+               tsdata=tsdata,
+               control = dsem_control(getsd=FALSE) )
+  fitRTMB = dsemRTMB( sem=sem,
+               tsdata=tsdata,
+               control = dsem_control(getsd=FALSE) )
+  # Check objective function
+  expect_equal( as.numeric(fit$opt$obj), 224.2993, tolerance=1e-2 )
+  expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
+
+})

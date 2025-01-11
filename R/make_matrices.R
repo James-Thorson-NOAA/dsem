@@ -4,10 +4,19 @@ function( beta_p,
           times,
           variables ){
 
+  "c" <- ADoverload("c")
+  "[<-" <- ADoverload("[<-")
   model <- as.data.frame(model)
-  if(missing(beta_p)){
-    model_unique = model[match(unique(model$parameter),model$parameter),]
-    beta_p =  as.numeric(model_unique$start)
+
+  # Combine fixed, estimated, and mapped parameters into vector
+  beta_i = rep(0, nrow(model))
+  off = which(model[,'parameter'] == 0)
+  if( length(off) > 0 ){
+    beta_i[off] = as.numeric(model[off,'start'])
+  }
+  not_off = which(model[,'parameter'] > 0)
+  if( length(not_off) > 0 ){
+    beta_i[not_off] = beta_p[model[not_off,'parameter']]
   }
 
   # Loop through paths
@@ -27,12 +36,11 @@ function( beta_p,
                          dims = rep(length(variables),2) )
 
     # Assemble
+    tmp_kk = kronecker(P_jj, L_tt)
     if(abs(as.numeric(model[i,'direction']))==1){
-      tmp_kk = (kronecker(P_jj, L_tt))
-      P_kk = P_kk + beta_p[model$parameter[i]] * tmp_kk # AD(tmp_kk)
+      P_kk = P_kk + beta_i[i] * tmp_kk # AD(tmp_kk)
     }else{
-      tmp_kk = (kronecker(P_jj, L_tt))
-      G_kk = G_kk + beta_p[model$parameter[i]] * tmp_kk # AD(tmp_kk)
+      G_kk = G_kk + beta_i[i] * tmp_kk # AD(tmp_kk)
     }
   }
 

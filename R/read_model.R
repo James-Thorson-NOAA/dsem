@@ -85,8 +85,10 @@ function( sem,
                 quiet = quiet)
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
-  model <- data.frame( "path"=model$path, "lag"=model$lag,
-                       "name"=model$par, "start"=model$start)
+  model <- data.frame( "path" = model$path,
+                       "lag" = model$lag,
+                       "name" = model$par,
+                       "start" = model$start )
 
   # Adding a SD automatically
   if( !is.null(covs) ){
