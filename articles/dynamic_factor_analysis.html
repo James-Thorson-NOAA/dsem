@@ -8,8 +8,8 @@
 <title>Dynamic factor analysis • dsem</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Dynamic factor analysis">
 </head>
 <body>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
+<li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
@@ -62,7 +62,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/vignettes/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/dynamic_factor_analysis.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/vignettes/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/dynamic_factor_analysis.Rmd</code></a></small>
       <div class="d-none name"><code>dynamic_factor_analysis.Rmd</code></div>
     </div>
 
@@ -81,7 +81,6 @@ package, using data that are provided as an example in the MARSS
 package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'dsem' was built under R version 4.4.2</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://atsa-es.github.io/MARSS/" class="external-link">MARSS</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span> <span class="va">harborSealWA</span>, package<span class="op">=</span><span class="st">"MARSS"</span><span class="op">)</span></span>
@@ -151,10 +150,6 @@ using the argument <code>covs</code>:</p>
 <span>               family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
 <span>               control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                       run_model <span class="op">=</span> <span class="cn">FALSE</span> <span class="op">)</span> <span class="op">)</span>   </span>
-<span><span class="co">#&gt; 1 regions found.</span></span>
-<span><span class="co">#&gt; Using 1 threads</span></span>
-<span><span class="co">#&gt; 1 regions found.</span></span>
-<span><span class="co">#&gt; Using 1 threads</span></span>
 <span></span>
 <span><span class="co"># fix all measurement errors at diagonal and equal</span></span>
 <span><span class="va">map</span> <span class="op">=</span> <span class="va">mydsem0</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">map</span></span>
@@ -166,11 +161,7 @@ using the argument <code>covs</code>:</p>
 <span>               sem <span class="op">=</span> <span class="va">sem</span>,</span>
 <span>               family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
 <span>               control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                                       map <span class="op">=</span> <span class="va">map</span> <span class="op">)</span> <span class="op">)</span></span>
-<span><span class="co">#&gt; 1 regions found.</span></span>
-<span><span class="co">#&gt; Using 1 threads</span></span>
-<span><span class="co">#&gt; 1 regions found.</span></span>
-<span><span class="co">#&gt; Using 1 threads</span></span></code></pre></div>
+<span>                                       map <span class="op">=</span> <span class="va">map</span> <span class="op">)</span> <span class="op">)</span></span></code></pre></div>
 <p>We can then define a custom function to plot states:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plot_states</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span> <span class="va">out</span>,</span>
@@ -218,9 +209,34 @@ can fit a rank-deficient Gaussian Markov random field:</p>
 <span><span class="co"># Scale and center (matches with MARSS does when fitting a DFA)</span></span>
 <span><span class="va">tsdata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span> <span class="va">tsdata</span>, center<span class="op">=</span><span class="cn">TRUE</span>, scale<span class="op">=</span><span class="cn">TRUE</span> <span class="op">)</span></span>
 <span></span>
-<span><span class="co">#</span></span>
-<span><span class="va">sem</span> <span class="op">=</span> <span class="fu"><a href="../reference/make_dfa.html">make_dfa</a></span><span class="op">(</span> variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJI"</span>,<span class="st">"EBays"</span>,<span class="st">"SJF"</span>,<span class="st">"PSnd"</span>,<span class="st">"HC"</span><span class="op">)</span>,</span>
-<span>                n_factors <span class="op">=</span> <span class="va">n_factors</span> <span class="op">)</span></span>
+<span><span class="co"># Automated version</span></span>
+<span><span class="co">#sem = make_dfa( variables = c("SJI","EBays","SJF","PSnd","HC"),</span></span>
+<span><span class="co">#                n_factors = n_factors )</span></span>
+<span><span class="co"># Manual specification to show structure, using equations-and-lags interface</span></span>
+<span><span class="va">equations</span> <span class="op">=</span> <span class="st">"</span></span>
+<span><span class="st">  # Loadings of variables onto factors</span></span>
+<span><span class="st">  SJI = L11(0.1) * F1</span></span>
+<span><span class="st">  EBays = L12(0.1) * F1 + L22(0.1) * F2</span></span>
+<span><span class="st">  SJF = L13(0.1) * F1 + L23(0.1) * F2</span></span>
+<span><span class="st">  PSnd = L14(0.1) * F1 + L24(0.1) * F2</span></span>
+<span><span class="st">  HC = L15(0.1) * F1 + L25(0.1) * F2</span></span>
+<span><span class="st"></span></span>
+<span><span class="st">  # random walk for factors</span></span>
+<span><span class="st">  F1 = NA(1) * lag[F1,1]</span></span>
+<span><span class="st">  F2 = NA(1) * lag[F2,1]</span></span>
+<span><span class="st"></span></span>
+<span><span class="st">  # Unit variance for factors</span></span>
+<span><span class="st">  V(F1) = NA(1)</span></span>
+<span><span class="st">  V(F2) = NA(1)</span></span>
+<span><span class="st"></span></span>
+<span><span class="st">  # Zero residual variance for variables</span></span>
+<span><span class="st">  V(SJI) = NA(0)</span></span>
+<span><span class="st">  V(EBays) = NA(0)</span></span>
+<span><span class="st">  V(SJF) = NA(0)</span></span>
+<span><span class="st">  V(PSnd) = NA(0)</span></span>
+<span><span class="st">  V(HC) = NA(0)</span></span>
+<span><span class="st">"</span></span>
+<span><span class="va">sem</span> <span class="op">=</span> <span class="fu"><a href="../reference/convert_equations.html">convert_equations</a></span><span class="op">(</span><span class="va">equations</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Initial fit</span></span>
 <span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
@@ -352,44 +368,44 @@ compare the three options in terms of estimated loadings:</p>
 </tr>
 <tr class="even">
 <td align="left">Z.21</td>
-<td align="right">-0.440</td>
+<td align="right">-0.439</td>
 <td align="right">0.320</td>
 <td align="right">0.332</td>
 </tr>
 <tr class="odd">
 <td align="left">Z.31</td>
 <td align="right">-0.465</td>
-<td align="right">0.368</td>
+<td align="right">0.218</td>
 <td align="right">0.356</td>
 </tr>
 <tr class="even">
 <td align="left">Z.41</td>
 <td align="right">-0.382</td>
-<td align="right">0.299</td>
+<td align="right">0.368</td>
 <td align="right">0.292</td>
 </tr>
 <tr class="odd">
 <td align="left">Z.51</td>
 <td align="right">0.075</td>
-<td align="right">-0.128</td>
+<td align="right">-0.150</td>
 <td align="right">-0.065</td>
 </tr>
 <tr class="even">
 <td align="left">Z.22</td>
 <td align="right">0.213</td>
-<td align="right">0.218</td>
+<td align="right">0.299</td>
 <td align="right">0.213</td>
 </tr>
 <tr class="odd">
 <td align="left">Z.32</td>
 <td align="right">-0.134</td>
-<td align="right">-0.150</td>
+<td align="right">-0.088</td>
 <td align="right">-0.157</td>
 </tr>
 <tr class="even">
 <td align="left">Z.42</td>
-<td align="right">-0.079</td>
-<td align="right">-0.088</td>
+<td align="right">-0.078</td>
+<td align="right">-0.128</td>
 <td align="right">-0.095</td>
 </tr>
 <tr class="odd">
