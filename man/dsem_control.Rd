@@ -20,7 +20,9 @@ dsem_control(
   parameters = NULL,
   map = NULL,
   getJointPrecision = FALSE,
-  extra_convergence_checks = TRUE
+  extra_convergence_checks = TRUE,
+  lower = -Inf,
+  upper = Inf
 )
 }
 \arguments{
@@ -64,7 +66,7 @@ All options
 are equivalent when the model includes no lags (only simultaneous effects) and
 no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
 are equivalent when the model includes no covariances. Given some exogenous covariance, 
-\code{constant_variance = "marginal"} preserves the conditional correlation and has
+\code{constant_variance = "diagonal"} preserves the conditional correlation and has
 changing conditional variance, while \code{constant_variance = "marginal"} has changing
 conditional correlation along the causal graph.}
 
@@ -85,6 +87,12 @@ to \code{\link[TMB]{sdreport}}.}
 
 \item{extra_convergence_checks}{Boolean indicating whether to run extra checks on model
 convergence.}
+
+\item{lower}{vectors of lower bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+If unspecified, all parameters are assumed to be unconstrained.}
+
+\item{upper}{vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+If unspecified, all parameters are assumed to be unconstrained.}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

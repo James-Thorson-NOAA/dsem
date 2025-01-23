@@ -4,16 +4,27 @@
 \alias{plot.dsem}
 \title{Simulate dsem}
 \usage{
-\method{plot}{dsem}(x, y, edge_label = c("name", "value"), digits = 2, ...)
+\method{plot}{dsem}(
+  x,
+  y,
+  edge_label = c("name", "value", "value_and_stars"),
+  digits = 2,
+  style = c("igraph", "ggraph"),
+  ...
+)
 }
 \arguments{
 \item{x}{Output from \code{\link{dsem}}}
 
 \item{y}{Not used}
 
-\item{edge_label}{Whether to plot parameter names or estimated values}
+\item{edge_label}{Whether to plot parameter names, estimated values,
+or estimated values along with stars indicating significance at
+0.05, 0.01, or 0.001 levels (based on two-sided Wald tests)}
 
 \item{digits}{integer indicating the number of decimal places to be used}
+
+\item{style}{Whether to make a graph using \code{igraph} or \code{ggraph}}
 
 \item{...}{arguments passed to \code{\link[igraph]{plot.igraph}}}
 }

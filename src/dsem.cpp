@@ -181,7 +181,7 @@ Type objective_function<Type>::operator() ()
     REPORT( Q_kk );
   }else{
     // Rank-deficient (projection) method
-    jnll_gmrf += GMRF(I_kk)( x_tj );
+    jnll_gmrf = GMRF(I_kk)( x_tj );
 
     // Forward-format matrix
     matrix<Type> z_k1( n_t*n_j, int(1) );

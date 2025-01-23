@@ -14,6 +14,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+set.seed(101)
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
@@ -31,20 +32,73 @@ library(phylopath)
 
 `dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure.   We here highlight a few features in particular.
 
+## Comparison with linear models
+
+We first show that `dsem` is identical to a linear model.  To do so, we simulate data with a single response and single predictor:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# simulate normal distribution
+x = rnorm(100)
+y = 1 + 0.5 * x + rnorm(100)
+data = data.frame(x=x, y=y)
+
+# Fit as linear model
+Lm = lm( y ~ x, data=data )
+
+# Fit as DSEM
+fit = dsem( sem = "x -> y, 0, beta",
+            tsdata = ts(data),
+            control = dsem_control(quiet=TRUE) )
+
+# Display output
+m1 = rbind(
+  "lm" = summary(Lm)$coef[2,1:2],
+  "dsem" = summary(fit)[1,9:10]
+)
+knitr::kable( m1, digits=3)
+```
+
+This shows that linear and dynamic structural equation models give identical estimates of the single path coefficient.
+
+We can also calculate leave-one-out residuals and display them using DHARMa:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# sample-based quantile residuals
+samples = loo_residuals(fit, what="samples", track_progress=FALSE)
+which_use = which(!is.na(data))
+fitResp = loo_residuals( fit, what="loo", track_progress=FALSE)[,'est']
+simResp = apply(samples, MARGIN=3, FUN=as.vector)[which_use,]
+
+# Build and display DHARMa object
+res = DHARMa::createDHARMa(
+        simulatedResponse = simResp,
+        observedResponse = unlist(data)[which_use],
+        fittedPredictedResponse = fitResp )
+plot(res)
+```
+
+This shows no pattern in the quantile-quantile plot, as expected given that we have a correctly specified model.  We can also confirm that this gives identical to results to the linear model:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# Get DSEM Loo residuals and LM working residuals
+res = loo_residuals(fit, what="quantiles", track_progress=FALSE)
+res0 = resid(Lm,"working")
+
+# Plot comparison
+plot( x=res0, y=qnorm(res[,2]),
+      xlab="linear model residuals", ylab="dsem residuals" )
+abline(a=0,b=1)
+```
+
 ## Comparison with dynamic linear models
 
-We first demonstrate that `dsem` gives identical results to `dynlm` for a well-known econometric model, the Klein-1 model.
+We next demonstrate that `dsem` using a well-known econometric model, the Klein-1 model.
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 data(KleinI, package="AER")
 TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
-# dynlm
-fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
-fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)                 #
-fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = TS)
-
-# dsem
+# Specify by declaring each arrow and lag
 sem = "
   # Link, lag, param_name
   cprofits -> consumption, 0, a1
@@ -68,8 +122,37 @@ fit = dsem( sem=sem,
             control = dsem_control(
               quiet = TRUE,
               newton_loops = 0) )
+```
 
-# Compile
+This model could instead be specified using equation-and-lag notation, which makes the model structure more clear:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# Specify using equations
+equations = "
+  consumption = a1*cprofits + a2*lag[cprofits,1]+ a3*pwage + a3*gwage
+  invest = b1*cprofits + b2*lag[cprofits,1] + b3*capital
+  pwage = c1*time + c2*gnp + c3*lag[gnp,1]
+"
+
+# Convert and run
+sem_equations = convert_equations(equations)
+fit = dsem( sem = sem_equations,
+            tsdata = tsdata,
+            estimate_delta0 = TRUE,
+            control = dsem_control(
+              quiet = TRUE,
+              newton_loops = 0) )
+```
+
+We first demonstrate that `dsem` gives identical results to `dynlm`:
+
+```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+# dynlm
+fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
+fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)
+fm_pwage <- dynlm(pwage ~ gnp + L(gnp) + time, data = TS)
+
+# Compile results
 m1 = rbind( summary(fm_cons)$coef[-1,],
             summary(fm_inv)$coef[-1,],
             summary(fm_pwage)$coef[-1,] )[,1:2]
@@ -80,8 +163,7 @@ m = rbind(
 )
 m = cbind(m, "lower"=m$Estimate-m$Std..Error, "upper"=m$Estimate+m$Std..Error )
 
-# ggplot estimates
-
+# ggplot display of estimates
 longform = melt( as.data.frame(KleinI) )
   longform$year = rep( time(KleinI), 9 )
 p1 = ggplot( data=longform, aes(x=year, y=value) ) +

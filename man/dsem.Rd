@@ -9,6 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
+  prior_negloglike = NULL,
   control = dsem_control(),
   covs = colnames(tsdata)
 )
@@ -28,6 +29,17 @@ Other options correspond to different specifications of measurement error.}
 \item{estimate_delta0}{Boolean indicating whether to estimate deviations from equilibrium in initial year
 as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 the stationary distribution}
+
+\item{prior_negloglike}{A user-provided function that takes as input the vector of fixed effects out$obj$par
+returns the negative log-prior probability. For example
+\code{prior_negloglike = function(obj) -1 * dnorm( obj$par[1], mean=0, sd=0.1, log=TRUE)}
+specifies a normal prior probability
+for the for the first fixed effect with mean of zero and logsd of 0.1.
+NOTE:  this implementation does not work well with \code{tmbstan} and
+is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
+instead.  The option in \code{dsem} is mainly intended to validate its
+use in \code{dsemRTMB}.  Note that the user must load RTMB using
+\code{library(RTMB)} prior to running the model.}
 
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
 settings, and see documentation for that function for details.}
@@ -51,6 +63,7 @@ An object (list) of class `dsem`. Elements include:
 \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 \item{interal}{Objects useful for package function, i.e., all arguments
                passed during the call}
+\item{run_time}{Total time to run model}
 }
 }
 \description{
@@ -122,7 +135,8 @@ plot( fit, edge_label="value" )
 **Introducing the package, its features, and comparison with other software
 (to cite when using dsem):**
 
-Thorson, J. T., Andrews, A., Essington, T., Large, S. (In review).
+Thorson, J. T., Andrews, A., Essington, T., Large, S. (2024).
 Dynamic structural equation models synthesize
 ecosystem dynamics constrained by ecological mechanisms.
+Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
 }

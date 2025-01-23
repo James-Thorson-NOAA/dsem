@@ -1,3 +1,16 @@
+# dsem 1.4.0
+
+* Adding option for lower and upper bounds
+* Adding `stepwise_selection` for automated stepwise model selection
+* Adding `plot` option to use `ggraph` as alternative to previous `igraph`
+  option
+* Adding `convert_equations` to extend `sem::specifyEquations` and simplify
+  specification for large models
+* Adding argument `prior_negloglike` as interface to specify Bayesian priors
+  and/or likelihood penalties in `dsem`
+* Adding `dsemRTMB` using RTMB as interchangeable alternative to `dsem` using
+  TMB
+
 # dsem 1.3.0
 
 * Adding option to specify constant marginal variance, as alternative to existing

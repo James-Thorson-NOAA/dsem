@@ -332,22 +332,50 @@ function( sem,
   }
 
   # Loop through paths
+  G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
+  #P_kk = new("dgCMatrix")
+  #P_kk = Matrix()
+  #P_kk@Dim <- as.integer(rep(length(variables)*length(times),2))
+  #P_kk@p = integer(length(variables)*length(times)+1L)
+  #G_kk = P_kk
   for( i in seq_len(nrow(model)) ){
-  for( t in seq_along(times) ){
     lag = as.numeric(model[i,2])
-    par.no = par.nos[i]
-    # Get index for "from"
-    from = c( times[t], model[i,'first'] )
-    from_index = match_row( Q_names, from )
-    from_index = ifelse( length(from_index)==0, NA, from_index )
-    # Get index for "to"
-    to = c( times[t+lag], model[i,'second'] )
-    to_index = match_row( Q_names, to )
-    to_index = ifelse( length(to_index)==0, NA, to_index )
-    ram_new = data.frame( "heads"=abs(as.numeric(model[i,'direction'])), "to"=to_index, "from"=from_index, "parameter"=par.no, "start"=startvalues[i] )
-    ram = rbind( ram, ram_new )
-  }}
-  rownames(ram) = NULL
+    L_tt = sparseMatrix( i = seq(lag+1,length(times)),
+                         j = seq(1,length(times)-lag),
+                         x = 1,
+                         dims = rep(length(times),2) )
+    P_jj = sparseMatrix( i = match(model[i,'second'],variables),
+                         j = match(model[i,'first'],variables),
+                         x = 1,
+                         dims = rep(length(variables),2) )
+    tmp_kk = kronecker(P_jj, L_tt)
+    if(abs(as.numeric(model[i,'direction']))==1){
+      P_kk = P_kk + tmp_kk * i
+    }else{
+      G_kk = G_kk + tmp_kk * i
+    }
+    #for( t in seq_along(times) ){
+    #  # Get index for "from"
+    #  from = c( times[t], model[i,'first'] )
+    #  from_index = match_row( Q_names, from )
+    #  from_index = ifelse( length(from_index)==0, NA, from_index )
+    #  # Get index for "to"
+    #  to = c( times[t+lag], model[i,'second'] )
+    #  to_index = match_row( Q_names, to )
+    #  to_index = ifelse( length(to_index)==0, NA, to_index )
+    #  ram_new = data.frame( "heads"=abs(as.numeric(model[i,'direction'])), "to"=to_index, "from"=from_index, "parameter"=par.no, "start"=startvalues[i] )
+    #  ram = rbind( ram, ram_new )
+    #}
+  }
+  #rownames(ram) = NULL
+  #f = \(x) sapply(mat2triplet(drop0(x)),cbind)
+  f = \(x) matrix(unlist(mat2triplet(x)),ncol=3)
+  ram = rbind( cbind(1, f(P_kk)),
+               cbind(2, f(G_kk)) )
+  ram = data.frame( ram[,1:3,drop=FALSE],
+                    as.numeric(par.nos)[ram[,4]],
+                    as.numeric(startvalues)[ram[,4]] )
+  colnames(ram) = c("heads", "to", "from", "parameter", "start")
 
   #
   if( isTRUE(remove_na) ){

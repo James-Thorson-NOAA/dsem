@@ -20,14 +20,27 @@
 #'        while covs=c("x1", "x2") specifies the variance of x1 and the variance of x2 but not their covariance.
 #'        These same covariances can be added manually via argument `sem`, but using argument `covs` might
 #'        save time for models with many variables.
+#' @param prior_negloglike A user-provided function that takes as input the vector of fixed effects out$obj$par
+#'        returns the negative log-prior probability. For example
+#'        \code{prior_negloglike = function(obj) -1 * dnorm( obj$par[1], mean=0, sd=0.1, log=TRUE)}
+#'        specifies a normal prior probability
+#'        for the for the first fixed effect with mean of zero and logsd of 0.1.
+#'        NOTE:  this implementation does not work well with \code{tmbstan} and
+#'        is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
+#'        instead.  The option in \code{dsem} is mainly intended to validate its
+#'        use in \code{dsemRTMB}.  Note that the user must load RTMB using
+#'        \code{library(RTMB)} prior to running the model.
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats sd .preformat.ts na.omit nlminb optimHess pnorm rnorm simulate time tsp<-
-#' @importFrom Matrix solve Cholesky
+#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis
+#' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0
 #' @importFrom sem sem
-#' @importFrom igraph plot.igraph graph_from_data_frame
+#' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
+#' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
+#' @importFrom ggplot2 aes
+#' @importFrom grid arrow
 #' @importFrom methods is
 #'
 #' @details
@@ -71,6 +84,7 @@
 #' \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 #' \item{interal}{Objects useful for package function, i.e., all arguments
 #'                passed during the call}
+#' \item{run_time}{Total time to run model}
 #' }
 #'
 #' @references
@@ -78,9 +92,10 @@
 #' **Introducing the package, its features, and comparison with other software
 #' (to cite when using dsem):**
 #'
-#' Thorson, J. T., Andrews, A., Essington, T., Large, S. (In review).
+#' Thorson, J. T., Andrews, A., Essington, T., Large, S. (2024).
 #' Dynamic structural equation models synthesize
 #' ecosystem dynamics constrained by ecological mechanisms.
+#' Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
 #'
 #' @examples
 #' # Define model
@@ -120,8 +135,10 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
+          prior_negloglike = NULL,
           control = dsem_control(),
           covs = colnames(tsdata) ){
+  start_time = Sys.time()
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
@@ -135,8 +152,8 @@ function( sem,
   # General warnings
   if( isFALSE(control$quiet) ){
     tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
-    if( any((max(tsdata_SD)/min(tsdata_SD)) > 10, rm.na=TRUE) ){
-      warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
+    if( any((max(tsdata_SD,rm.na=TRUE)/min(tsdata_SD,rm.na=TRUE)) > 100) ){
+       warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
     }
   }
 
@@ -157,6 +174,11 @@ function( sem,
   }
   if( ncol(tsdata) != length(unique(colnames(tsdata))) ){
     stop("Please check `colnames(tsdata)` to confirm that all variables (columns) have a unique name")
+  }
+  if( !all(control$lower == -Inf) | !all(control$upper == Inf) ){
+    if( control$newton_loops > 0 ){
+      stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
+    }
   }
 
   #
@@ -223,13 +245,15 @@ function( sem,
   }
 
   # Build object
-  obj = MakeADFun( data=Data,
+  obj = TMB::MakeADFun( data=Data,
                    parameters=Params,
                    random=Random,
                    map=Map,
                    profile = control$profile,
-                   DLL="dsem" )
+                   DLL="dsem",
+                   silent = TRUE )
   if(control$quiet==FALSE) list_parameters(obj)
+  # bundle
   internal = list(
     sem = sem,
     tsdata = tsdata,
@@ -238,6 +262,26 @@ function( sem,
     control = control,
     covs = covs
   )
+
+  # Parse priors
+  if( !is.null(prior_negloglike) ){
+    # prior_negloglike = \(obj) -dnorm(obj$par[1],0,1,log=TRUE)
+    prior_value = tryCatch( expr = prior_negloglike(obj) )
+    if( is.na(prior_value) ) stop("Check `prior_negloglike(obj$par)`")
+    obj$fn_orig = obj$fn
+    obj$gr_orig = obj$gr
+
+    # BUild prior evaluator
+    requireNamespace("RTMB")
+    priors_obj = RTMB::MakeADFun( func = prior_negloglike, 
+                                  parameters = list(par=obj$par), 
+                                  silent = TRUE )
+    obj$fn = \(pars) obj$fn_orig(pars) + priors_obj$fn(pars)
+    obj$gr = \(pars) obj$gr_orig(pars) + priors_obj$gr(pars)
+    internal$priors_obj = priors_obj
+  }
+  
+  # Further bundle
   out = list( "obj"=obj,
               "ram"=ram,
               "sem_full"=out$model,
@@ -251,7 +295,6 @@ function( sem,
   }
 
   # Fit
-  obj$env$beSilent()       # if(!is.null(Random))
   #out$opt = fit_tmb( obj,
   #                   quiet = control$quiet,
   #                   control = list(eval.max=10000, iter.max=10000, trace=ifelse(control$quiet==TRUE,0,1) ),
@@ -264,6 +307,8 @@ function( sem,
     out$opt = nlminb( start = out$opt$par,
                   objective = obj$fn,
                   gradient = obj$gr,
+                  upper = control$upper,
+                  lower = control$lower,
                   control = list( eval.max = control$eval.max,
                                   iter.max = control$iter.max,
                                   trace = control$trace ) )
@@ -277,6 +322,7 @@ function( sem,
     out$opt$par = out$opt$par - solve(h, g)
     out$opt$objective = obj$fn(out$opt$par)
   }
+  out$internal$parhat = obj$env$parList()
 
   if( isTRUE(control$extra_convergence_checks) ){
     # Gradient checks
@@ -285,7 +331,7 @@ function( sem,
       warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
     }
     # Hessian check ... condition and positive definite
-    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par))) )
     Eigen_fixed = eigen( Hess_fixed, only.values=TRUE )
     if( (max(Eigen_fixed$values)/min(Eigen_fixed$values)) > 1e6 ){
       # See McCullough and Vinod 2003
@@ -302,14 +348,16 @@ function( sem,
   if( isTRUE(control$getsd) ){
     if( isTRUE(control$verbose) ) message("Running sdreport")
     if( is.null(Hess_fixed) ){
-      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr )
+      Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par)))  )
     }
-    out$sdrep = sdreport( obj,
+    out$sdrep = TMB::sdreport( obj,
+                          par.fixed = out$opt$par,
                           hessian.fixed = Hess_fixed,
                           getJointPrecision = control$getJointPrecision )
   }else{
     out$sdrep = NULL
   }
+  out$run_time = Sys.time() - start_time
 
   # output
   class(out) = "dsem"
@@ -354,7 +402,7 @@ function( sem,
 #'        are equivalent when the model includes no lags (only simultaneous effects) and
 #'        no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
 #'        are equivalent when the model includes no covariances. Given some exogenous covariance, 
-#'        \code{constant_variance = "marginal"} preserves the conditional correlation and has
+#'        \code{constant_variance = "diagonal"} preserves the conditional correlation and has
 #'        changing conditional variance, while \code{constant_variance = "marginal"} has changing
 #'        conditional correlation along the causal graph.  
 #' @param quiet Boolean indicating whether to run model printing messages to terminal or not;
@@ -369,6 +417,10 @@ function( sem,
 #'        to \code{\link[TMB]{sdreport}}.
 #' @param extra_convergence_checks Boolean indicating whether to run extra checks on model
 #'        convergence.
+#' @param lower vectors of lower bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+#'        If unspecified, all parameters are assumed to be unconstrained.
+#' @param upper vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
+#'        If unspecified, all parameters are assumed to be unconstrained.
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -391,7 +443,9 @@ function( nlminb_loops = 1,
           parameters = NULL,
           map = NULL,
           getJointPrecision = FALSE,
-          extra_convergence_checks = TRUE ){
+          extra_convergence_checks = TRUE,
+          lower = -Inf,
+          upper = Inf ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -413,7 +467,9 @@ function( nlminb_loops = 1,
     parameters = parameters,
     map = map,
     getJointPrecision = getJointPrecision,
-    extra_convergence_checks = extra_convergence_checks
+    extra_convergence_checks = extra_convergence_checks,
+    lower = lower,
+    upper = upper
   ), class = "dsem_control" )
 }
 
@@ -489,8 +545,11 @@ function( object, ... ){
 #'
 #' @param x Output from \code{\link{dsem}}
 #' @param y Not used
-#' @param edge_label Whether to plot parameter names or estimated values
+#' @param edge_label Whether to plot parameter names, estimated values,
+#'        or estimated values along with stars indicating significance at
+#'        0.05, 0.01, or 0.001 levels (based on two-sided Wald tests)
 #' @param digits integer indicating the number of decimal places to be used
+#' @param style Whether to make a graph using \code{igraph} or \code{ggraph}
 #' @param ... arguments passed to \code{\link[igraph]{plot.igraph}}
 #'
 #' @details
@@ -505,12 +564,15 @@ function( object, ... ){
 plot.dsem <-
 function( x,
           y,
-          edge_label = c("name","value"),
+          edge_label = c("name","value","value_and_stars"),
           digits = 2,
+          style = c("igraph","ggraph"),
           ... ){
 
-  # Extract stuff
+  style = match.arg(style)
   edge_label = match.arg(edge_label)
+
+  # Extract stuff
   out = summary(x)
 
   # Format inputs
@@ -520,12 +582,49 @@ function( x,
   if( edge_label=="value"){
     DF$label = round(out$Estimate, digits=digits)
   }
+  if( edge_label == "value_and_stars" ){
+    DF$label = round(out$Estimate, digits=digits)
+    add_stars = cut(out[,'p_value'], breaks=c(1,0.05,0.01,0.001,0) )
+    add_stars = c("***","**","*","")[as.numeric(add_stars)]
+    DF$label = paste0(DF$label, add_stars)
+  }
 
   # Create and plotgraph
   pg <- graph_from_data_frame( d = DF,
                                directed = TRUE,
                                vertices = data.frame(vertices) )
-  plot( pg, ... )
+
+  # Two plot styles
+  if(style=="igraph"){
+    coords = layout_(pg, with_sugiyama())
+    plot( pg, layout = coords, ... )
+  }
+  if(style=="ggraph"){
+    # Modified from phylopath::plot.DAG
+    algorithm = 'sugiyama'
+    manual_layout = NULL
+    text_size = 6
+    box_x = 12
+    box_y = 8
+    edge_width = 1
+    curvature = 0
+    rotation = 0
+    flip_x = FALSE
+    flip_y = FALSE
+    label = DF$label
+    l = ggraph::create_layout(pg, 'igraph', algorithm = algorithm)
+    arrow = grid::arrow(type = 'closed', 18, grid::unit(15, 'points'))
+    gplot = ggraph::ggraph(l) +
+      ggraph::geom_edge_arc(
+        aes(label = label),
+        strength = curvature, arrow = arrow, edge_width = edge_width,
+        end_cap = ggraph::rectangle(box_x, box_y, 'mm'),
+        start_cap = ggraph::rectangle(box_x, box_y, 'mm')
+      ) +
+      ggraph::geom_node_text(ggplot2::aes_(label = ~name), size = text_size) +
+      ggraph::theme_graph(base_family = 'sans')
+    plot(gplot)
+  }
   return(invisible(pg))
 }
 
@@ -852,7 +951,7 @@ function( object,
   return(out)
 }
 
-#' @title Marglinal log-likelihood
+#' @title Marginal log-likelihood
 #'
 #' @description Extract the (marginal) log-likelihood of a dsem model
 #'
