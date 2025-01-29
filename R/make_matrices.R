@@ -51,7 +51,7 @@ function( beta_p,
   # Assemble
   IminusP_kk = AD(I_kk - P_kk)
   invV_kk = AD(G_kk)
-  invV_kk@x = 1 / G_kk@x^2
+  invV_kk@x = AD(1 / G_kk@x^2)
   #Q_kk = t(IminusP_kk) %*% invV_kk %*% IminusP_kk
 
   out = list(
