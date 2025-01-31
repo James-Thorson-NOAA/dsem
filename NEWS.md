@@ -1,3 +1,8 @@
+# dsem 1.4.1
+
+* Edits to allow DSEM to run when all path coefficients are fixed 
+  (contributed by Maurice Goodman)
+
 # dsem 1.4.0
 
 * Adding option for lower and upper bounds
