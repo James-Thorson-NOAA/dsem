@@ -284,7 +284,7 @@ function( sem,
                 quiet = quiet)
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
-  model <- cbind( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
+  model <- data.frame( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
 
   # Adding a SD automatically
   if( !is.null(covs) ){
@@ -296,11 +296,11 @@ function( sem,
         p1 = paste(vars[i], "<->", vars[j])
         p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
         p3 = NA
-        row <- c(p1, 0, p2, p3)
-        if( any((row[1]==model[,1]) & (row[2]==model[,2])) ){
+        row <- data.frame("path"=p1, "lag"=0, "name"=p2, "start"=p3)
+        if( isTRUE(any((row[1]==model[,1]) & (row[2]==model[,2]))) ){
           next
         }else{
-          model <- rbind(model, row, deparse.level = 0)
+          model <- rbind(model, row, deparse.level = 0, make.row.names=FALSE)
         }
       }}
     }
@@ -372,10 +372,10 @@ function( sem,
   f = function( x,
                 first_column = 1){
     triplet = mat2triplet(x)
-    if( length(triplet$i)>0 ){
-      cbind(first_column, triplet$i, triplet$j, triplet$x)
+    if( length(triplet$x)>0 ){
+      data.frame(first_column, triplet$i, triplet$j, triplet$x)
     }else{
-      matrix(nrow=0, ncol=4)
+      data.frame(numeric(0), numeric(0), numeric(0), numeric(0))
     }
   }
   ram = rbind( f(P_kk, 1),
