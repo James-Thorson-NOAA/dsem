@@ -378,8 +378,8 @@ function( sem,
       matrix(nrow=0, ncol=4)
     }
   }
-  ram = rbind( f(P_kk, 1)),
-               f(G_kk, 2)) )
+  ram = rbind( f(P_kk, 1),
+               f(G_kk, 2) )
   ram = data.frame( ram[,1:3,drop=FALSE],
                     as.numeric(par.nos)[ram[,4]],
                     as.numeric(startvalues)[ram[,4]] )
