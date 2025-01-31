@@ -297,7 +297,7 @@ function( sem,
         p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
         p3 = NA
         row <- data.frame("path"=p1, "lag"=0, "name"=p2, "start"=p3)
-        if( isTRUE(any((row[1]==model[,1]) & (row[2]==model[,2]))) ){
+        if( isTRUE(any((row[1] %in% model[,1]) & (row[2] %in% model[,2]))) ){
           next
         }else{
           model <- rbind(model, row, deparse.level = 0, make.row.names=FALSE)
