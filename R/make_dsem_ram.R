@@ -369,9 +369,17 @@ function( sem,
   }
   #rownames(ram) = NULL
   #f = \(x) sapply(mat2triplet(drop0(x)),cbind)
-  f = \(x) matrix(unlist(mat2triplet(x)),ncol=3)
-  ram = rbind( cbind(1, f(P_kk)),
-               cbind(2, f(G_kk)) )
+  f = function( x,
+                first_column = 1){
+    triplet = mat2triplet(x)
+    if( length(triplet$i)>0 ){
+      cbind(first_column, triplet$i, triplet$j, triplet$x)
+    }else{
+      matrix(nrow=0, ncol=4)
+    }
+  }
+  ram = rbind( f(P_kk, 1)),
+               f(G_kk, 2)) )
   ram = data.frame( ram[,1:3,drop=FALSE],
                     as.numeric(par.nos)[ram[,4]],
                     as.numeric(startvalues)[ram[,4]] )
