@@ -1037,7 +1037,7 @@ function( object,
 
   model = object$sem_full
   model = model[model[,2]==0,c(1,3,4)]
-  out = sem( model,
+  out = sem( as.matrix(model),
              S = Sprime,
              N = nrow(object$internal$tsdata) )
 
