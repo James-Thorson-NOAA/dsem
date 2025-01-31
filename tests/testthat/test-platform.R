@@ -99,6 +99,57 @@ test_that("dsem adds variances ", {
   expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 })
 
+test_that("dsem works with fixed variances ", {
+  # devtools::install_github("james-thorson-NOAA/dsem@dev")
+  data(isle_royale)
+  data = ts( log(isle_royale[,2:3]), start=1959)
+
+  # initial first without delta0 (to improve starting values)
+  sem = "
+    wolves <-> wolves, 0, sd1
+    moose <-> moose, 0, sd2
+    wolves -> wolves, 1, rho1
+    moose -> moose, 1, rho2
+  "
+  fit1 = dsem( sem = sem,
+               tsdata = data )
+
+  # initial first without delta0 (to improve starting values)
+  sem = "
+    wolves <-> wolves, 0, NA, 0.3732812
+    moose <-> moose, 0, NA, 0.1911209
+    wolves -> wolves, 1, NA, 0.8558536
+    moose -> moose, 1, NA, 0.9926087
+  "
+  fit2 = dsem( sem = sem,
+               tsdata = data,
+               family = c("normal", "normal") )
+
+  # Inputs to dsem
+  if( FALSE ){
+    tsdata = data
+    family = rep("fixed",ncol(tsdata))
+    estimate_delta0 = FALSE
+    prior_negloglike = NULL
+    control = dsem_control()
+    covs = colnames(tsdata)
+  }
+
+  # Inputs to make_dsem_ram
+  if(FALSE){
+    #sem = ""
+    tsdata = data
+    times = as.numeric(time(tsdata))
+    variables = colnames(data)
+    covs = variables
+    quiet = FALSE
+    remove_na = TRUE
+  }
+
+  # Check objective function
+  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
+})
+
 test_that("bering sea example is stable ", {
   data(bering_sea)
 
