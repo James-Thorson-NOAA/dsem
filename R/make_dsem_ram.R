@@ -321,7 +321,11 @@ function( sem,
   par.nos = apply(outer(pars, par.names, "=="), 2, which)
   #par.nos = ifelse( sapply(par.nos,length)==0, 0, unlist(par.nos) )
   par.nos = unlist(sapply( par.nos, FUN=\(x) ifelse(length(x)==0, 0, x) ))
-  model = cbind( model, "parameter"=par.nos )
+  if( length(par.nos)==0 ){
+    model = cbind( model, "parameter"=0 )
+  }else{
+    model = cbind( model, "parameter"=par.nos )
+  }
   startvalues = model[,4]
 
   # Add incidence to model
