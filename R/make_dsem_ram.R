@@ -318,14 +318,14 @@ function( sem,
   # Deal with fixed values
   par.names = model[, 3]
   pars = na.omit(unique(par.names))
-  par.nos = apply(outer(pars, par.names, "=="), 2, which)
-  #par.nos = ifelse( sapply(par.nos,length)==0, 0, unlist(par.nos) )
-  par.nos = unlist(sapply( par.nos, FUN=\(x) ifelse(length(x)==0, 0, x) ))
-  if( length(par.nos)==0 ){
-    model = cbind( model, "parameter"=0 )
+  if( length(pars)==0 ){
+    par.nos = rep(0, nrow(model))
   }else{
-    model = cbind( model, "parameter"=par.nos )
+    par.nos = apply(outer(pars, par.names, "=="), 2, which)
+    #par.nos = ifelse( sapply(par.nos,length)==0, 0, unlist(par.nos) )
+    par.nos = unlist(sapply( par.nos, FUN=\(x) ifelse(length(x)==0, 0, x) ))
   }
+  model = cbind( model, "parameter"=par.nos )
   startvalues = model[,4]
 
   # Add incidence to model
@@ -390,10 +390,10 @@ function( sem,
   colnames(ram) = c("heads", "to", "from", "parameter", "start")
 
   #
-  if( isTRUE(remove_na) ){
-    which_keep = which(apply( ram[,1:4], MARGIN=1, FUN=\(x)!any(is.na(x)) ))
-    ram = ram[ which_keep, ]
-  }
+  #if( isTRUE(remove_na) ){
+  #  which_keep = which(apply( ram[,1:4], MARGIN=1, FUN=\(x)!any(is.na(x)) ))
+  #  ram = ram[ which_keep, ]
+  #}
 
   #
   out = list( "model"=model,
