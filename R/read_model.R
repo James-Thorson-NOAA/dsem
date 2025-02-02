@@ -117,7 +117,7 @@ function( sem,
   par.names = model[, 3]
   pars = na.omit(unique(par.names))
   par.nos = apply(outer(pars, par.names, "=="), 2, which)
-  par.nos = unlist(sapply( par.nos, FUN=\(x) ifelse(length(x)==0, 0, x) ))
+  par.nos = unlist(sapply( par.nos, FUN=function(x) ifelse(length(x)==0, 0, x) ))
   if (is.null(par.nos)) par.nos = rep(0, nrow(model))
   model = cbind( model, "parameter"=par.nos )
 

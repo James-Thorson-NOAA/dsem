@@ -323,7 +323,7 @@ function( sem,
   }else{
     par.nos = apply(outer(pars, par.names, "=="), 2, which)
     #par.nos = ifelse( sapply(par.nos,length)==0, 0, unlist(par.nos) )
-    par.nos = unlist(sapply( par.nos, FUN=\(x) ifelse(length(x)==0, 0, x) ))
+    par.nos = unlist(sapply( par.nos, FUN=function(x) ifelse(length(x)==0, 0, x) ))
   }
   model = cbind( model, "parameter"=par.nos )
   startvalues = model[,4]
@@ -372,7 +372,7 @@ function( sem,
     #}
   }
   #rownames(ram) = NULL
-  #f = \(x) sapply(mat2triplet(drop0(x)),cbind)
+  #f = function(x) sapply(mat2triplet(drop0(x)),cbind)
   f = function( x,
                 first_column = 1){
     triplet = mat2triplet(x)
@@ -391,7 +391,7 @@ function( sem,
 
   #
   #if( isTRUE(remove_na) ){
-  #  which_keep = which(apply( ram[,1:4], MARGIN=1, FUN=\(x)!any(is.na(x)) ))
+  #  which_keep = which(apply( ram[,1:4], MARGIN=1, FUN=function(x)!any(is.na(x)) ))
   #  ram = ram[ which_keep, ]
   #}
 
