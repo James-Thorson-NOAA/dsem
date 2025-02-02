@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Make a RAM (Reticular Action Model)</h1>
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.4.0/R/make_dsem_ram.R" class="external-link"><code>R/make_dsem_ram.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/R/make_dsem_ram.R" class="external-link"><code>R/make_dsem_ram.R</code></a></small>
       <div class="d-none name"><code>make_dsem_ram.Rd</code></div>
     </div>
 
@@ -196,9 +196,9 @@ models (VAR), dynamic factor analysis (DFA), or many other time-series models.</
 <span class="r-in"><span><span class="st">"</span></span></span>
 <span class="r-in"><span><span class="fu">make_dsem_ram</span><span class="op">(</span> sem<span class="op">=</span><span class="va">sem</span>, variables<span class="op">=</span><span class="st">"X"</span>, times<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span> <span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      path      lag name    start parameter first second direction</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] "X -&gt; X"  "1" "rho"   NA    "1"       "X"   "X"    "1"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] "X &lt;-&gt; X" "0" "sigma" NA    "2"       "X"   "X"    "2"      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      path lag  name start parameter first second direction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  X -&gt; X   1   rho    NA         1     X      X         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 X &lt;-&gt; X   0 sigma    NA         2     X      X         2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $ram</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   heads to from parameter start</span>
@@ -227,10 +227,10 @@ models (VAR), dynamic factor analysis (DFA), or many other time-series models.</
 <span class="r-in"><span><span class="st">"</span></span></span>
 <span class="r-in"><span><span class="fu">make_dsem_ram</span><span class="op">(</span> sem<span class="op">=</span><span class="va">sem</span>, variables<span class="op">=</span><span class="st">"X"</span>, times<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span> <span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      path      lag name    start parameter first second direction</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] "X -&gt; X"  "1" "rho1"  NA    "1"       "X"   "X"    "1"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] "X -&gt; X"  "2" "rho2"  NA    "2"       "X"   "X"    "1"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] "X &lt;-&gt; X" "0" "sigma" NA    "3"       "X"   "X"    "2"      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      path lag  name start parameter first second direction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  X -&gt; X   1  rho1    NA         1     X      X         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  X -&gt; X   2  rho2    NA         2     X      X         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 X &lt;-&gt; X   0 sigma    NA         3     X      X         2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $ram</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   heads to from parameter start</span>
@@ -264,13 +264,13 @@ models (VAR), dynamic factor analysis (DFA), or many other time-series models.</
 <span class="r-in"><span><span class="st">"</span></span></span>
 <span class="r-in"><span><span class="fu">make_dsem_ram</span><span class="op">(</span> sem<span class="op">=</span><span class="va">sem</span>, variables<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>,<span class="st">"Y"</span><span class="op">)</span>, times<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span> <span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      path      lag name   start parameter first second direction</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] "X -&gt; X"  "1" "XtoX" NA    "1"       "X"   "X"    "1"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] "X -&gt; Y"  "1" "XtoY" NA    "2"       "X"   "Y"    "1"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] "Y -&gt; X"  "1" "YtoX" NA    "3"       "Y"   "X"    "1"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] "Y -&gt; Y"  "1" "YtoY" NA    "4"       "Y"   "Y"    "1"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] "X &lt;-&gt; X" "0" "sdX"  NA    "5"       "X"   "X"    "2"      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] "Y &lt;-&gt; Y" "0" "sdY"  NA    "6"       "Y"   "Y"    "2"      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      path lag name start parameter first second direction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  X -&gt; X   1 XtoX    NA         1     X      X         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  X -&gt; Y   1 XtoY    NA         2     X      Y         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  Y -&gt; X   1 YtoX    NA         3     Y      X         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  Y -&gt; Y   1 YtoY    NA         4     Y      Y         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 X &lt;-&gt; X   0  sdX    NA         5     X      X         2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Y &lt;-&gt; Y   0  sdY    NA         6     Y      Y         2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $ram</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    heads to from parameter start</span>

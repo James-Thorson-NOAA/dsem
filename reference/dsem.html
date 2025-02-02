@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Fit dynamic structural equation model</h1>
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.4.0/R/dsem.R" class="external-link"><code>R/dsem.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/R/dsem.R" class="external-link"><code>R/dsem.R</code></a></small>
       <div class="d-none name"><code>dsem.Rd</code></div>
     </div>
 
@@ -208,24 +208,24 @@ Methods in Ecology and Evolution. <a href="https://doi.org/10.1111/2041-210X.142
 <span class="r-in"><span>            control <span class="op">=</span> <span class="fu"><a href="dsem_control.html">dsem_control</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span> <span class="va">fit</span> <span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                           path lag           name start parameter       first</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1      cprofits -&gt; consumption   0             a1  &lt;NA&gt;         1    cprofits</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2      cprofits -&gt; consumption   1             a2  &lt;NA&gt;         2    cprofits</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3         pwage -&gt; consumption   0             a3  &lt;NA&gt;         3       pwage</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4         gwage -&gt; consumption   0             a3  &lt;NA&gt;         3       gwage</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5           cprofits -&gt; invest   0             b1  &lt;NA&gt;         4    cprofits</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6           cprofits -&gt; invest   1             b2  &lt;NA&gt;         5    cprofits</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7            capital -&gt; invest   0             b3  &lt;NA&gt;         6     capital</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                 gnp -&gt; pwage   0             c2  &lt;NA&gt;         7         gnp</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                 gnp -&gt; pwage   1             c3  &lt;NA&gt;         8         gnp</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10               time -&gt; pwage   0             c1  &lt;NA&gt;         9        time</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11               time &lt;-&gt; time   0        V[time]  &lt;NA&gt;        10        time</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12                 gnp &lt;-&gt; gnp   0         V[gnp]  &lt;NA&gt;        11         gnp</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13             pwage &lt;-&gt; pwage   0       V[pwage]  &lt;NA&gt;        12       pwage</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14       cprofits &lt;-&gt; cprofits   0    V[cprofits]  &lt;NA&gt;        13    cprofits</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15 consumption &lt;-&gt; consumption   0 V[consumption]  &lt;NA&gt;        14 consumption</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16             gwage &lt;-&gt; gwage   0       V[gwage]  &lt;NA&gt;        15       gwage</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17           invest &lt;-&gt; invest   0      V[invest]  &lt;NA&gt;        16      invest</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18         capital &lt;-&gt; capital   0     V[capital]  &lt;NA&gt;        17     capital</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1      cprofits -&gt; consumption   0             a1    NA         1    cprofits</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      cprofits -&gt; consumption   1             a2    NA         2    cprofits</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         pwage -&gt; consumption   0             a3    NA         3       pwage</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         gwage -&gt; consumption   0             a3    NA         3       gwage</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5           cprofits -&gt; invest   0             b1    NA         4    cprofits</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6           cprofits -&gt; invest   1             b2    NA         5    cprofits</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7            capital -&gt; invest   0             b3    NA         6     capital</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                 gnp -&gt; pwage   0             c2    NA         7         gnp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                 gnp -&gt; pwage   1             c3    NA         8         gnp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10               time -&gt; pwage   0             c1    NA         9        time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11               time &lt;-&gt; time   0        V[time]    NA        10        time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                 gnp &lt;-&gt; gnp   0         V[gnp]    NA        11         gnp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13             pwage &lt;-&gt; pwage   0       V[pwage]    NA        12       pwage</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14       cprofits &lt;-&gt; cprofits   0    V[cprofits]    NA        13    cprofits</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 consumption &lt;-&gt; consumption   0 V[consumption]    NA        14 consumption</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16             gwage &lt;-&gt; gwage   0       V[gwage]    NA        15       gwage</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17           invest &lt;-&gt; invest   0      V[invest]    NA        16      invest</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18         capital &lt;-&gt; capital   0     V[capital]    NA        17     capital</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         second direction    Estimate  Std_Error   z_value       p_value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  consumption         1  0.19323185 0.08199229  2.356708  1.843776e-02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  consumption         1  0.08942112 0.08136334  1.099035  2.717530e-01</span>
