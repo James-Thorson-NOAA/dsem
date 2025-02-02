@@ -105,7 +105,7 @@ function( object,
     }
   }else{
     # Sample from leave-one-out predictive distribution for states
-    resid_rz = apply( df, MARGIN=1, FUN=\(vec){rnorm(n=nsim, mean=as.numeric(vec['est']), sd=as.numeric(vec['se']))} )
+    resid_rz = apply( df, MARGIN=1, FUN=function(vec){rnorm(n=nsim, mean=as.numeric(vec['est']), sd=as.numeric(vec['se']))} )
     # Sample from predictive distribution of data given states
     for(r in 1:nrow(resid_rz) ){
       parameters = object$obj$env$parList()

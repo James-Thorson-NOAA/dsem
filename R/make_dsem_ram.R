@@ -284,7 +284,7 @@ function( sem,
                 quiet = quiet)
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
-  model <- cbind( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
+  model <- data.frame( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
 
   # Adding a SD automatically
   if( !is.null(covs) ){
@@ -296,11 +296,11 @@ function( sem,
         p1 = paste(vars[i], "<->", vars[j])
         p2 = if (i==j) paste("V[", vars[i], "]", sep = "") else paste("C[",vars[i], ",", vars[j], "]", sep = "")
         p3 = NA
-        row <- c(p1, 0, p2, p3)
-        if( any((row[1]==model[,1]) & (row[2]==model[,2])) ){
+        row <- data.frame("path"=p1, "lag"=0, "name"=p2, "start"=p3)
+        if( isTRUE(any((row[1] %in% model[,1]) & (row[2] %in% model[,2]))) ){
           next
         }else{
-          model <- rbind(model, row, deparse.level = 0)
+          model <- rbind(model, row, deparse.level = 0, make.row.names=FALSE)
         }
       }}
     }
@@ -318,9 +318,13 @@ function( sem,
   # Deal with fixed values
   par.names = model[, 3]
   pars = na.omit(unique(par.names))
-  par.nos = apply(outer(pars, par.names, "=="), 2, which)
-  #par.nos = ifelse( sapply(par.nos,length)==0, 0, unlist(par.nos) )
-  par.nos = unlist(sapply( par.nos, FUN=\(x) ifelse(length(x)==0, 0, x) ))
+  if( length(pars)==0 ){
+    par.nos = rep(0, nrow(model))
+  }else{
+    par.nos = apply(outer(pars, par.names, "=="), 2, which)
+    #par.nos = ifelse( sapply(par.nos,length)==0, 0, unlist(par.nos) )
+    par.nos = unlist(sapply( par.nos, FUN=function(x) ifelse(length(x)==0, 0, x) ))
+  }
   model = cbind( model, "parameter"=par.nos )
   startvalues = model[,4]
 
@@ -368,20 +372,28 @@ function( sem,
     #}
   }
   #rownames(ram) = NULL
-  #f = \(x) sapply(mat2triplet(drop0(x)),cbind)
-  f = \(x) matrix(unlist(mat2triplet(x)),ncol=3)
-  ram = rbind( cbind(1, f(P_kk)),
-               cbind(2, f(G_kk)) )
+  #f = function(x) sapply(mat2triplet(drop0(x)),cbind)
+  f = function( x,
+                first_column = 1){
+    triplet = mat2triplet(x)
+    if( length(triplet$x)>0 ){
+      data.frame(first_column, triplet$i, triplet$j, triplet$x)
+    }else{
+      data.frame(numeric(0), numeric(0), numeric(0), numeric(0))
+    }
+  }
+  ram = rbind( f(P_kk, 1),
+               f(G_kk, 2) )
   ram = data.frame( ram[,1:3,drop=FALSE],
                     as.numeric(par.nos)[ram[,4]],
                     as.numeric(startvalues)[ram[,4]] )
   colnames(ram) = c("heads", "to", "from", "parameter", "start")
 
   #
-  if( isTRUE(remove_na) ){
-    which_keep = which(apply( ram[,1:4], MARGIN=1, FUN=\(x)!any(is.na(x)) ))
-    ram = ram[ which_keep, ]
-  }
+  #if( isTRUE(remove_na) ){
+  #  which_keep = which(apply( ram[,1:4], MARGIN=1, FUN=function(x)!any(is.na(x)) ))
+  #  ram = ram[ which_keep, ]
+  #}
 
   #
   out = list( "model"=model,

@@ -265,7 +265,7 @@ function( sem,
 
   # Parse priors
   if( !is.null(prior_negloglike) ){
-    # prior_negloglike = \(obj) -dnorm(obj$par[1],0,1,log=TRUE)
+    # prior_negloglike = function(obj) -dnorm(obj$par[1],0,1,log=TRUE)
     prior_value = tryCatch( expr = prior_negloglike(obj) )
     if( is.na(prior_value) ) stop("Check `prior_negloglike(obj$par)`")
     obj$fn_orig = obj$fn
@@ -276,8 +276,8 @@ function( sem,
     priors_obj = RTMB::MakeADFun( func = prior_negloglike, 
                                   parameters = list(par=obj$par), 
                                   silent = TRUE )
-    obj$fn = \(pars) obj$fn_orig(pars) + priors_obj$fn(pars)
-    obj$gr = \(pars) obj$gr_orig(pars) + priors_obj$gr(pars)
+    obj$fn = function(pars) obj$fn_orig(pars) + priors_obj$fn(pars)
+    obj$gr = function(pars) obj$gr_orig(pars) + priors_obj$gr(pars)
     internal$priors_obj = priors_obj
   }
   
@@ -1037,7 +1037,7 @@ function( object,
 
   model = object$sem_full
   model = model[model[,2]==0,c(1,3,4)]
-  out = sem( model,
+  out = sem( as.matrix(model),
              S = Sprime,
              N = nrow(object$internal$tsdata) )
 

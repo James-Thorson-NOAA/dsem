@@ -38,11 +38,11 @@ function( sem,
           paths[i] <- paste(variables[i], "<->", variables[i])
           par.names[i] <- paste("V[", variables[i], "]", sep = "")
       }
-      model.2 <- cbind(
-        'path' = c(model[, 1], paths),
-        'lag' = c(model[,2], rep(0,nvars)),
-        'name' = c(model[, 3], par.names),
-        'start' = c(model[, 4], rep(NA, length(paths))) )
+      model.2 <- data.frame(
+        'path' = c(model$paths, paths),
+        'lag' = c(model$lag, rep(0,nvars)),
+        'name' = c(model$name, par.names),
+        'start' = c(model$start, rep(NA, length(paths))) )
       model.2
   }
   need.variance <- function() {
@@ -117,7 +117,8 @@ function( sem,
   par.names = model[, 3]
   pars = na.omit(unique(par.names))
   par.nos = apply(outer(pars, par.names, "=="), 2, which)
-  par.nos = unlist(sapply( par.nos, FUN=\(x) ifelse(length(x)==0, 0, x) ))
+  par.nos = unlist(sapply( par.nos, FUN=function(x) ifelse(length(x)==0, 0, x) ))
+  if (is.null(par.nos)) par.nos = rep(0, nrow(model))
   model = cbind( model, "parameter"=par.nos )
 
   # Add incidence to model

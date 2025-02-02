@@ -1,13 +1,19 @@
 Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
-Version: 1.4.0
-Date: 2025-01-10
+Version: 1.4.1
+Date: 2025-01-31
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
              role = c("aut", "cre"),
-             email = "James.Thorson@noaa.gov")
+             email = "James.Thorson@noaa.gov",
+             comment = c(ORCID = "0000-0001-7415-1010")),
+      person(given = "Maurice",
+             family = "Goodman",
+             role = c("ctb"),
+             email = "goodman.maurice@gmail.com",
+             comment = c(ORCID = "0000-0002-6874-2313"))    
     )
 Imports:
     TMB,

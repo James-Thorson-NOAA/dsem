@@ -99,6 +99,47 @@ test_that("dsem adds variances ", {
   expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 })
 
+test_that("dsem works with fixed variances ", {
+  data(isle_royale)
+  data = ts( log(isle_royale[,2:3]), start=1959)
+
+  # initial first without delta0 (to improve starting values)
+  sem = "
+    wolves <-> wolves, 0, sd1
+    moose <-> moose, 0, sd2
+    wolves -> wolves, 1, rho1
+    moose -> moose, 1, rho2
+  "
+  fit1 = dsem( sem = sem,
+               tsdata = data )
+
+  # initial first without delta0 (to improve starting values)
+  sem = "
+    wolves <-> wolves, 0, NA, 0.3732812
+    moose <-> moose, 0, NA, 0.1911209
+    wolves -> wolves, 1, NA, 0.8558536
+    moose -> moose, 1, NA, 0.9926087
+  "
+  fit2 = dsem( sem = sem,
+               tsdata = data,
+               family = c("normal", "normal") )
+
+  # initial first without delta0 (to improve starting values)
+  sem = "
+    wolves <-> wolves, 0, NA, 0.3732812
+    moose <-> moose, 0, NA, 0.1911209
+    wolves -> wolves, 1, NA, 0.8558536
+    moose -> moose, 1, NA, 0.9926087
+  "
+  fit3 = dsemRTMB( sem = sem,
+               tsdata = data,
+               family = c("normal", "normal") )
+
+  # Check objective function
+  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
+  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit3$opt$obj), tolerance=1e-2 )
+})
+
 test_that("bering sea example is stable ", {
   data(bering_sea)
 
