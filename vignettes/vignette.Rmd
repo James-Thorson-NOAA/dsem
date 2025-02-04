@@ -92,7 +92,7 @@ abline(a=0,b=1)
 
 ## Comparison with dynamic linear models
 
-We next demonstrate that `dsem` using a well-known econometric model, the Klein-1 model.
+We next demonstrate `dsem` using a well-known econometric model, the Klein-1 model.
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 data(KleinI, package="AER")

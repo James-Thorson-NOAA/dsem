@@ -142,8 +142,8 @@ function( sem,
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
-  if( control$gmrf_parameterization=="projection" ){
-    if( any(family=="fixed" & colSums(!is.na(tsdata))>0) ){
+  if( isTRUE(control$gmrf_parameterization=="projection") ){
+    if( isTRUE(any(family=="fixed" & colSums(!is.na(tsdata))>0)) ){
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
   }
@@ -152,7 +152,7 @@ function( sem,
   # General warnings
   if( isFALSE(control$quiet) ){
     tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
-    if( any((max(tsdata_SD,rm.na=TRUE)/min(tsdata_SD,rm.na=TRUE)) > 100) ){
+    if( isTRUE(any((max(tsdata_SD,rm.na=TRUE)/min(tsdata_SD,rm.na=TRUE)) > 100)) ){
        warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
     }
   }
@@ -166,17 +166,17 @@ function( sem,
   ram = out$ram
 
   # Error checks
-  if( any((out$model[,'direction']==2) & (out$model[,2]!=0)) ){
+  if( isTRUE(any((out$model[,'direction']==2) & (out$model[,2]!=0))) ){
     stop("All two-headed arrows should have lag=0")
   }
-  if( !all(c(out$model[,'first'],out$model[,'second']) %in% colnames(tsdata)) ){
+  if( isFALSE(all(c(out$model[,'first'],out$model[,'second']) %in% colnames(tsdata))) ){
     stop("Some variable in `sem` is not in `tsdata`")
   }
-  if( ncol(tsdata) != length(unique(colnames(tsdata))) ){
+  if( isFALSE(ncol(tsdata) == length(unique(colnames(tsdata)))) ){
     stop("Please check `colnames(tsdata)` to confirm that all variables (columns) have a unique name")
   }
-  if( !all(control$lower == -Inf) | !all(control$upper == Inf) ){
-    if( control$newton_loops > 0 ){
+  if( isFALSE(all(control$lower == -Inf)) | isFALSE(all(control$upper == Inf)) ){
+    if( isTRUE(control$newton_loops > 0) ){
       stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
     }
   }

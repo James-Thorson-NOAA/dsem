@@ -1,3 +1,8 @@
+# dsem 1.4.2
+
+* Fixed bug where dsem crashed when `quiet = FALSE` and running without data
+  e.g., as qualitative network model
+
 # dsem 1.4.1
 
 * Edits to allow DSEM to run when all path coefficients are fixed 
