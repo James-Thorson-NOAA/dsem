@@ -126,3 +126,49 @@ function( object,
   if(what=="samples") return( resid_tjr )
   if(what=="loo") return( df )
 }
+
+#' @title Calculate total effects
+#'
+#' @description Calculate a data frame of total effects, representing the 
+#' estimated effect of every variable on every other variable and any time-lag
+#' from 0 (simultaneous effects) to a user-specified maximum lag.
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param n_times Number of lags over which to calculate total effects
+#'
+#' @details
+#' Total effects are calculated from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}
+#'
+#' @return
+#' A data frame listing the time-lag (deltaT), variable that is undergoing some 
+#' exogenous change (from), and the variable being impacted (to), along with the 
+#' total effect including direct and indirect pathways
+#'
+#' @export
+total_effect <-
+function( object,
+          n_times = 4 ){
+
+  #library(Matrix)
+  Z = object$internal$tsdata
+  P_kk = make_matrices( 
+    beta_p = object$internal$parhat$beta,
+    model = object$sem_full,
+    times = seq_len(n_times),
+    variables = colnames(Z)
+  )$P_kk            
+
+  #
+  delta_kj = kronecker( Diagonal(n=ncol(Z)), 
+                        sparseMatrix(i=1, j=1, x=1, dims=c(n_times,1)) )
+  IminusRho_kk = Diagonal(n=nrow(P_kk)) - P_kk
+  Impact_kj = solve( IminusRho_kk, delta_kj )
+  
+  # Make into data frame
+  out = expand.grid( "deltaT" = seq_len(n_times)-1, 
+                     "to" = colnames(Z), 
+                     "from" = colnames(Z) )
+  out$total_effect = as.vector(Impact_kj)
+  return(out)
+}
+
