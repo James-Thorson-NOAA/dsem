@@ -22,7 +22,11 @@ including lagged or simultaneous effects.  See Details section in
 \item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
 
 \item{family}{Character-vector listing the distribution used for each column of \code{tsdata}, where
-each element must be \code{fixed} or \code{normal}.
+each element must be \code{fixed} (for no measurement error), 
+\code{normal} for normal measurement error using an identity link,
+\code{gamma} for a gamma measurement error using a fixed CV and log-link, 
+\code{bernoulli} for a Bernoulli measurement error using a logit-link, or
+\code{poisson} for a Poisson measurement error using a log-link.
 \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
 Other options correspond to different specifications of measurement error.}
 

@@ -22,5 +22,6 @@ estimated effect of every variable on every other variable and any time-lag
 from 0 (simultaneous effects) to a user-specified maximum lag.
 }
 \details{
-
+Total effects are taken from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}},
+where \eqn{\mathbf{P}} is the path matrix across variables and times.
 }

@@ -7,7 +7,11 @@
 #'        \code{\link[dsem]{make_dsem_ram}} for more description
 #' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}
 #' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
-#'        each element must be \code{fixed} or \code{normal}.
+#'        each element must be \code{fixed} (for no measurement error), 
+#'        \code{normal} for normal measurement error using an identity link,
+#'        \code{gamma} for a gamma measurement error using a fixed CV and log-link, 
+#'        \code{bernoulli} for a Bernoulli measurement error using a logit-link, or
+#'        \code{poisson} for a Poisson measurement error using a log-link.
 #'        \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
 #'        Other options correspond to different specifications of measurement error.
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
@@ -191,7 +195,7 @@ function( sem,
   Data = list( "options" = options,
                "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
-               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
+               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
                "y_tj" = tsdata )
 
   # Construct parameters
@@ -228,8 +232,10 @@ function( sem,
   # Construct map
   if( is.null(control$map) ){
     Map = list()
+    # Map off x_tj for fixed when data is available
     Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
-    Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
+    # Map off sigma_j for fixed / bernoulli / Poisson
+    Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )

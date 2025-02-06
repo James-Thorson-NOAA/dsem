@@ -239,7 +239,7 @@ Type objective_function<Type>::operator() ()
       }
       devresid_tj(t,j) = y_tj(t,j) - mu_tj(t,j);
     }
-    // familycode = 2 :  binomial
+    // familycode = 2 :  Bernoulli
     if( familycode_j(j)==2 ){
       mu_tj(t,j) = invlogit(z_tj(t,j));
       if(!R_IsNA(asDouble(y_tj(t,j)))){

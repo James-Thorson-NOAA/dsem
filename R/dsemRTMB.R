@@ -145,8 +145,10 @@ function( sem,
   # Construct map
   if( is.null(control$map) ){
     Map = list()
+    # Map off x_tj for fixed when data is available
     Map$x_tj = factor(ifelse( is.na(as.vector(y_tj)) | (family[col(y_tj)] %in% c("normal","binomial","poisson","gamma")), seq_len(n_k), NA ))
-    Map$lnsigma_j = factor( ifelse(family=="fixed", NA, seq_along(Params$lnsigma_j)) )
+    # Map off sigma_j for fixed / bernoulli / Poisson
+    Map$lnsigma_j = factor( ifelse(family %in% c("fixed","binomial","poisson"), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(y_tj))==0, NA, seq_len(n_j)) )

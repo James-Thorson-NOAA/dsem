@@ -3,6 +3,8 @@
 * Added `total_effect(.)` to calculate total effects
 * Fixed bug where dsem crashed when `quiet = FALSE` and running without data
   e.g., as qualitative network model
+* Fixed bug where dsem crashed when `quiet = FALSE` and running without data
+  e.g., as qualitative network model
 
 # dsem 1.4.1
 

@@ -137,7 +137,8 @@ function( object,
 #' @param n_lags Number of lags over which to calculate total effects
 #'
 #' @details
-#' Total effects are calculated from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}
+#' Total effects are taken from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}},
+#' where \eqn{\mathbf{P}} is the path matrix across variables and times.
 #'
 #' @return
 #' A data frame listing the time-lag (lag), variable that is undergoing some 
