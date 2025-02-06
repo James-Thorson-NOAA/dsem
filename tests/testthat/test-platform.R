@@ -47,6 +47,7 @@ test_that("dsem example is working ", {
   vcov(fit, which="both")
   print(fit)
   logLik(fit)
+  total_effect(fit)
   as_sem(fit)
   predict(fit, type="link")
   predict(fit, type="response")
