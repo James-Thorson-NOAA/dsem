@@ -134,41 +134,43 @@ function( object,
 #' from 0 (simultaneous effects) to a user-specified maximum lag.
 #'
 #' @param object Output from \code{\link{dsem}}
-#' @param n_times Number of lags over which to calculate total effects
+#' @param n_lags Number of lags over which to calculate total effects
 #'
 #' @details
 #' Total effects are calculated from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}
 #'
 #' @return
-#' A data frame listing the time-lag (deltaT), variable that is undergoing some 
+#' A data frame listing the time-lag (lag), variable that is undergoing some 
 #' exogenous change (from), and the variable being impacted (to), along with the 
-#' total effect including direct and indirect pathways
+#' total effect (effect) including direct and indirect pathways
 #'
 #' @export
 total_effect <-
 function( object,
-          n_times = 4 ){
+          n_lags = 4 ){
 
-  #library(Matrix)
+  # Extract path matrix
   Z = object$internal$tsdata
   P_kk = make_matrices( 
     beta_p = object$internal$parhat$beta,
     model = object$sem_full,
-    times = seq_len(n_times),
+    times = seq_len(n_lags),
     variables = colnames(Z)
   )$P_kk            
 
-  #
+  # Define innovations
   delta_kj = kronecker( Diagonal(n=ncol(Z)), 
-                        sparseMatrix(i=1, j=1, x=1, dims=c(n_times,1)) )
+                        sparseMatrix(i=1, j=1, x=1, dims=c(n_lags,1)) )
   IminusRho_kk = Diagonal(n=nrow(P_kk)) - P_kk
+  
+  # Calculate total effect using sparse matrices
   Impact_kj = solve( IminusRho_kk, delta_kj )
   
   # Make into data frame
-  out = expand.grid( "deltaT" = seq_len(n_times)-1, 
+  out = expand.grid( "lag" = seq_len(n_lags)-1, 
                      "to" = colnames(Z), 
                      "from" = colnames(Z) )
-  out$total_effect = as.vector(Impact_kj)
+  out$effect = as.vector(Impact_kj)
   return(out)
 }
 

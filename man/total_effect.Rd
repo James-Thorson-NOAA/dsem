@@ -4,17 +4,17 @@
 \alias{total_effect}
 \title{Calculate total effects}
 \usage{
-total_effect(object, n_times = 4)
+total_effect(object, n_lags = 4)
 }
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
 
-\item{n_times}{Number of lags over which to calculate total effects}
+\item{n_lags}{Number of lags over which to calculate total effects}
 }
 \value{
-A data frame listing the time-lag (deltaT), variable that is undergoing some 
+A data frame listing the time-lag (lag), variable that is undergoing some 
 exogenous change (from), and the variable being impacted (to), along with the 
-total effect including direct and indirect pathways
+total effect (effect) including direct and indirect pathways
 }
 \description{
 Calculate a data frame of total effects, representing the 
