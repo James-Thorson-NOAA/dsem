@@ -5,6 +5,8 @@
   e.g., as qualitative network model
 * Fixed bug where dsem crashed when `quiet = FALSE` and running without data
   e.g., as qualitative network model
+* Added vignette showing how to approximate diffusive movement using DSEM with
+  paths among adjacent strata
 
 # dsem 1.4.1
 
