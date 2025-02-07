@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
-#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/dynamic_factor_analysis.Rmd")
+#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/spatial_diffusion.Rmd")
 ```
 
 ## Approximating diffusive movement among adjacent spatial strata
@@ -104,10 +104,10 @@ effect = total_effect(fit, n_lags = 2)
 Mhat = array( subset(effect,lag==1)$effect, dim(M) )
 
 # Display predicted movement
-knitr::kable( round(Mhat), digits=3)
+knitr::kable( Mhat, digits=2)
 ```
 
 And we can compare this with the true transition matrix from diffusive movement
 ```{r display, echo=TRUE, message=FALSE}
-knitr::kable( round(M), digits=2)
+knitr::kable( as.matrix(M), digits=2)
 ```
