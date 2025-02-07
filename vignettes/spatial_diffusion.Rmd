@@ -41,7 +41,10 @@ diag(Dprime) = -1 * rowSums(Dprime)
 # Movement transition matrix
 M = expm( Dprime )
 
-# 
+# set seed for reproducibility
+set.seed(101)
+
+# Simulate densities
 x_ti = matrix( NA, nrow=100, ncol = nrow(M) )
 x_ti[1,] = rnorm(n=nrow(M), mean = 0, sd = 1 )
 for( t in 2:nrow(x_ti) ){
