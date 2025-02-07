@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 
 To show this, we simulate data for five spatial strata (A, B, C, D, E) that are adjacent to one another along a single line (e.g., C is adjacent to B and D): 
 
-```{r setup, echo=TRUE, message=FALSE}
+```{r simulate, echo=TRUE, message=FALSE}
 library(igraph)
 library(Matrix)
 
@@ -49,23 +49,13 @@ for( t in 2:nrow(x_ti) ){
 }
 ```
 
-We then specify a SEM that includes movement to adjacent cells, and a balanced movement out of the central cell.
+We then specify a SEM that approximates diffusive movement, specifically using a diffusion-enhanced spatio-temporal process:
 
-```{r setup, echo=TRUE, message=FALSE}
+```{r fit, echo=TRUE, message=FALSE}
 library(dsem)
 
 # Specify SEM
 sem = "
-  # Movement
-  A -> B, 1, d
-  B -> C, 1, d
-  C -> D, 1, d
-  D -> E, 1, d
-  E -> D, 1, d
-  D -> C, 1, d
-  C -> B, 1, d
-  B -> A, 1, d
-
   # Spatial correlation
   A -> B, 0, d0
   B -> C, 0, d0
@@ -75,6 +65,16 @@ sem = "
   D -> C, 0, d0
   C -> B, 0, d0
   B -> A, 0, d0
+
+  # Spatio-temporal diffusion
+  A -> B, 1, d
+  B -> C, 1, d
+  C -> D, 1, d
+  D -> E, 1, d
+  E -> D, 1, d
+  D -> C, 1, d
+  C -> B, 1, d
+  B -> A, 1, d
 
   # Self-limitation
   A -> A, 1, rho
@@ -93,7 +93,7 @@ fit = dsem(
 ```
 
 Finally, we can predict movement resulting from the estimated path coefficients:
-```{r setup, echo=TRUE, message=FALSE}
+```{r predict, echo=TRUE, message=FALSE}
 # Calculate total effect
 effect = total_effect(fit, n_lags = 2)
 
@@ -105,6 +105,6 @@ knitr::kable( round(Mhat), digits=3)
 ```
 
 And we can compare this with the true transition matrix from diffusive movement
-```{r setup, echo=TRUE, message=FALSE}
+```{r display, echo=TRUE, message=FALSE}
 knitr::kable( round(M), digits=2)
 ```
