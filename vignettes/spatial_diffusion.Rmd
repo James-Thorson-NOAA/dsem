@@ -93,6 +93,9 @@ fit = dsem(
   tsdata = ts(x_ti),
   sem = sem
 )
+
+# summary of estimates
+summary(fit)
 ```
 
 Finally, we can predict movement resulting from the estimated path coefficients:
@@ -102,6 +105,7 @@ effect = total_effect(fit, n_lags = 2)
 
 # Calculate predicted movement
 Mhat = array( subset(effect,lag==1)$effect, dim(M) )
+dimnames(Mhat) = dimnames(M)
 
 # Display predicted movement
 knitr::kable( Mhat, digits=2)
