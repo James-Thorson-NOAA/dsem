@@ -143,7 +143,8 @@ function( object,
 #' @return
 #' A data frame listing the time-lag (lag), variable that is undergoing some 
 #' exogenous change (from), and the variable being impacted (to), along with the 
-#' total effect (effect) including direct and indirect pathways
+#' total effect (total_effect) including direct and indirect pathways, and the
+#' partial "direct" effect (direct_effect)
 #'
 #' @export
 total_effect <-
@@ -164,14 +165,18 @@ function( object,
                         sparseMatrix(i=1, j=1, x=1, dims=c(n_lags,1)) )
   IminusRho_kk = Diagonal(n=nrow(P_kk)) - P_kk
   
+  # Calculate partial effect
+  Partial_kj = P_kk %*% delta_kj
+
   # Calculate total effect using sparse matrices
-  Impact_kj = solve( IminusRho_kk, delta_kj )
+  Total_kj = solve( IminusRho_kk, delta_kj )
   
   # Make into data frame
   out = expand.grid( "lag" = seq_len(n_lags)-1, 
                      "to" = colnames(Z), 
                      "from" = colnames(Z) )
-  out$effect = as.vector(Impact_kj)
+  out$total_effect = as.vector(Total_kj)
+  out$direct_effect = as.vector(Partial_kj)
   return(out)
 }
 

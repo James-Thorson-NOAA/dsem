@@ -39,7 +39,7 @@
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
 #' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis
-#' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0
+#' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
