@@ -66,8 +66,8 @@ function( A,
   }
   s <- lapply(s, function(x) {
     # define whether there are existing paths between the two nodes in both directions.
-    path1 <- !is.null(findPath(d, which(rownames(A) == x[1]), which(rownames(A) == x[2])))
-    path2 <- !is.null(findPath(d, which(rownames(A) == x[2]), which(rownames(A) == x[1])))
+    path1 <- !is.null(findPath(A, which(rownames(A) == x[1]), which(rownames(A) == x[2])))
+    path2 <- !is.null(findPath(A, which(rownames(A) == x[2]), which(rownames(A) == x[1])))
     if (path1 & !path2) {
       # the first vertex is upstream, so we do not re-order
       return(x)
@@ -173,6 +173,37 @@ function( summary_table ){
 #' for path models based on directed acyclic graphs. Structural
 #'   Equation Modeling, 7(2), 206-218. \doi{10.1207/S15328007SEM0702_4}
 #'
+#' @examples
+#' # Simulate data set
+#' set.seed(101)
+#' a = rnorm( 100 )
+#' b = 0.5*a + rnorm(100)
+#' c = 1*a + rnorm(100)
+#' d = 1*b - 0.5*c + rnorm(100)
+#' tsdata = ts(data.frame(a=a, b=b, c=c, d=d))
+#'
+#' # fit wrong model
+#' wrong = dsem(
+#'   tsdata = tsdata,
+#'   sem = "
+#'     a -> d, 0, a_to_d
+#'     b -> d, 0, b_to_d
+#'     c -> d, 0, c_to_d
+#'   "
+#' )
+#' test_dsep( wrong )
+#'
+#' # fit right model
+#' right = dsem(
+#'   tsdata = tsdata,
+#'   sem = "
+#'     a -> b, 0, a_to_b
+#'     a -> c, 0, a_to_c
+#'     b -> d, 0, b_to_d
+#'     c -> d, 0, c_to_d
+#'   "
+#' )
+#' test_dsep( right )
 #' @export
 test_dsep <-
 function( object,
@@ -188,7 +219,7 @@ function( object,
   A = ifelse( d==0, 0, 1)
 
   # find_formulas
-  order <- find_consensus_order(list(A))
+  order = find_consensus_order(list(A))
   paths = find_paths( A, order=order )
   paths = lapply(paths, set_to_paths)
   sems = lapply( paths, function(x){ sapply(x, function(y){convert_path(y)}, USE.NAMES=FALSE) } )
@@ -198,5 +229,5 @@ function( object,
 
   #
   C_p = -2 * sum( log(pvalues) )
-  1 - stats::pchisq( C_p, df = 2 * length(pvalues) )
+  1 - pchisq( C_p, df = 2 * length(pvalues) )
 }

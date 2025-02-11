@@ -25,7 +25,9 @@ Imports:
     ggraph,
     ggplot2,
     grid,
-    methods
+    methods,
+    stats,
+    ggm
 Depends:
     R (>= 4.0.0),
 Suggests:

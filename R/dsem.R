@@ -38,7 +38,7 @@
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis
+#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_

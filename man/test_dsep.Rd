@@ -32,6 +32,38 @@ in a model with temporal autocorrelation, and the test was not developed for
 uses when data are missing.  At the time of writing, the function is hightly
 experimental.
 }
+\examples{
+# Simulate data set
+set.seed(101)
+a = rnorm( 100 )
+b = 0.5*a + rnorm(100)
+c = 1*a + rnorm(100)
+d = 1*b - 0.5*c + rnorm(100)
+tsdata = ts(data.frame(a=a, b=b, c=c, d=d))
+
+# fit wrong model
+wrong = dsem(
+  tsdata = tsdata,
+  sem = "
+    a -> d, 0, a_to_d
+    b -> d, 0, b_to_d
+    c -> d, 0, c_to_d
+  "
+)
+test_dsep( wrong )
+
+# fit right model
+right = dsem(
+  tsdata = tsdata,
+  sem = "
+    a -> b, 0, a_to_b
+    a -> c, 0, a_to_c
+    b -> d, 0, b_to_d
+    c -> d, 0, c_to_d
+  "
+)
+test_dsep( right )
+}
 \references{
 Shipley, B. (2000). A new inferential test
 for path models based on directed acyclic graphs. Structural
