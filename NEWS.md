@@ -1,4 +1,4 @@
-# dsem 1.4.2
+# dsem 1.5.0
 
 * Added `test_dsep(.)` to calculate a p-value for the probability that a
   a data set arose from the specified model (highly experimental)
