@@ -331,7 +331,7 @@ effect = total_effect( fit )
 
 # Plot total effect
 ggplot( effect) + 
-  geom_bar( aes(lag, effect, fill=lag), stat='identity', col='black', position='dodge' ) + 
+  geom_bar( aes(lag, total_effect, fill=lag), stat='identity', col='black', position='dodge' ) +
   facet_grid( from ~ to  )
 ```
 

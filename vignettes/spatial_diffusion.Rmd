@@ -35,7 +35,7 @@ adjacency_graph = make_graph( ~ A - B - C - D - E )
 A = as.matrix( adjacency_graph )
 
 # Diffusion rate
-Dprime = 0.2 * A
+Dprime = 1 * A
 diag(Dprime) = -1 * rowSums(Dprime)
 
 # Movement transition matrix
@@ -45,11 +45,16 @@ M = expm( Dprime )
 set.seed(101)
 
 # Simulate densities
-x_ti = matrix( NA, nrow=100, ncol = nrow(M) )
+n_times = 100
+n_burnin = 100
+x_ti = matrix( NA, nrow=n_times+n_burnin, ncol = nrow(M) )
 x_ti[1,] = rnorm(n=nrow(M), mean = 0, sd = 1 )
 for( t in 2:nrow(x_ti) ){
   x_ti[t,] = (x_ti[t-1,] %*% M)[1,] + rnorm(n=nrow(M), mean = 0, sd = 0.1)
 }
+
+# Subset to times after burn-in
+x_ti = x_ti[ n_burnin+seq_len(n_times), ]
 ```
 
 We then specify a SEM that approximates diffusive movement, specifically using a diffusion-enhanced spatio-temporal process:
@@ -101,10 +106,10 @@ summary(fit)
 Finally, we can predict movement resulting from the estimated path coefficients:
 ```{r predict, echo=TRUE, message=FALSE}
 # Calculate total effect
-effect = total_effect(fit, n_lags = 2)
+effect = total_effect(fit, n_lags = 3)
 
 # Calculate predicted movement
-Mhat = array( subset(effect,lag==1)$effect, dim(M) )
+Mhat = array( subset(effect,lag==1)$total_effect, dim(M) )
 dimnames(Mhat) = dimnames(M)
 
 # Display predicted movement
@@ -115,3 +120,6 @@ And we can compare this with the true transition matrix from diffusive movement
 ```{r display, echo=TRUE, message=FALSE}
 knitr::kable( as.matrix(M), digits=2)
 ```
+
+Finally, we can simplify the SEM by either:
+* turning off the spatial correlation (i.e., simultaneous spatial interactions), such that movement is limited to one stratum per time.
