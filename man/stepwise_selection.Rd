@@ -36,47 +36,32 @@ selection using marginal AIC, while forcing some model elements to be
 included and selecting among others.
 }
 \examples{
-data(isle_royale)
-data = ts( log(isle_royale[,2:3]), start=1959)
+# Simulate x -> y -> z
+set.seed(101)
+x = rnorm(100)
+y = 0.5*x + rnorm(100)
+z = 1*y + rnorm(100)
+tsdata = ts(data.frame(x=x, y=y, z=z))
 
-# String including paths that must be included (not selected among)
-path_shared = "
-  moose -> wolves, 1, MtoW
-  wolves -> moose, 1, WtoM
+# define candidates
+model_options = c(
+  "y -> z, 0, y_to_z",
+  "x -> z, 0, x_to_z"
+)
+# define paths that are required
+model_shared = "
+  x -> y, 0, x_to_y
 "
-# Character-vector for paths to be selected among
-path_options = c(
-  "wolves -> wolves, 1, arW",
-  "moose -> moose, 1, arM"
+
+# Do selection
+step = stepwise_selection(
+  model_options = model_options,
+  model_shared = model_shared,
+  tsdata = tsdata,
+  quiet = TRUE
 )
 
-#' # run stepwise selection
-# Using upper = 1 to prevent convergence issues which arise in this case study
-# Other cases would presumably modify estimate_delta0 and control arguments
-selex = stepwise_selection( 
-  model_options = path_options,
-  model_shared = path_shared,
-  tsdata = data,
-  estimate_delta0 = TRUE,
-  control = dsem_control(
-    getsd = FALSE,
-    newton_loops = 0,
-    quiet = TRUE,
-    upper = 1)
-)
-
-# Show selected model
-cat( selex$model )
-
-# Fit with selected model (including SEs)
-fit = dsem(
-  sem = selex$model,
-  tsdata = data,
-  estimate_delta0 = TRUE,
-  control = dsem_control(
-    newton_loops = 0,
-    quiet = TRUE,
-    upper = 1)
-)
+# Check selected model
+cat(step$model)
 
 }
