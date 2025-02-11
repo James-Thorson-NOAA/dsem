@@ -8,7 +8,7 @@ make_dsem_ram(
   sem,
   times,
   variables,
-  covs = NULL,
+  covs = variables,
   quiet = FALSE,
   remove_na = TRUE
 )

@@ -35,3 +35,48 @@ This function conducts stepwise (i.e., forwards and backwards) model
 selection using marginal AIC, while forcing some model elements to be
 included and selecting among others.
 }
+\examples{
+data(isle_royale)
+data = ts( log(isle_royale[,2:3]), start=1959)
+
+# String including paths that must be included (not selected among)
+path_shared = "
+  moose -> wolves, 1, MtoW
+  wolves -> moose, 1, WtoM
+"
+# Character-vector for paths to be selected among
+path_options = c(
+  "wolves -> wolves, 1, arW",
+  "moose -> moose, 1, arM"
+)
+
+#' # run stepwise selection
+# Using upper = 1 to prevent convergence issues which arise in this case study
+# Other cases would presumably modify estimate_delta0 and control arguments
+selex = stepwise_selection( 
+  model_options = path_options,
+  model_shared = path_shared,
+  tsdata = data,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    getsd = FALSE,
+    newton_loops = 0,
+    quiet = TRUE,
+    upper = 1)
+)
+
+# Show selected model
+cat( selex$model )
+
+# Fit with selected model (including SEs)
+fit = dsem(
+  sem = selex$model,
+  tsdata = data,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    newton_loops = 0,
+    quiet = TRUE,
+    upper = 1)
+)
+
+}

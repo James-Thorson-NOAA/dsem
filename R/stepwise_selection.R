@@ -25,6 +25,50 @@
 #' \item{record}{a list showing the AIC and whether each \code{model_options} is included or not}
 #' }
 #'
+#' @examples
+#' data(isle_royale)
+#' data = ts( log(isle_royale[,2:3]), start=1959)
+#' 
+#' # String including paths that must be included (not selected among)
+#' path_shared = "
+#'   moose -> wolves, 1, MtoW
+#'   wolves -> moose, 1, WtoM
+#' "
+#' # Character-vector for paths to be selected among
+#' path_options = c(
+#'   "wolves -> wolves, 1, arW",
+#'   "moose -> moose, 1, arM"
+#' )
+#' 
+#' #' # run stepwise selection
+#' # Using upper = 1 to prevent convergence issues which arise in this case study
+#' # Other cases would presumably modify estimate_delta0 and control arguments
+#' selex = stepwise_selection( 
+#'   model_options = path_options,
+#'   model_shared = path_shared,
+#'   tsdata = data,
+#'   estimate_delta0 = TRUE,
+#'   control = dsem_control(
+#'     getsd = FALSE,
+#'     newton_loops = 0,
+#'     quiet = TRUE,
+#'     upper = 1)
+#' )
+#' 
+#' # Show selected model
+#' cat( selex$model )
+#' 
+#' # Fit with selected model (including SEs)
+#' fit = dsem(
+#'   sem = selex$model,
+#'   tsdata = data,
+#'   estimate_delta0 = TRUE,
+#'   control = dsem_control(
+#'     newton_loops = 0,
+#'     quiet = TRUE,
+#'     upper = 1)
+#' )
+#'
 #' @export
 stepwise_selection <-
 function( model_options,
@@ -34,7 +78,7 @@ function( model_options,
 
   # Loop
   best = rep(0, length(model_options) )
-  record = NULL
+  step = NULL
   while(TRUE){
     if(isFALSE(quiet)) message("Running with ", sum(best), " vars included: ", Sys.time() )
     df_options = outer( rep(1,length(best)), best )
@@ -51,8 +95,8 @@ function( model_options,
       AIC_i[i] = AIC(myfit)
     }
 
-    # Save record and decide whether to continue
-    record[[length(record)+1]] = cbind( AIC_i, df_options )
+    # Save step and decide whether to continue
+    step[[length(step)+1]] = cbind( AIC_i, df_options )
     if(which.min(AIC_i)==1){
       break()
     }else{
@@ -64,5 +108,5 @@ function( model_options,
   model = paste( paste(model_options[which(best==1)],collapse="\n"),
                  paste(model_shared,collapse="\n"),
                  sep="\n" )
-  return(list(model=model, record=record))
+  return(list(model=model, step=step))
 }

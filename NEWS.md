@@ -1,5 +1,7 @@
 # dsem 1.4.2
 
+* Added `test_dsep(.)` to calculate a p-value for the probability that a
+  a data set arose from the specified model (highly experimental)
 * Added `total_effect(.)` to calculate total effects
 * Fixed bug where dsem crashed when `quiet = FALSE` and running without data
   e.g., as qualitative network model

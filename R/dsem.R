@@ -46,6 +46,8 @@
 #' @importFrom ggplot2 aes
 #' @importFrom grid arrow
 #' @importFrom methods is
+#' @importFrom ggm basiSet findPath isAcyclic topSort
+#' @importFrom utils combn
 #'
 #' @details
 #' A DSEM involves (at a minimum):

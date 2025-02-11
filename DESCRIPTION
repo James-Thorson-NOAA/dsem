@@ -20,6 +20,7 @@ Imports:
     Matrix,
     sem,
     igraph,
+    utils,
     RTMB (>= 1.7.0),
     ggraph,
     ggplot2,

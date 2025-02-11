@@ -14,7 +14,8 @@ total_effect(object, n_lags = 4)
 \value{
 A data frame listing the time-lag (lag), variable that is undergoing some 
 exogenous change (from), and the variable being impacted (to), along with the 
-total effect (effect) including direct and indirect pathways
+total effect (total_effect) including direct and indirect pathways, and the
+partial "direct" effect (direct_effect)
 }
 \description{
 Calculate a data frame of total effects, representing the 
