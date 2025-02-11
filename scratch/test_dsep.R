@@ -1,16 +1,15 @@
 
 
-set.seed(101)
 library(dsem)
-#source( R'(C:\Users\James.Thorson\Desktop\Work files\Collaborations\2025 -- DSEM guidance paper\Check residuals\phylopath_utilities.R)')
-
-# Confirm that graph has conditional dependencies with non-null conditioning set
 library(ggm)
 library(igraph)
+
+# Confirm that graph has conditional dependencies with non-null conditioning set
 A <- DAG(x5~ x3+x4, x3~ x2, x4~x2)
 basiSet(A)
-#plot(graph_from_adjacency_matrix(A))
+plot(graph_from_adjacency_matrix(A))
 
+# Simulation loop
 pvalue_rz = array(NA, dim=c(500,3) )
 for( r in seq_len(dim(pvalue_rz)[1]) ){
   set.seed(r)
@@ -22,7 +21,7 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
   d = 2 + -0.5*b + 1*c + rnorm(100)
   data = data.frame(a=a, b=b, c=c, d=d)
 
-  #
+  # Correct SEM
   sem1 = "
     a -> b, 0, beta_ab
     a -> c, 0, beta_ac
@@ -36,7 +35,7 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
   pvalue_rz[r,1] = test_dsep( fit1,
                               max_lag = 0 )
 
-  #
+  # Backwards causality
   sem2 = "
     b -> a, 0, beta_ba
     c -> a, 0, beta_ca
@@ -50,7 +49,7 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
   pvalue_rz[r,2] = test_dsep( fit2,
                               max_lag = 0 )
 
-  #
+  # Flat regression structure
   sem3 = "
     a -> b, 0, beta_ab
     a -> b, 0, beta_ab
@@ -63,6 +62,8 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
   pvalue_rz[r,3] = test_dsep( fit3,
                               max_lag = 0 )
 }
+
+# Show tests
 par( mfrow=c(3,1) )
 hist(pvalue_rz[,1], breaks=seq(0,1,by=0.05))
 hist(pvalue_rz[,2], breaks=seq(0,1,by=0.05))
