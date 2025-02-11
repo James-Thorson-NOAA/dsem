@@ -4,7 +4,12 @@
 \alias{test_dsep}
 \title{Test d-separation}
 \usage{
-test_dsep(object, max_lag = NULL)
+test_dsep(
+  object,
+  max_lag = NULL,
+  what = c("pvalue", "CIC", "all"),
+  conditional_test = c("wald", "lr")
+)
 }
 \arguments{
 \item{object}{object from \code{\link{dsem}}}
@@ -12,6 +17,11 @@ test_dsep(object, max_lag = NULL)
 \item{max_lag}{how many lags to include when defining the set of conditional
 independence relationships. If missing, this value is taken from
 the maximum lag that's included in the model.}
+
+\item{what}{whether to just get the p-value, or a named list with the p-value,}
+
+\item{conditional_test}{whether to test each conditional-independence relationship
+using a (univariate) Wald test or a (multivariate) likelihood ratio test}
 }
 \value{
 A p-value representing the weight of evidence that the data arises

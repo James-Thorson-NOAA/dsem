@@ -122,24 +122,18 @@ function( path ){
   return(arrow_and_lag)
 }
 
-fit_and_summary <-
+fit_dsem <-
 function( object,
           sem ){
 
   control = object$internal$control
-  fit_z = dsem( sem = paste0(sem," \n "),
+  fit = dsem( sem = paste0(sem," \n "),
                 tsdata = object$internal$tsdata,
                 family = object$internal$family,
                 estimate_delta0 = object$internal$estimate_delta0,
                 control = dsem_control( use_REML = control$use_REML,
                                         quiet = TRUE ) )
-  summary(fit_z)
-}
-
-# Modified from phylopath
-get_pvalues <-
-function( summary_table ){
-  summary_table[1,'p_value']
+  return(fit)
 }
 
 #' @title Test d-separation
@@ -151,6 +145,9 @@ function( summary_table ){
 #' @param max_lag how many lags to include when defining the set of conditional
 #'        independence relationships. If missing, this value is taken from
 #'        the maximum lag that's included in the model.
+#' @param what whether to just get the p-value, or a named list with the p-value,
+#' @param conditional_test whether to test each conditional-independence relationship
+#'        using a (univariate) Wald test or a (multivariate) likelihood ratio test
 #'
 #' @details
 #' A user-specified SEM implies a set of conditional independence relationships
@@ -207,9 +204,13 @@ function( summary_table ){
 #' @export
 test_dsep <-
 function( object,
-          max_lag = NULL ){
+          max_lag = NULL,
+          what = c("pvalue","CIC","all"),
+          conditional_test = c("wald","lr") ){
 
   # Get amat
+  what = match.arg(what)
+  conditional_test = match.arg(conditional_test)
   if(is.null(max_lag)){
     max_lag = max( summary(object)$lag )
   }
@@ -221,13 +222,40 @@ function( object,
   # find_formulas
   order = find_consensus_order(list(A))
   paths = find_paths( A, order=order )
-  paths = lapply(paths, set_to_paths)
-  sems = lapply( paths, function(x){ sapply(x, function(y){convert_path(y)}, USE.NAMES=FALSE) } )
-  summaries = lapply( sems, fit_and_summary, object=object )
-  pvalues = sapply( summaries, get_pvalues )
-  #formulas[ which(pvalues<0.01) ]
+  arrow_and_lags = lapply(paths, set_to_paths)
+  sems = lapply( arrow_and_lags, function(x){ sapply(x, function(y){convert_path(y)}, USE.NAMES=FALSE) } )
+  fits = lapply( sems, fit_dsem, object=object )
+
+  if( conditional_test == "lr" ){
+    # eliminate target variable and refit
+    sems_null = lapply( sems, function(vec){vec[-1]} )
+    fits_null = lapply( sems_null, fit_dsem, object=object )
+    # Compare objectives as likelihood ratio test
+    objectives = sapply( fits, function(l) l$opt$obj )
+    objectives_null = sapply( fits_null, function(l)l$opt$obj )
+    pvalues = 1 - pchisq( 2*objectives_null - 2*objectives, df = 1 )
+  }else{
+    summaries = lapply( fits, summary )
+    pvalues = sapply( summaries, function(l) l[1,'p_value'] )
+  }
 
   #
   C_p = -2 * sum( log(pvalues) )
-  1 - pchisq( C_p, df = 2 * length(pvalues) )
+  pvalue = 1 - pchisq( C_p, df = 2 * length(pvalues) )
+  CIC = C_p + 2 * length(object$opt$par)
+  if( what == "pvalue" ){
+    return(pvalue)
+  }else if( what == "CIC" ){
+    return(CIC)
+  }else{
+    return(list(
+      pvalue = pvalue,
+      CIC = CIC,
+      #paths = paths,
+      arrow_and_lags = arrow_and_lags,
+      sems = sems,
+      fits = fits,
+      pvalues = pvalues
+    ))
+  }
 }
