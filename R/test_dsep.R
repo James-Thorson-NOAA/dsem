@@ -91,6 +91,20 @@ function( A,
   return(s)
 }
 
+remove_paths <-
+function( paths,
+          n_burnin ){
+
+  out = NULL
+  for( i in seq_along(paths) ){
+    lags = sapply( paths[[i]], function(char) as.numeric(strsplit(char,"_lag")[[1]][2]) )
+    if( all(lags[1:2] >= n_burnin) ){
+      out = c( out, paths[i] )
+    }
+  }
+  return(out)
+}
+
 # Modified from phylopath
 path_to_arrow <-
 function(x) {
@@ -104,20 +118,6 @@ function(x) {
     row = paste0( cond[i], " -> ", dep, ", 0, nuissance_", i )
     #out = paste0( out, " \n ", row )
     out = c( out, row )
-  }
-  return(out)
-}
-
-remove_paths <-
-function( paths,
-          n_burnin ){
-
-  out = NULL
-  for( i in seq_along(paths) ){
-    lags = sapply( paths[[i]], function(char) as.numeric(strsplit(char,"_lag")[[1]][2]) )
-    if( all(lags[1:2] >= n_burnin) ){
-      out = c( out, paths[i] )
-    }
   }
   return(out)
 }
@@ -189,6 +189,9 @@ function( object,
 #' in a model with temporal autocorrelation, and the test was not developed for
 #' uses when data are missing.  At the time of writing, the function is hightly
 #' experimental.
+#'
+#' Note that the method is not currently designed to deal with two-headed arrows
+#' among variables (i.e., exogenous covariance).
 #'
 #' @return
 #' A p-value representing the weight of evidence that the data arises
@@ -273,7 +276,7 @@ function( object,
                       order=order )
   # Remove paths from initial "burn-in" buffer in time-stepping
   out$paths = remove_paths( out$paths,
-                            n_burnin = n_burnin )
+                            n_burnin = out$n_burnin )
   # convert to arrow-and-lag notation in variable-by-lag
   out$arrows = lapply( out$paths,
                        FUN = path_to_arrow)
