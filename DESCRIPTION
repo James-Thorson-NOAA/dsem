@@ -15,7 +15,7 @@ Authors@R:
              email = "goodman.maurice@gmail.com",
              comment = c(ORCID = "0000-0002-6874-2313")),    
       person(given = "Wouter", 
- 	     family = ""van der Bijl",
+ 	     family = "van der Bijl",
              role = c("ctb"),
              comment = c(ORCID = "0000-0002-7366-1868", "template for d-separation test")),
     )
