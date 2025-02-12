@@ -13,7 +13,7 @@ Authors@R:
              family = "Goodman",
              role = c("ctb"),
              email = "goodman.maurice@gmail.com",
-             comment = c(ORCID = "0000-0002-6874-2313"))    
+             comment = c(ORCID = "0000-0002-6874-2313")),    
       person(given = "Wouter", 
  	     family = ""van der Bijl",
              role = c("ctb"),
