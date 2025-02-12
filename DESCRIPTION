@@ -17,7 +17,7 @@ Authors@R:
       person(given = "Wouter", 
  	     family = "van der Bijl",
              role = c("ctb"),
-             comment = c(ORCID = "0000-0002-7366-1868", "template for d-separation test")),
+             comment = c(ORCID = "0000-0002-7366-1868", "template for d-separation test"))
     )
 Imports:
     TMB,
