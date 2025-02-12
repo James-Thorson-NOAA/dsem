@@ -39,7 +39,7 @@ function( sem,
           par.names[i] <- paste("V[", variables[i], "]", sep = "")
       }
       model.2 <- data.frame(
-        'path' = c(model$paths, paths),
+        'path' = c(model$path, paths),
         'lag' = c(model$lag, rep(0,nvars)),
         'name' = c(model$name, par.names),
         'start' = c(model$start, rep(NA, length(paths))) )
