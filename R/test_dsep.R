@@ -1,4 +1,22 @@
 
+get_P <-
+function( object,
+          times ){
+
+  Summary = summary(object)
+  variables = colnames(object$internal$tsdata)
+  P_kk = make_matrices(
+    beta_p = object$internal$parhat$beta,
+    model = object$sem_full,
+    times = times,
+    variables = variables
+  )$P_kk
+  varnames = expand.grid( times - 1, variables )
+  varnames = paste0( varnames[,2], "_lag", varnames[,1] )
+  dimnames(P_kk) = list(to=varnames, from=varnames)
+  return(P_kk)
+}
+
 # Modified from phylopath
 find_consensus_order <-
 function(model_set) {
@@ -39,28 +57,12 @@ function(model_set) {
 }
 
 # Modified from phylopath
-set_to_paths <-
-function(x) {
-
-  dep <- x[2]
-  ind <- x[1]
-  cond <- x[c(-1, -2)]
-
-  out = paste0( ind, " -> ", dep, ", 0, target_", dep, "_", ind )
-  for( i in seq_along(cond)){
-    row = paste0( cond[i], " -> ", dep, ", 0, nuissance_", dep, "_", cond[i] )
-    #out = paste0( out, " \n ", row )
-    out = c( out, row )
-  }
-  return(out)
-}
-
-# Modified from phylopath
 find_paths <-
 function( A,
           order ) {
 
   s <- basiSet(A[order,order])
+  #s <- basiSet(A)
   if (is.null(s)) {
     stop('One or some of your models are fully connected, and cannot be tested.')
   }
@@ -89,23 +91,35 @@ function( A,
   return(s)
 }
 
-get_P <-
-function( object,
-          max_lag ){
+# Modified from phylopath
+path_to_arrow <-
+function(x) {
 
-  Summary = summary(object)
-  times = seq_len( max_lag + 1 )
-  variables = colnames(object$internal$tsdata)
-  P_kk = make_matrices(
-    beta_p = object$internal$parhat$beta,
-    model = object$sem_full,
-    times = times,
-    variables = variables
-  )$P_kk
-  varnames = expand.grid( times - 1, variables )
-  varnames = paste0( varnames[,2], "_lag", varnames[,1] )
-  dimnames(P_kk) = list(to=varnames, from=varnames)
-  return(P_kk)
+  dep <- x[2]
+  ind <- x[1]
+  cond <- x[c(-1, -2)]
+
+  out = paste0( ind, " -> ", dep, ", 0, target" )
+  for( i in seq_along(cond)){
+    row = paste0( cond[i], " -> ", dep, ", 0, nuissance_", i )
+    #out = paste0( out, " \n ", row )
+    out = c( out, row )
+  }
+  return(out)
+}
+
+remove_paths <-
+function( paths,
+          n_burnin ){
+
+  out = NULL
+  for( i in seq_along(paths) ){
+    lags = sapply( paths[[i]], function(char) as.numeric(strsplit(char,"_lag")[[1]][2]) )
+    if( all(lags[1:2] >= n_burnin) ){
+      out = c( out, paths[i] )
+    }
+  }
+  return(out)
 }
 
 convert_path <-
@@ -124,15 +138,22 @@ function( path ){
 
 fit_dsem <-
 function( object,
-          sem ){
+          sem,
+          getsd = TRUE ){
 
+  # Modify controls
   control = object$internal$control
-  fit = dsem( sem = paste0(sem," \n "),
+    control$quiet = TRUE
+    control$extra_convergence_checks = FALSE
+    control$newton_loops = 0
+    control$getsd = getsd
+
+  # Refit
+  fit = dsem( sem = paste0(sem, collapse=" \n "),
                 tsdata = object$internal$tsdata,
                 family = object$internal$family,
                 estimate_delta0 = object$internal$estimate_delta0,
-                control = dsem_control( use_REML = control$use_REML,
-                                        quiet = TRUE ) )
+                control = control )
   return(fit)
 }
 
@@ -142,12 +163,21 @@ function( object,
 #' Calculate the p-value for a test of d-separation \strong{(Experimental)}
 #'
 #' @param object object from \code{\link{dsem}}
-#' @param max_lag how many lags to include when defining the set of conditional
+#' @param n_time how many times to include when defining the set of conditional
 #'        independence relationships. If missing, this value is taken from
-#'        the maximum lag that's included in the model.
-#' @param what whether to just get the p-value, or a named list with the p-value,
-#' @param conditional_test whether to test each conditional-independence relationship
-#'        using a (univariate) Wald test or a (multivariate) likelihood ratio test
+#'        the maximum lag that's included in the model plus one.
+#' @param n_burnin how many times to include prior to \code{seq_len(n_time)} when
+#'        identifying the conditioning set that must be included when defining
+#'        conditional independence relationships.
+#' @param what whether to just get the p-value, an information criterion
+#'        based on the conditional independence test, or a named list with these two
+#'        and other intermediate calculations (used for diagnosing test behavior)
+#' @param test whether to test each conditional-independence relationship
+#'        using a (univariate) wald test or a (multivariate) likelihood ratio test.
+#'        The likelihood-ratio test might be more accurate given estimation covariance
+#'        and also faster (does not require standard errors), but also is not
+#'        used by phylopath and therefore less supported by previous d-dsep
+#'        testing applications.
 #'
 #' @details
 #' A user-specified SEM implies a set of conditional independence relationships
@@ -204,58 +234,91 @@ function( object,
 #' @export
 test_dsep <-
 function( object,
-          max_lag = NULL,
+          n_time = NULL,
+          n_burnin = NULL,
           what = c("pvalue","CIC","all"),
-          conditional_test = c("wald","lr") ){
+          test = c("wald","lr") ){
 
-  # Get amat
+  # Check inputs
   what = match.arg(what)
-  conditional_test = match.arg(conditional_test)
-  if(is.null(max_lag)){
-    max_lag = max( summary(object)$lag )
+  test = match.arg(test)
+  out = list( n_time = n_time,
+              n_burnin = n_burnin )
+
+  # Detect n_time and n_burnin
+  if( is.null(out$n_burnin) ){
+    if( is.null(out$n_time) ){
+      out$n_burnin = max( summary(object)$lag )
+    }else{
+      out$n_burnin = 0
+    }
   }
-  P_kk = get_P( object = object, max_lag = max_lag )
+  if(is.null(out$n_time)){
+    out$n_time = max( summary(object)$lag ) + 1
+  }else{
+    warning( "Please check `n_time` carefully")
+  }
+  times = seq_len(out$n_time + out$n_burnin)
+
+  # Get adjacency
+  P_kk = get_P( object = object, times = times )
   d = t(as.matrix(P_kk))
   # replace with adjacency matrix
   A = ifelse( d==0, 0, 1)
 
-  # find_formulas
+  # Re-order
   order = find_consensus_order(list(A))
-  paths = find_paths( A, order=order )
-  arrow_and_lags = lapply(paths, set_to_paths)
-  sems = lapply( arrow_and_lags, function(x){ sapply(x, function(y){convert_path(y)}, USE.NAMES=FALSE) } )
-  fits = lapply( sems, fit_dsem, object=object )
+  # Find paths
+  out$paths = find_paths( A,
+                      order=order )
+  # Remove paths from initial "burn-in" buffer in time-stepping
+  out$paths = remove_paths( out$paths,
+                            n_burnin = n_burnin )
+  # convert to arrow-and-lag notation in variable-by-lag
+  out$arrows = lapply( out$paths,
+                       FUN = path_to_arrow)
+  # Convert to SEM notation
+  out$sems = lapply( out$arrows,
+                 FUN = function(x){ sapply( x,
+                                            FUN = function(y){convert_path(y)},
+                                            USE.NAMES = FALSE) } )
+  # Eliminate duplicates
+  out$sems = unique(out$sems)
+  # Fit models
+  out$fits = lapply( out$sems,
+                   FUN = fit_dsem,
+                   object = object,
+                   getsd = ifelse( test=="lr", FALSE, TRUE) )
 
-  if( conditional_test == "lr" ){
+  if( test == "lr" ){
     # eliminate target variable and refit
-    sems_null = lapply( sems, function(vec){vec[-1]} )
-    fits_null = lapply( sems_null, fit_dsem, object=object )
+    out$sems_null = lapply( out$sems,
+                        FUN = function(vec){vec[-1]} )
+    out$fits_null = lapply( out$sems_null,
+                        FUN = fit_dsem,
+                        object = object,
+                        getsd = FALSE )
     # Compare objectives as likelihood ratio test
-    objectives = sapply( fits, function(l) l$opt$obj )
-    objectives_null = sapply( fits_null, function(l)l$opt$obj )
-    pvalues = 1 - pchisq( 2*objectives_null - 2*objectives, df = 1 )
+    objectives = sapply( out$fits,
+                         FUN = function(list) list$opt$obj )
+    objectives_null = sapply( out$fits_null,
+                              FUN = function(list) list$opt$obj )
+    out$pvalues = 1 - pchisq( 2*objectives_null - 2*objectives, df = 1 )
   }else{
-    summaries = lapply( fits, summary )
-    pvalues = sapply( summaries, function(l) l[1,'p_value'] )
+    summaries = lapply( out$fits, summary )
+    out$pvalues = sapply( summaries, function(l) l[1,'p_value'] )
   }
 
-  #
-  C_p = -2 * sum( log(pvalues) )
-  pvalue = 1 - pchisq( C_p, df = 2 * length(pvalues) )
-  CIC = C_p + 2 * length(object$opt$par)
+  # Compute test statistics
+  C_p = -2 * sum( log(out$pvalues) )
+  out$pvalue = 1 - pchisq( C_p, df = 2 * length(out$pvalues) )
+  out$CIC = C_p + 2 * length(object$opt$par)
+
+  # Returns
   if( what == "pvalue" ){
-    return(pvalue)
+    out = out$pvalue
   }else if( what == "CIC" ){
-    return(CIC)
-  }else{
-    return(list(
-      pvalue = pvalue,
-      CIC = CIC,
-      #paths = paths,
-      arrow_and_lags = arrow_and_lags,
-      sems = sems,
-      fits = fits,
-      pvalues = pvalues
-    ))
+    out = out$CIC
   }
+  return(out)
 }

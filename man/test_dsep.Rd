@@ -6,22 +6,33 @@
 \usage{
 test_dsep(
   object,
-  max_lag = NULL,
+  n_time = NULL,
+  n_burnin = NULL,
   what = c("pvalue", "CIC", "all"),
-  conditional_test = c("wald", "lr")
+  test = c("wald", "lr")
 )
 }
 \arguments{
 \item{object}{object from \code{\link{dsem}}}
 
-\item{max_lag}{how many lags to include when defining the set of conditional
+\item{n_time}{how many times to include when defining the set of conditional
 independence relationships. If missing, this value is taken from
-the maximum lag that's included in the model.}
+the maximum lag that's included in the model plus one.}
 
-\item{what}{whether to just get the p-value, or a named list with the p-value,}
+\item{n_burnin}{how many times to include prior to \code{seq_len(n_time)} when
+identifying the conditioning set that must be included when defining
+conditional independence relationships.}
 
-\item{conditional_test}{whether to test each conditional-independence relationship
-using a (univariate) Wald test or a (multivariate) likelihood ratio test}
+\item{what}{whether to just get the p-value, an information criterion
+based on the conditional independence test, or a named list with these two
+and other intermediate calculations (used for diagnosing test behavior)}
+
+\item{test}{whether to test each conditional-independence relationship
+using a (univariate) wald test or a (multivariate) likelihood ratio test.
+The likelihood-ratio test might be more accurate given estimation covariance
+and also faster (does not require standard errors), but also is not
+used by phylopath and therefore less supported by previous d-dsep
+testing applications.}
 }
 \value{
 A p-value representing the weight of evidence that the data arises
