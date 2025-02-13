@@ -98,9 +98,6 @@ fit = dsem(
   tsdata = ts(x_ti),
   sem = sem
 )
-
-# summary of estimates
-summary(fit)
 ```
 
 Finally, we can predict movement resulting from the estimated path coefficients:
