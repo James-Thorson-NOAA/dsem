@@ -1,11 +1,11 @@
 
 # devtools::document( R'(C:\Users\James.Thorson\Desktop\Git\dsem)' )
 # devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE, dep=FALSE )
+# devtools::install_github( "James-thorson-NOAA/dsem@dev", force=TRUE, dep=FALSE )
 
 library(dsem)
 library(ggm)
 library(igraph)
-library(mvtnorm)
 
 
 ##############
@@ -16,6 +16,9 @@ library(mvtnorm)
 A <- DAG(x5~ x3+x4, x3~ x2, x4~x2)
 basiSet(A)
 plot(graph_from_adjacency_matrix(A))
+
+# Settings
+p_missing = 0.5
 
 # Simulation loop
 pvalue_rz = array(NA, dim=c(100,3) )
@@ -28,6 +31,11 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
   c = 1 + 0.5 * a + rnorm(100)
   d = 2 + -0.5*b + 1*c + rnorm(100)
   data = data.frame(a=a, b=b, c=c, d=d)
+
+  # Missing at random
+  missing = array( rbinom(p_missing, n=prod(dim(data)), size=1), dim=dim(data))
+  data = ifelse( missing == 1, NA, as.matrix(data) )
+  colnames( data ) = letters[1:4]
 
   # Correct SEM
   sem1 = "
@@ -107,7 +115,8 @@ fit_selex = dsem(
 # VAR simulation
 #################
 
-model = c( "simple", "complex" )[2]
+model = c( "simple", "complex" )[1]
+p_missing = 0.1
 
 if( model == "simple" ){
   vars = letters[1:2]
@@ -168,10 +177,10 @@ n_replicates = 500
 n_t = 100
 pvalue_rz = array(NA, dim=c(n_replicates,3) )
 for( r in seq_len(n_replicates) ){
-  set.seed(r)
 
   if( any(is.na(pvalue_rz[r,])) ){
     # Simulate data
+    set.seed(r)
     data = array( 0, dim=c(100,length(vars)), dimnames=list(NULL,vars) )
     fit0 = dsem(
       tsdata = ts(data),
@@ -181,6 +190,10 @@ for( r in seq_len(n_replicates) ){
     class(fit0) = "dsem"
     data = simulate( fit0,
               resimulate_gmrf = TRUE )[[1]]
+    missing = array( rbinom(p_missing, n=prod(dim(data)), size=1), dim=dim(data))
+    data = ifelse(  missing == 1, NA, as.matrix(data) )
+    colnames(data) = vars
+    data = ts(data.frame(data))
 
     # Correct SEM
     fit1 = dsem(
@@ -190,6 +203,7 @@ for( r in seq_len(n_replicates) ){
       estimate_delta0 = FALSE
     )
     test1 = test_dsep( fit1,
+      #test = "lr"
       what = "all" )
     # system.time( test_dsep(fit1, test="wald") )
     pvalue_rz[r,1] = test1$pvalue
@@ -202,7 +216,7 @@ for( r in seq_len(n_replicates) ){
       estimate_delta0 = FALSE
     )
     test2 = test_dsep( fit2,
-      #max_lag = 1,
+      #test = "lr",
       what = "all" )
     pvalue_rz[r,2] = test2$pvalue
 
@@ -217,24 +231,6 @@ for( r in seq_len(n_replicates) ){
       #test = "lr",
       what = "all" )
     pvalue_rz[r,3] = test3$pvalue
-
-    # Debugging code
-    if( FALSE ){
-      fit3$internal$control$trace = 1
-      fit3$internal$control$extra_convergence_checks = FALSE
-      fit3$internal$control$getsd = TRUE
-      fit3$internal$control$newton_loops = 0
-      fit3$internal$control$use_REML = FALSE
-      fit = dsem( sem = paste0(test3$sems[[1]], collapse=" \n "),
-                    tsdata = fit3$internal$tsdata,
-                    family = fit3$internal$family,
-                    estimate_delta0 = fit3$internal$estimate_delta0,
-                    control = fit3$internal$control )
-      H = optimHess( fit$opt$par,
-                     fit$obj$fn,
-                     fit$obj$gr )
-      TMB::sdreport( obj = fit$obj, par.fixed = fit$opt$par, hessian.fixed = H )
-    }
   }
 }
 
@@ -283,11 +279,12 @@ fit = dsem( sem = sem,
             control = dsem_control(use_REML=FALSE, quiet=TRUE) )
 test = test_dsep( fit,
                   what = "all" )
-order = order( test$pvalues, decreasing = FALSE )
-which_bad = which( test$pvalues < 0.01 )
 
-sapply( test$sem[which_bad],
+# Sort by missing links
+order = order( test$pvalues, decreasing = FALSE )
+links = sapply( test$sem,
         FUN = function(vec) vec[1] )
+data.frame( link=links, test$pvalues )[order,]
 
 ###############
 # Wolf-Moose
@@ -300,8 +297,9 @@ sem = "
   # Link, lag, param_name
   wolves -> wolves, 1, arW
   moose -> wolves, 1, MtoW
-  #wolves -> moose, 1, WtoM
+  wolves -> moose, 1, WtoM
   moose -> moose, 1, arM
+  moose -> wolves, 0, cross_cor
 "
 # initial first without delta0 (to improve starting values)
 fit = dsem( sem = sem,
@@ -309,3 +307,5 @@ fit = dsem( sem = sem,
              estimate_delta0 = FALSE )
 test = test_dsep( fit, what = "all" )
 test$pvalue
+test$CIC
+
