@@ -1,5 +1,11 @@
 # dsem 1.5.0
 
+* Add option to simulate data with or without missingness pattern of original data
+* Change `test_dsep(.)` to have option to impute missing data, and changing that
+  to be the default behavior
+
+# dsem 1.5.0
+
 * Fix bug when adding missing variances (PR 36)
 * Fix bug in detecting high ratio of variances (issue 35)
 * Added `test_dsep(.)` to calculate a p-value for the probability that a

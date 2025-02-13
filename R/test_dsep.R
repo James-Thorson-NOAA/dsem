@@ -139,7 +139,8 @@ function( path ){
 fit_dsem <-
 function( object,
           sem,
-          getsd = TRUE ){
+          getsd = TRUE,
+          use_imputed_data = TRUE ){
 
   # Modify controls
   control = object$internal$control
@@ -149,11 +150,28 @@ function( object,
     control$getsd = getsd
 
   # Refit
-  fit = dsem( sem = paste0(sem, collapse=" \n "),
-                tsdata = object$internal$tsdata,
-                family = object$internal$family,
-                estimate_delta0 = object$internal$estimate_delta0,
-                control = control )
+  tsdata = object$internal$tsdata
+  if( isTRUE(use_imputed_data) ){
+    # Simulate random effects from joint precision, and measurement errors from states
+    tsdata = simulate( object,
+                             variance = "random",
+                             fill_missing = TRUE)[[1]]
+  }
+  if( inherits(fit1,"dsemRTMB") ){
+    fit = dsemRTMB( sem = paste0(sem, collapse=" \n "),
+                  tsdata = tsdata,
+                  family = object$internal$family,
+                  estimate_delta0 = object$internal$estimate_delta0,
+                  prior_negloglike = object$internal$prior_negloglike,
+                  control = control )
+  }else{
+    fit = dsem( sem = paste0(sem, collapse=" \n "),
+                  tsdata = tsdata,
+                  family = object$internal$family,
+                  estimate_delta0 = object$internal$estimate_delta0,
+                  prior_negloglike = object$internal$prior_negloglike,
+                  control = control )
+  }
   return(fit)
 }
 
@@ -178,6 +196,10 @@ function( object,
 #'        and also faster (does not require standard errors), but also is not
 #'        used by phylopath and therefore less supported by previous d-dsep
 #'        testing applications.
+#' @param use_imputed_data whether to independently impute missing data for each
+#'        conditional independence test, or to use imputed values from the original
+#'        fit.  Preliminary testing suggests that using imputed data improves
+#'        test performance.
 #'
 #' @details
 #' A user-specified SEM implies a set of conditional independence relationships
@@ -240,7 +262,8 @@ function( object,
           n_time = NULL,
           n_burnin = NULL,
           what = c("pvalue","CIC","all"),
-          test = c("wald","lr") ){
+          test = c("wald","lr"),
+          use_imputed_data = TRUE ){
 
   # Check inputs
   what = match.arg(what)
@@ -291,7 +314,8 @@ function( object,
   out$fits = lapply( out$sems,
                    FUN = fit_dsem,
                    object = object,
-                   getsd = ifelse( test=="lr", FALSE, TRUE) )
+                   getsd = ifelse( test=="lr", FALSE, TRUE),
+                   use_imputed_data = use_imputed_data )
 
   if( test == "lr" ){
     # eliminate target variable and refit
@@ -300,7 +324,8 @@ function( object,
     out$fits_null = lapply( out$sems_null,
                         FUN = fit_dsem,
                         object = object,
-                        getsd = FALSE )
+                        getsd = FALSE,
+                        use_imputed_data = use_imputed_data )
     # Compare objectives as likelihood ratio test
     objectives = sapply( out$fits,
                          FUN = function(list) list$opt$obj )

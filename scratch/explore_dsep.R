@@ -18,69 +18,76 @@ basiSet(A)
 plot(graph_from_adjacency_matrix(A))
 
 # Settings
-p_missing = 0.5
+p_missing = 0.25
+use_imputed_data = FALSE
 
 # Simulation loop
-pvalue_rz = array(NA, dim=c(100,3) )
+pvalue_rz = array(NA, dim=c(100,4) )
 for( r in seq_len(dim(pvalue_rz)[1]) ){
-  set.seed(r)
+  if( any(is.na(pvalue_rz[r,])) ){
+    set.seed(r)
 
-  # simulate normal distribution
-  a = rnorm(100)
-  b = 1 + 0.5 * a + rnorm(100)
-  c = 1 + 0.5 * a + rnorm(100)
-  d = 2 + -0.5*b + 1*c + rnorm(100)
-  data = data.frame(a=a, b=b, c=c, d=d)
+    # simulate normal distribution
+    a = rnorm(100)
+    b = 1 + 0.5 * a + rnorm(100)
+    c = 1 + 0.5 * a + rnorm(100)
+    d = 2 + -0.5*b + 1*c + rnorm(100)
+    data = data.frame(a=a, b=b, c=c, d=d)
 
-  # Missing at random
-  missing = array( rbinom(p_missing, n=prod(dim(data)), size=1), dim=dim(data))
-  data = ifelse( missing == 1, NA, as.matrix(data) )
-  colnames( data ) = letters[1:4]
+    # Missing at random
+    missing = array( rbinom(p_missing, n=prod(dim(data)), size=1), dim=dim(data))
+    data = ifelse( missing == 1, NA, as.matrix(data) )
+    colnames( data ) = letters[1:4]
 
-  # Correct SEM
-  sem1 = "
-    a -> b, 0, beta_ab
-    a -> c, 0, beta_ac
-    b -> d, 0, beta_bd
-    c -> d, 0, beta_cd
-  "
-  fit1 = dsem(
-    tsdata = ts(data),
-    sem = sem1
-  )
-  pvalue_rz[r,1] = test_dsep( fit1 )
+    # Correct SEM
+    sem1 = "
+      a -> b, 0, beta_ab
+      a -> c, 0, beta_ac
+      b -> d, 0, beta_bd
+      c -> d, 0, beta_cd
+    "
+    fit1 = dsem(
+      tsdata = ts(data),
+      sem = sem1
+    )
+    test1 = test_dsep( fit1, use_imputed_data = FALSE, what = "all" )
+    test2 = test_dsep( fit1, use_imputed_data = TRUE, what = "all" )
+    pvalue_rz[r,1] = test1$pvalue
+    pvalue_rz[r,2] = test2$pvalue
 
-  # Backwards causality
-  sem2 = "
-    b -> a, 0, beta_ba
-    c -> a, 0, beta_ca
-    d -> b, 0, beta_db
-    d -> c, 0, beta_dc
-  "
-  fit2 = dsem(
-    tsdata = ts(data),
-    sem = sem2
-  )
-  pvalue_rz[r,2] = test_dsep( fit2 )
+    # Backwards causality
+    sem2 = "
+      b -> a, 0, beta_ba
+      c -> a, 0, beta_ca
+      d -> b, 0, beta_db
+      d -> c, 0, beta_dc
+    "
+    fit2 = dsem(
+      tsdata = ts(data),
+      sem = sem2
+    )
+    pvalue_rz[r,3] = test_dsep( fit2 )
 
-  # Flat regression structure
-  sem3 = "
-    a -> b, 0, beta_ab
-    a -> b, 0, beta_ab
-    a -> c, 0, beta_ac
-  "
-  fit3 = dsem(
-    tsdata = ts(data),
-    sem = sem2
-  )
-  pvalue_rz[r,3] = test_dsep( fit3 )
+    # Flat regression structure
+    sem3 = "
+      a -> b, 0, beta_ab
+      a -> b, 0, beta_ab
+      a -> c, 0, beta_ac
+    "
+    fit3 = dsem(
+      tsdata = ts(data),
+      sem = sem2
+    )
+    pvalue_rz[r,4] = test_dsep( fit3 )
+  }
 }
 
 # Show tests
-par( mfrow=c(3,1), oma=c(2,0,0,0) )
+par( mfrow=c(2,2), oma=c(2,0,0,0) )
 hist(pvalue_rz[,1], breaks=seq(0,1,by=0.05), main="right model")
-hist(pvalue_rz[,2], breaks=seq(0,1,by=0.05), main="backwards causality")
-hist(pvalue_rz[,3], breaks=seq(0,1,by=0.05), main="regression-style structure")
+hist(pvalue_rz[,2], breaks=seq(0,1,by=0.05), main="right (imputed data)")
+hist(pvalue_rz[,3], breaks=seq(0,1,by=0.05), main="backwards causality")
+hist(pvalue_rz[,4], breaks=seq(0,1,by=0.05), main="regression-style structure")
 mtext( side=1, text="p-value (rejecting test that model is correct)", outer=TRUE )
 
 ######### stepwise selection on both directions
@@ -115,8 +122,8 @@ fit_selex = dsem(
 # VAR simulation
 #################
 
-model = c( "simple", "complex" )[1]
-p_missing = 0.1
+model = c( "simple", "complex" )[2]
+p_missing = 0.5
 
 if( model == "simple" ){
   vars = letters[1:2]
@@ -125,13 +132,13 @@ if( model == "simple" ){
     a -> a, 1, rho_aa, 0.8
     b -> b, 1, rho_bb, 0.4
   "
-  sem1 = sem0
-  sem2 = "
+  sem1 = sem2 = sem0
+  sem3 = "
     b -> a, 0, rho_ba
     a -> a, 1, rho_aa
     b -> b, 1, rho_bb
   "
-  sem3 = "
+  sem4 = "
     a -> b, 1, beta_ab
     a -> a, 1, rho_aa
     b -> b, 1, rho_bb
@@ -149,17 +156,17 @@ if( model == "complex" ){
     c -> c, 1, rho_cc, 0.8
     d -> d, 1, rho_dd, 0.4
   "
-  sem1 = sem0
-  sem2 = "
-    a -> b, 1, beta_ab, 0.4
-    a -> c, 1, beta_ac, 0.4
-    b -> d, 1, beta_bd, 0.4
-    c -> d, 1, beta_cd, 0.4
-    a -> a, 1, rho_aa, 0.8
-    b -> b, 1, rho_bb, 0.4
-    c -> c, 1, rho_cc, 0.8
-    d -> d, 1, rho_dd, 0.4
-  "
+  sem1 = sem2 = sem0
+  #sem3 = "
+  #  a -> b, 1, beta_ab, 0.4
+  #  a -> c, 1, beta_ac, 0.4
+  #  b -> d, 1, beta_bd, 0.4
+  #  c -> d, 1, beta_cd, 0.4
+  #  a -> a, 1, rho_aa, 0.8
+  #  b -> b, 1, rho_bb, 0.4
+  #  c -> c, 1, rho_cc, 0.8
+  #  d -> d, 1, rho_dd, 0.4
+  #"
   sem3 = "
     b -> a, 0, beta_ab, 0.4
     c -> a, 0, beta_ac, 0.4
@@ -175,31 +182,34 @@ if( model == "complex" ){
 # Simulation loop
 n_replicates = 500
 n_t = 100
-pvalue_rz = array(NA, dim=c(n_replicates,3) )
+pvalue_rz = array(NA, dim=c(n_replicates,4) )
 for( r in seq_len(n_replicates) ){
 
-  if( any(is.na(pvalue_rz[r,])) ){
-    # Simulate data
+  if( any(is.na(pvalue_rz[r,1:4])) ){
     set.seed(r)
+    message("Running ", r)
+
+    # create data dims and missingness
     data = array( 0, dim=c(100,length(vars)), dimnames=list(NULL,vars) )
+    missing = array( rbinom(p_missing, n=prod(dim(data)), size=1), dim=dim(data), dimnames=list(NULL,vars) )
+    data = ifelse(  missing == 1, NA, data )
+
+    # simulate data
     fit0 = dsem(
       tsdata = ts(data),
       sem = sem0,
-      control = dsem_control( run_model = FALSE )
+      control = dsem_control( run_model = FALSE,
+                              quiet = TRUE )
     )
-    class(fit0) = "dsem"
     data = simulate( fit0,
-              resimulate_gmrf = TRUE )[[1]]
-    missing = array( rbinom(p_missing, n=prod(dim(data)), size=1), dim=dim(data))
-    data = ifelse(  missing == 1, NA, as.matrix(data) )
-    colnames(data) = vars
-    data = ts(data.frame(data))
+                     resimulate_gmrf = TRUE )[[1]]
 
     # Correct SEM
     fit1 = dsem(
-      tsdata = data,
-      sem = sem0,
-      control = dsem_control( use_REML = FALSE ),
+      tsdata = ts(data),
+      sem = sem1,
+      control = dsem_control( use_REML = FALSE,
+                              quiet = TRUE ),
       estimate_delta0 = FALSE
     )
     test1 = test_dsep( fit1,
@@ -208,22 +218,17 @@ for( r in seq_len(n_replicates) ){
     # system.time( test_dsep(fit1, test="wald") )
     pvalue_rz[r,1] = test1$pvalue
 
-    # Wrong SEM
-    fit2 = dsem(
-      tsdata = ts(data),
-      control = dsem_control( use_REML = FALSE ),
-      sem = sem2,
-      estimate_delta0 = FALSE
-    )
-    test2 = test_dsep( fit2,
-      #test = "lr",
-      what = "all" )
+    test2 = test_dsep( fit1,
+      #test = "lr"
+      what = "all",
+      use_imputed_data = TRUE )
     pvalue_rz[r,2] = test2$pvalue
 
     # Wrong SEM
     fit3 = dsem(
       tsdata = ts(data),
-      control = dsem_control( use_REML = FALSE ),
+      control = dsem_control( use_REML = FALSE,
+                              quiet = TRUE ),
       sem = sem3,
       estimate_delta0 = FALSE
     )
@@ -231,15 +236,38 @@ for( r in seq_len(n_replicates) ){
       #test = "lr",
       what = "all" )
     pvalue_rz[r,3] = test3$pvalue
+
+    test4 = test_dsep( fit3,
+      #test = "lr"
+      what = "all",
+      use_imputed_data = TRUE )
+    pvalue_rz[r,4] = test4$pvalue
+#    # Wrong SEM
+#    fit4 = dsem(
+#      tsdata = ts(data),
+#      control = dsem_control( use_REML = FALSE ),
+#      sem = sem4,
+#      estimate_delta0 = FALSE
+#    )
+#    test4 = test_dsep( fit4,
+#      #test = "lr",
+#      what = "all" )
+#    pvalue_rz[r,4] = test4$pvalue
   }
 }
 
 # Show tests
-par( mfrow=c(3,1), oma=c(2,0,0,0) )
+par( mfrow=c(2,2), oma=c(2,0,0,0) )
 hist(pvalue_rz[,1], breaks=seq(0,1,by=0.05), main="right model")
-hist(pvalue_rz[,2], breaks=seq(0,1,by=0.05), main="backwards causality")
-hist(pvalue_rz[,3], breaks=seq(0,1,by=0.05), main="regression-style structure")
+hist(pvalue_rz[,2], breaks=seq(0,1,by=0.05), main="right (imputed data)")
+hist(pvalue_rz[,3], breaks=seq(0,1,by=0.05), main="backwards causality")
+hist(pvalue_rz[,4], breaks=seq(0,1,by=0.05), main="backwards (imputed data)")
 mtext( side=1, text="p-value (rejecting test that model is correct)", outer=TRUE )
+
+# Check differences
+sems1 = sapply( test1$sems, FUN = \(x){paste0(x,collapse=" \n ")} )
+sems3 = sapply( test3$sems, FUN = \(x){paste0(x,collapse=" \n ")} )
+
 
 #############
 # Real data

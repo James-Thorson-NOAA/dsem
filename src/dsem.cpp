@@ -214,6 +214,7 @@ Type objective_function<Type>::operator() ()
   //}
 
   // Distribution for data
+  // Simulates new data even for NA values, which can then be excluded during simulate.dsem
   array<Type> devresid_tj( n_t, n_j );
   array<Type> mu_tj( n_t, n_j );
   for(int t=0; t<n_t; t++){
@@ -221,10 +222,8 @@ Type objective_function<Type>::operator() ()
     // familycode = 0 :  don't include likelihood
     if( familycode_j(j)==0 ){
       mu_tj(t,j) = z_tj(t,j);
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
-        SIMULATE{
-          y_tj(t,j) = mu_tj(t,j);
-        }
+      SIMULATE{
+        y_tj(t,j) = mu_tj(t,j);
       }
       devresid_tj(t,j) = 0;
     }
@@ -233,9 +232,9 @@ Type objective_function<Type>::operator() ()
       mu_tj(t,j) = z_tj(t,j);
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
-        SIMULATE{
-          y_tj(t,j) = rnorm( mu_tj(t,j), sigma_j(j) );
-        }
+      }
+      SIMULATE{
+        y_tj(t,j) = rnorm( mu_tj(t,j), sigma_j(j) );
       }
       devresid_tj(t,j) = y_tj(t,j) - mu_tj(t,j);
     }
@@ -244,9 +243,9 @@ Type objective_function<Type>::operator() ()
       mu_tj(t,j) = invlogit(z_tj(t,j));
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
-        SIMULATE{
-          y_tj(t,j) = rbinom( Type(1), mu_tj(t,j) );
-        }
+      }
+      SIMULATE{
+        y_tj(t,j) = rbinom( Type(1), mu_tj(t,j) );
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(-2*(((1-y_tj(t,j))*log(1-mu_tj(t,j)) + y_tj(t,j)*log(mu_tj(t,j)))), 0.5);
     }
@@ -255,9 +254,9 @@ Type objective_function<Type>::operator() ()
       mu_tj(t,j) = exp(z_tj(t,j));
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
-        SIMULATE{
-          y_tj(t,j) = rpois( mu_tj(t,j) );
-        }
+      }
+      SIMULATE{
+        y_tj(t,j) = rpois( mu_tj(t,j) );
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2*(y_tj(t,j)*log((Type(1e-10) + y_tj(t,j))/mu_tj(t,j)) - (y_tj(t,j)-mu_tj(t,j))), 0.5);
     }
@@ -266,9 +265,9 @@ Type objective_function<Type>::operator() ()
       mu_tj(t,j) = exp(z_tj(t,j));
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
-        SIMULATE{
-          y_tj(t,j) = rgamma( pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2) );
-        }
+      }
+      SIMULATE{
+        y_tj(t,j) = rgamma( pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2) );
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2 * ( (y_tj(t,j)-mu_tj(t,j))/mu_tj(t,j) - log(y_tj(t,j)/mu_tj(t,j)) ), 0.5);
     }

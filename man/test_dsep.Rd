@@ -9,7 +9,8 @@ test_dsep(
   n_time = NULL,
   n_burnin = NULL,
   what = c("pvalue", "CIC", "all"),
-  test = c("wald", "lr")
+  test = c("wald", "lr"),
+  use_imputed_data = TRUE
 )
 }
 \arguments{
@@ -33,6 +34,11 @@ The likelihood-ratio test might be more accurate given estimation covariance
 and also faster (does not require standard errors), but also is not
 used by phylopath and therefore less supported by previous d-dsep
 testing applications.}
+
+\item{use_imputed_data}{whether to independently impute missing data for each
+conditional independence test, or to use imputed values from the original
+fit.  Preliminary testing suggests that using imputed data improves
+test performance.}
 }
 \value{
 A p-value representing the weight of evidence that the data arises

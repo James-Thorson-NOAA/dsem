@@ -268,7 +268,8 @@ function( sem,
     family = family,
     estimate_delta0 = estimate_delta0,
     control = control,
-    covs = covs
+    covs = covs,
+    prior_negloglike = prior_negloglike
   )
 
   # Parse priors
@@ -649,6 +650,8 @@ function( x,
 #' @param resimulate_gmrf whether to resimulate the GMRF based on estimated or
 #'        simulated random effects (determined by argument \code{variance})
 #' @param seed random seed
+#' @param fill_missing whether to fill in simulate all data (including values
+#'        that are missing in the original data set)
 #' @param ... Not used
 #'
 #' @details
@@ -674,6 +677,7 @@ function( object,
           seed = NULL,
           variance = c("none", "random", "both"),
           resimulate_gmrf = FALSE,
+          fill_missing = FALSE,
           ... ){
 
   # Front stuff
@@ -739,6 +743,10 @@ function( object,
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
       out[[r]] = obj$simulate( par_zr[,r] )$y_tj
+    }
+    if(isFALSE(fill_missing)){
+      # Use missingness pattern from original data
+      out[[r]] = ifelse( is.na(tsdata), NA, out[[r]] )
     }
     colnames(out[[r]]) = colnames(tsdata)
     tsp(out[[r]]) = attr(tsdata,"tsp")
@@ -944,12 +952,21 @@ function( object,
     #newfit = eval(newcall)
     control = object$internal$control
     control$run_model = FALSE
-    newfit = dsem( sem = object$internal$sem,
-                   tsdata = newdata,
-                   family = object$internal$family,
-                   estimate_delta0 = object$internal$estimate_delta0,
-                   control = object$internal$control,
-                   covs = object$internal$covs )
+    if( inherits(fit1,"dsemRTMB") ){
+      newfit = dsemRTMB( sem = object$internal$sem,
+                     tsdata = newdata,
+                     family = object$internal$family,
+                     estimate_delta0 = object$internal$estimate_delta0,
+                     control = object$internal$control,
+                     covs = object$internal$covs )
+    }else{
+      newfit = dsem( sem = object$internal$sem,
+                     tsdata = newdata,
+                     family = object$internal$family,
+                     estimate_delta0 = object$internal$estimate_delta0,
+                     control = object$internal$control,
+                     covs = object$internal$covs )
+    }
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor
