@@ -52,6 +52,9 @@ it is unclear exactly how to define the set of conditional-independence assumpti
 in a model with temporal autocorrelation, and the test was not developed for
 uses when data are missing.  At the time of writing, the function is hightly
 experimental.
+
+Note that the method is not currently designed to deal with two-headed arrows
+among variables (i.e., exogenous covariance).
 }
 \examples{
 # Simulate data set

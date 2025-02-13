@@ -128,8 +128,8 @@ function( path ){
   arrow_and_lag = path
   terms = strsplit(arrow_and_lag, ", " )[[1]]
   term_one = strsplit(terms[1], " -> " )[[1]]
-  lag_one = sapply( term_one, \(x){strsplit(x, "_lag")[[1]][2]} )
-  term_one = sapply( term_one, \(x){strsplit(x, "_lag")[[1]][1]} )
+  lag_one = sapply( term_one, function(x){strsplit(x, "_lag")[[1]][2]} )
+  term_one = sapply( term_one, function(x){strsplit(x, "_lag")[[1]][1]} )
   terms[1] = paste0( term_one, collapse = " -> " )
   terms[2] = diff(as.numeric(lag_one))
   arrow_and_lag = paste0( terms, collapse = ", " )
