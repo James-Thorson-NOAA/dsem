@@ -162,7 +162,7 @@ function( object,
                   tsdata = tsdata,
                   family = object$internal$family,
                   estimate_delta0 = object$internal$estimate_delta0,
-                  prior_negloglike = object$internal$prior_negloglike,
+                  log_prior = object$internal$log_prior,
                   control = control )
   }else{
     fit = dsem( sem = paste0(sem, collapse=" \n "),

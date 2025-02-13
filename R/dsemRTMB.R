@@ -188,7 +188,7 @@ function( sem,
     estimate_delta0 = estimate_delta0,
     control = control,
     covs = covs,
-    prior_negloglike = prior_negloglike
+    log_prior = log_prior
   )
 
   # Further bundle
