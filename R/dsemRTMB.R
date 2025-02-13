@@ -200,14 +200,9 @@ function( sem,
 
   # Export stuff
   if( control$run_model==FALSE ){
+    class(out) = "dsem"
     return( out )
   }
-
-  # Fit
-  #out$opt = fit_tmb( obj,
-  #                   quiet = control$quiet,
-  #                   control = list(eval.max=10000, iter.max=10000, trace=ifelse(control$quiet==TRUE,0,1) ),
-  #                   ... )
 
   # Optimize
   out$opt = list( "par"=obj$par )

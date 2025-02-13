@@ -299,6 +299,7 @@ function( sem,
 
   # Export stuff
   if( control$run_model==FALSE ){
+    class(out) = "dsem"
     return( out )
   }
 
