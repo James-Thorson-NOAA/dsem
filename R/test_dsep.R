@@ -56,12 +56,36 @@ function(model_set) {
   res
 }
 
+#basiSet <-
+#function( amat ){
+#  amat <- topSort(amat)
+#  nod <- rownames(amat)
+#  dv <- length(nod)
+#  ind <- NULL
+#  for (r in 1:dv) {
+#  for (s in r:dv) {
+#    if ((amat[r, s] != 0) | (s == r)) {
+#      next
+#    }
+#    else{
+#      ed <- nod[c(r, s)]
+#      pa.r <- nod[amat[, r] == 1]
+#      pa.s <- nod[amat[, s] == 1]
+#      dsep <- union(pa.r, pa.s)
+#      dsep <- setdiff(dsep, ed)
+#      b <- list(c(ed, dsep))
+#      ind <- c(ind, b)
+#    }
+#  }}
+#  ind
+#}
+
 # Modified from phylopath
 find_paths <-
 function( A,
           order ) {
 
-  s <- basiSet(A[order,order])
+  s <- basiSet(A) #[order,order])
   #s <- basiSet(A)
   if (is.null(s)) {
     stop('One or some of your models are fully connected, and cannot be tested.')
@@ -140,7 +164,7 @@ fit_dsem <-
 function( object,
           sem,
           getsd = TRUE,
-          use_imputed_data = TRUE ){
+          tsdata ){
 
   # Modify controls
   control = object$internal$control
@@ -150,13 +174,6 @@ function( object,
     control$getsd = getsd
 
   # Refit
-  tsdata = object$internal$tsdata
-  if( isTRUE(use_imputed_data) ){
-    # Simulate random effects from joint precision, and measurement errors from states
-    tsdata = simulate( object,
-                             variance = "random",
-                             fill_missing = TRUE)[[1]]
-  }
   if( inherits(object,"dsemRTMB") ){
     fit = dsemRTMB( sem = paste0(sem, collapse=" \n "),
                   tsdata = tsdata,
@@ -198,8 +215,10 @@ function( object,
 #'        testing applications.
 #' @param use_imputed_data whether to independently impute missing data for each
 #'        conditional independence test, or to use imputed values from the original
-#'        fit.  Preliminary testing suggests that using imputed data improves
-#'        test performance.
+#'        fit.  The data are imputed once, and then used repeatedly in
+#'        each conditional independence test.  \code{set.seed} will then result in
+#'        a consistent p-value even when imputing data.  Preliminary testing suggests
+#'        that using imputed data improves test performance.
 #'
 #' @details
 #' A user-specified SEM implies a set of conditional independence relationships
@@ -271,6 +290,15 @@ function( object,
   out = list( n_time = n_time,
               n_burnin = n_burnin )
 
+  #
+  tsdata = object$internal$tsdata
+  if( isTRUE(use_imputed_data) ){
+    # Simulate random effects from joint precision, and measurement errors from states
+    tsdata = simulate( object,
+                       variance = "random",
+                       fill_missing = TRUE)[[1]]
+  }
+
   # Detect n_time and n_burnin
   if( is.null(out$n_burnin) ){
     if( is.null(out$n_time) ){
@@ -296,10 +324,13 @@ function( object,
   order = find_consensus_order(list(A))
   # Find paths
   out$paths = find_paths( A,
-                      order=order )
+                      order = order )
   # Remove paths from initial "burn-in" buffer in time-stepping
   out$paths = remove_paths( out$paths,
                             n_burnin = out$n_burnin )
+  if(length(out$paths)==0){
+    stop("No paths remain. The model appears to have no conditional independence relationships to test.")
+  }
   # convert to arrow-and-lag notation in variable-by-lag
   out$arrows = lapply( out$paths,
                        FUN = path_to_arrow)
@@ -312,20 +343,20 @@ function( object,
   out$sems = unique(out$sems)
   # Fit models
   out$fits = lapply( out$sems,
-                   FUN = fit_dsem,
-                   object = object,
-                   getsd = ifelse( test=="lr", FALSE, TRUE),
-                   use_imputed_data = use_imputed_data )
+                     FUN = fit_dsem,
+                     object = object,
+                     getsd = ifelse( test=="lr", FALSE, TRUE),
+                     tsdata = tsdata )
 
   if( test == "lr" ){
     # eliminate target variable and refit
     out$sems_null = lapply( out$sems,
                         FUN = function(vec){vec[-1]} )
     out$fits_null = lapply( out$sems_null,
-                        FUN = fit_dsem,
-                        object = object,
-                        getsd = FALSE,
-                        use_imputed_data = use_imputed_data )
+                            FUN = fit_dsem,
+                            object = object,
+                            getsd = FALSE,
+                            tsdata = tsdata )
     # Compare objectives as likelihood ratio test
     objectives = sapply( out$fits,
                          FUN = function(list) list$opt$obj )
@@ -339,6 +370,7 @@ function( object,
 
   # Compute test statistics
   C_p = -2 * sum( log(out$pvalues) )
+  # Fisher's method: sum(log(pvalues)) follows chi-squared distribution with 2*length(pvalues) degrees of freedom
   out$pvalue = 1 - pchisq( C_p, df = 2 * length(out$pvalues) )
   out$CIC = C_p + 2 * length(object$opt$par)
 

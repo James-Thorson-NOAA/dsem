@@ -8,7 +8,15 @@
 #'        parsimony
 #' @param model_shared character-vector containing sem elements
 #'        that must be included regardless of parsimony
+#' @param options_initial character-vector containing some (possible empty)
+#'        subset of \code{model_options}, where stepwise selection begins
+#'        with that set of model options included.
 #' @param quiet whether to avoid displaying progress to terminal
+#' @param criterion function that computes the information criterion to be
+#'        minimized, typically using \code{AIC}.  However, users can instead supply
+#'        a function that computes CIC using
+#'        \code{\link{test_dsep}} and desired settings, presumably including a \code{set.seed}
+#'        if missing data are being imputed
 #' @param ... arguments passed to \code{\link{dsem}},
 #'        other than \code{sem} e.g., \code{tsdata}, \code{family}
 #'        etc.
@@ -58,11 +66,13 @@
 stepwise_selection <-
 function( model_options,
           model_shared,
+          options_initial = c(),
           quiet = FALSE,
+          criterion = AIC,
           ... ){
 
   # Loop
-  best = rep(0, length(model_options) )
+  best = (model_options %in% options_initial)
   step = NULL
   while(TRUE){
     if(isFALSE(quiet)) message("Running with ", sum(best), " vars included: ", Sys.time() )
@@ -70,22 +80,22 @@ function( model_options,
     which_diag = cbind( seq_len(nrow(df_options)), seq_len(nrow(df_options)) )
     df_options[which_diag] = 1 - df_options[which_diag]
     df_options = rbind(best, df_options)
-    AIC_i = rep(NA, nrow(df_options))
+    IC_i = rep(NA, nrow(df_options))
 
     for(i in 1:nrow(df_options)){
       model = paste( paste(model_options[which(df_options[i,]==1)],collapse="\n"),
                      paste(model_shared,collapse="\n"),
                      sep="\n" )
       myfit = dsem( sem = model, ... )
-      AIC_i[i] = AIC(myfit)
+      IC_i[i] = criterion(myfit)
     }
 
     # Save step and decide whether to continue
-    step[[length(step)+1]] = cbind( AIC_i, df_options )
-    if(which.min(AIC_i)==1){
+    step[[length(step)+1]] = cbind( IC_i, df_options )
+    if(which.min(IC_i)==1){
       break()
     }else{
-      best = df_options[which.min(AIC_i),]
+      best = df_options[which.min(IC_i),]
     }
   }
 

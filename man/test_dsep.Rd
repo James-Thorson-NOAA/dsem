@@ -37,8 +37,10 @@ testing applications.}
 
 \item{use_imputed_data}{whether to independently impute missing data for each
 conditional independence test, or to use imputed values from the original
-fit.  Preliminary testing suggests that using imputed data improves
-test performance.}
+fit.  The data are imputed once, and then used repeatedly in
+each conditional independence test.  \code{set.seed} will then result in
+a consistent p-value even when imputing data.  Preliminary testing suggests
+that using imputed data improves test performance.}
 }
 \value{
 A p-value representing the weight of evidence that the data arises
