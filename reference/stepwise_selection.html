@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
     <li><a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -34,7 +35,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Simulate dsem</h1>
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.4.1/R/stepwise_selection.R" class="external-link"><code>R/stepwise_selection.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/R/stepwise_selection.R" class="external-link"><code>R/stepwise_selection.R</code></a></small>
       <div class="d-none name"><code>stepwise_selection.Rd</code></div>
     </div>
 
@@ -89,6 +90,77 @@ selection using marginal AIC, while forcing some model elements to be
 included and selecting among others.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Simulate x -&gt; y -&gt; z</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">y</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">*</span><span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">z</span> <span class="op">=</span> <span class="fl">1</span><span class="op">*</span><span class="va">y</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">tsdata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">x</span>, y<span class="op">=</span><span class="va">y</span>, z<span class="op">=</span><span class="va">z</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># define candidates</span></span></span>
+<span class="r-in"><span><span class="va">model_options</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="st">"y -&gt; z, 0, y_to_z"</span>,</span></span>
+<span class="r-in"><span>  <span class="st">"x -&gt; z, 0, x_to_z"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># define paths that are required</span></span></span>
+<span class="r-in"><span><span class="va">model_shared</span> <span class="op">=</span> <span class="st">"</span></span></span>
+<span class="r-in"><span><span class="st">  x -&gt; y, 0, x_to_y</span></span></span>
+<span class="r-in"><span><span class="st">"</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Do selection</span></span></span>
+<span class="r-in"><span><span class="va">step</span> <span class="op">=</span> <span class="fu">stepwise_selection</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  model_options <span class="op">=</span> <span class="va">model_options</span>,</span></span>
+<span class="r-in"><span>  model_shared <span class="op">=</span> <span class="va">model_shared</span>,</span></span>
+<span class="r-in"><span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span></span>
+<span class="r-in"><span>  quiet <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> List of estimated fixed and random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Coefficient_name Number_of_coefficients   Type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           beta_z                      4  Fixed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2             mu_j                      3 Random</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running nlminb_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running newton_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> List of estimated fixed and random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Coefficient_name Number_of_coefficients   Type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           beta_z                      5  Fixed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2             mu_j                      3 Random</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running nlminb_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running newton_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> List of estimated fixed and random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Coefficient_name Number_of_coefficients   Type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           beta_z                      5  Fixed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2             mu_j                      3 Random</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running nlminb_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running newton_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> List of estimated fixed and random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Coefficient_name Number_of_coefficients   Type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           beta_z                      5  Fixed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2             mu_j                      3 Random</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running nlminb_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running newton_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> List of estimated fixed and random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Coefficient_name Number_of_coefficients   Type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           beta_z                      4  Fixed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2             mu_j                      3 Random</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running nlminb_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running newton_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> List of estimated fixed and random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Coefficient_name Number_of_coefficients   Type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           beta_z                      6  Fixed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2             mu_j                      3 Random</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running nlminb_loop #1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Running newton_loop #1</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Check selected model</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">step</span><span class="op">$</span><span class="va">model</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> y -&gt; z, 0, y_to_z</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   x -&gt; y, 0, x_to_y</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

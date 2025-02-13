@@ -2,6 +2,7 @@
 <url><loc>/404.html</loc></url>
 <url><loc>/articles/dynamic_factor_analysis.html</loc></url>
 <url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/spatial_diffusion.html</loc></url>
 <url><loc>/articles/vignette.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
@@ -33,6 +34,8 @@
 <url><loc>/reference/simulate.dsem.html</loc></url>
 <url><loc>/reference/stepwise_selection.html</loc></url>
 <url><loc>/reference/summary.dsem.html</loc></url>
+<url><loc>/reference/test_dsep.html</loc></url>
+<url><loc>/reference/total_effect.html</loc></url>
 <url><loc>/reference/vcov.dsem.html</loc></url>
 </urlset>
 

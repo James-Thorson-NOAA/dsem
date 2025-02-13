@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
     <li><a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a></li>
   </ul>
 </li>
@@ -62,7 +63,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.4.1/vignettes/vignette.Rmd" class="external-link"><code>vignettes/vignette.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/vignettes/vignette.Rmd" class="external-link"><code>vignettes/vignette.Rmd</code></a></small>
       <div class="d-none name"><code>vignette.Rmd</code></div>
     </div>
 
@@ -159,8 +160,8 @@ this gives identical to results to the linear model:</p>
 <div class="section level2">
 <h2 id="comparison-with-dynamic-linear-models">Comparison with dynamic linear models<a class="anchor" aria-label="anchor" href="#comparison-with-dynamic-linear-models"></a>
 </h2>
-<p>We next demonstrate that <code>dsem</code> using a well-known
-econometric model, the Klein-1 model.</p>
+<p>We next demonstrate <code>dsem</code> using a well-known econometric
+model, the Klein-1 model.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">KleinI</span>, package<span class="op">=</span><span class="st">"AER"</span><span class="op">)</span></span>
 <span><span class="va">TS</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">KleinI</span>, <span class="st">"time"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">KleinI</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1931</span><span class="op">)</span><span class="op">)</span></span>
@@ -421,6 +422,18 @@ Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI:
 <span>           labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Time-series data"</span>, <span class="st">"Estimated effects"</span>, <span class="st">"Fitted path digram"</span><span class="op">)</span>,</span>
 <span>           ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vignette_files/figure-html/unnamed-chunk-12-1.png" width="480"></p>
+<p>We can then plot the total effects, which shows that effects
+propagate through time due to both interactions and density
+dependence:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Calculate total effects</span></span>
+<span><span class="va">effect</span> <span class="op">=</span> <span class="fu"><a href="../reference/total_effect.html">total_effect</a></span><span class="op">(</span> <span class="va">fit</span> <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Plot total effect</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span> <span class="va">effect</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">lag</span>, <span class="va">total_effect</span>, fill<span class="op">=</span><span class="va">lag</span><span class="op">)</span>, stat<span class="op">=</span><span class="st">'identity'</span>, col<span class="op">=</span><span class="st">'black'</span>, position<span class="op">=</span><span class="st">'dodge'</span> <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span> <span class="va">from</span> <span class="op">~</span> <span class="va">to</span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="vignette_files/figure-html/unnamed-chunk-13-1.png" width="480"></p>
 <p>Results again show that <code>dsem</code> can estimate parameters for
 a vector autoregressive model (VAM), and it exactly matches results from
 <code>vars</code>, using <code>dynlm</code>, or using
@@ -431,7 +444,7 @@ a vector autoregressive model (VAM), and it exactly matches results from
 </h2>
 <p>We next replicate an analysis involving climate, forage fishes,
 stomach contents, and recruitment of a predatory fish.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span></span>
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="va">bering_sea</span> <span class="op">)</span></span>
 <span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">'fixed'</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span><span class="op">)</span></span>
@@ -465,7 +478,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span>            control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span>use_REML<span class="op">=</span><span class="cn">FALSE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">)</span></span>
 <span><span class="va">ParHat</span> <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">obj</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="fu">parList</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># summary( fit )</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Timeseries plot</span></span>
 <span><span class="va">oldpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span> mfcol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span>, mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">0</span><span class="op">)</span>, mgp<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">0.5</span>,<span class="fl">0</span><span class="op">)</span>, tck<span class="op">=</span><span class="op">-</span><span class="fl">0.02</span> <span class="op">)</span></span>
@@ -484,8 +497,8 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span>           y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span>,<span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span>,<span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">0.2</span><span class="op">)</span>, border<span class="op">=</span><span class="cn">NA</span> <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-14-1.png" width="672"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p><img src="vignette_files/figure-html/unnamed-chunk-15-1.png" width="672"></p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Ax3man.github.io/phylopath/" class="external-link">phylopath</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -514,7 +527,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <span><span class="co">#                           p2+ggtitle("Estimated p-values"), nrow=2), ncol=2 ) )</span></span>
 <span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Simultaneous effects"</span>, <span class="st">"Two-sided p-value"</span><span class="op">)</span>,</span>
 <span>                    ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-15-1.png" width="768"></p>
+<p><img src="vignette_files/figure-html/unnamed-chunk-16-1.png" width="768"></p>
 <p>These results are further discussed in the paper describing dsem.</p>
 </div>
 <div class="section level2">
@@ -523,7 +536,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <p>Finally, we replicate an analysis involving a trophic cascade
 involving sea stars predators, sea urchin consumers, and kelp
 producers.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">sea_otter</span><span class="op">)</span></span>
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="va">sea_otter</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">)</span></span>
 <span></span>
@@ -677,7 +690,7 @@ producers.</p>
 <span>                    <span class="va">p2</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Simultaneous effects"</span>, <span class="st">"Two-sided p-value"</span><span class="op">)</span>,</span>
 <span>                    ncol <span class="op">=</span> <span class="fl">1</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vignette_files/figure-html/unnamed-chunk-16-1.png" width="480"></p>
+<p><img src="vignette_files/figure-html/unnamed-chunk-17-1.png" width="480"></p>
 <p>Again, these results are further discussed in the paper describing
 dsem.</p>
 </div>
