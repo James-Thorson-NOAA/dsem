@@ -952,7 +952,7 @@ function( object,
     #newfit = eval(newcall)
     control = object$internal$control
     control$run_model = FALSE
-    if( inherits(fit1,"dsemRTMB") ){
+    if( inherits(fit,"dsemRTMB") ){
       newfit = dsemRTMB( sem = object$internal$sem,
                      tsdata = newdata,
                      family = object$internal$family,

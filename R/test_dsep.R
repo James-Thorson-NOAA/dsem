@@ -157,7 +157,7 @@ function( object,
                              variance = "random",
                              fill_missing = TRUE)[[1]]
   }
-  if( inherits(fit1,"dsemRTMB") ){
+  if( inherits(object,"dsemRTMB") ){
     fit = dsemRTMB( sem = paste0(sem, collapse=" \n "),
                   tsdata = tsdata,
                   family = object$internal$family,
