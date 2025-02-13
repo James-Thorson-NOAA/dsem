@@ -92,7 +92,7 @@ abline(a=0,b=1)
 
 ## Comparison with dynamic linear models
 
-We next demonstrate that `dsem` using a well-known econometric model, the Klein-1 model.
+We next demonstrate `dsem` using a well-known econometric model, the Klein-1 model.
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 data(KleinI, package="AER")
@@ -322,6 +322,19 @@ ggarrange( p1, p2, p3,
            labels = c("Time-series data", "Estimated effects", "Fitted path digram"),
            ncol = 1, nrow = 3)
 ```
+
+We can then plot the total effects, which shows that effects propagate through time due to both interactions and density dependence:
+
+```{r, echo=TRUE, message=FALSE, fig.width=5, fig.height=7, warning=FALSE}
+# Calculate total effects
+effect = total_effect( fit )
+
+# Plot total effect
+ggplot( effect) + 
+  geom_bar( aes(lag, total_effect, fill=lag), stat='identity', col='black', position='dodge' ) +
+  facet_grid( from ~ to  )
+```
+
 
 Results again show that `dsem` can estimate parameters for a vector autoregressive model (VAM), and it exactly matches results from `vars`, using `dynlm`, or using `MARSS`.
 

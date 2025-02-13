@@ -194,7 +194,7 @@ make_dsem_ram <-
 function( sem,
           times,
           variables,
-          covs = NULL,
+          covs = variables,
           quiet = FALSE,
           remove_na = TRUE ){
   # Docs : https://roxygen2.r-lib.org/articles/formatting.html
@@ -344,10 +344,13 @@ function( sem,
   #G_kk = P_kk
   for( i in seq_len(nrow(model)) ){
     lag = as.numeric(model[i,2])
-    L_tt = sparseMatrix( i = seq(lag+1,length(times)),
-                         j = seq(1,length(times)-lag),
+    # Time-lag matrix ... transpose if negative lag
+    L_tt = sparseMatrix( i = seq( abs(lag)+1,length(times)),
+                         j = seq(1,length(times)-abs(lag)),
                          x = 1,
                          dims = rep(length(times),2) )
+    if(lag<0) L_tt = t(L_tt)
+    # Interaction matrix
     P_jj = sparseMatrix( i = match(model[i,'second'],variables),
                          j = match(model[i,'first'],variables),
                          x = 1,

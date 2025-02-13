@@ -35,3 +35,33 @@ This function conducts stepwise (i.e., forwards and backwards) model
 selection using marginal AIC, while forcing some model elements to be
 included and selecting among others.
 }
+\examples{
+# Simulate x -> y -> z
+set.seed(101)
+x = rnorm(100)
+y = 0.5*x + rnorm(100)
+z = 1*y + rnorm(100)
+tsdata = ts(data.frame(x=x, y=y, z=z))
+
+# define candidates
+model_options = c(
+  "y -> z, 0, y_to_z",
+  "x -> z, 0, x_to_z"
+)
+# define paths that are required
+model_shared = "
+  x -> y, 0, x_to_y
+"
+
+# Do selection
+step = stepwise_selection(
+  model_options = model_options,
+  model_shared = model_shared,
+  tsdata = tsdata,
+  quiet = TRUE
+)
+
+# Check selected model
+cat(step$model)
+
+}

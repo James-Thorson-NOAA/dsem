@@ -1,0 +1,122 @@
+---
+title: "Spatial diffusion"
+author: "James Thorson"
+output: rmarkdown::html_vignette
+#output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Spatial diffusion}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+# Install locally
+#  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
+# Build
+#  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/spatial_diffusion.Rmd")
+```
+
+## Approximating diffusive movement among adjacent spatial strata
+
+`dsem` can be specified to represent diffusion among variables that represent spatial strata where some strata are adjacent to one another.
+
+To show this, we simulate data for five spatial strata (A, B, C, D, E) that are adjacent to one another along a single line (e.g., C is adjacent to B and D): 
+
+```{r simulate, echo=TRUE, message=FALSE}
+library(igraph)
+library(Matrix)
+
+# Simulation
+adjacency_graph = make_graph( ~ A - B - C - D - E )
+A = as.matrix( adjacency_graph )
+
+# Diffusion rate
+Dprime = 1 * A
+diag(Dprime) = -1 * rowSums(Dprime)
+
+# Movement transition matrix
+M = expm( Dprime )
+
+# set seed for reproducibility
+set.seed(101)
+
+# Simulate densities
+n_times = 100
+n_burnin = 100
+x_ti = matrix( NA, nrow=n_times+n_burnin, ncol = nrow(M) )
+x_ti[1,] = rnorm(n=nrow(M), mean = 0, sd = 1 )
+for( t in 2:nrow(x_ti) ){
+  x_ti[t,] = (x_ti[t-1,] %*% M)[1,] + rnorm(n=nrow(M), mean = 0, sd = 0.1)
+}
+
+# Subset to times after burn-in
+x_ti = x_ti[ n_burnin+seq_len(n_times), ]
+```
+
+We then specify a SEM that approximates diffusive movement, specifically using a diffusion-enhanced spatio-temporal process:
+
+```{r fit, echo=TRUE, message=FALSE}
+library(dsem)
+
+# Specify SEM
+sem = "
+  # Spatial correlation
+  A -> B, 0, d0
+  B -> C, 0, d0
+  C -> D, 0, d0
+  D -> E, 0, d0
+  E -> D, 0, d0
+  D -> C, 0, d0
+  C -> B, 0, d0
+  B -> A, 0, d0
+
+  # Spatio-temporal diffusion
+  A -> B, 1, d
+  B -> C, 1, d
+  C -> D, 1, d
+  D -> E, 1, d
+  E -> D, 1, d
+  D -> C, 1, d
+  C -> B, 1, d
+  B -> A, 1, d
+
+  # Self-limitation
+  A -> A, 1, rho
+  B -> B, 1, rho
+  C -> C, 1, rho
+  D -> D, 1, rho
+  E -> E, 1, rho
+"
+
+# Fit
+colnames(x_ti) = c("A","B","C","D","E")
+fit = dsem(
+  tsdata = ts(x_ti),
+  sem = sem
+)
+```
+
+Finally, we can predict movement resulting from the estimated path coefficients:
+```{r predict, echo=TRUE, message=FALSE}
+# Calculate total effect
+effect = total_effect(fit, n_lags = 3)
+
+# Calculate predicted movement
+Mhat = array( subset(effect,lag==1)$total_effect, dim(M) )
+dimnames(Mhat) = dimnames(M)
+
+# Display predicted movement
+knitr::kable( Mhat, digits=2)
+```
+
+And we can compare this with the true transition matrix from diffusive movement
+```{r display, echo=TRUE, message=FALSE}
+knitr::kable( as.matrix(M), digits=2)
+```
+
+Finally, we can simplify the SEM by either:
+* turning off the spatial correlation (i.e., simultaneous spatial interactions), such that movement is limited to one stratum per time.

@@ -25,6 +25,35 @@
 #' \item{record}{a list showing the AIC and whether each \code{model_options} is included or not}
 #' }
 #'
+#' @examples
+#' # Simulate x -> y -> z
+#' set.seed(101)
+#' x = rnorm(100)
+#' y = 0.5*x + rnorm(100)
+#' z = 1*y + rnorm(100)
+#' tsdata = ts(data.frame(x=x, y=y, z=z))
+#'
+#' # define candidates
+#' model_options = c(
+#'   "y -> z, 0, y_to_z",
+#'   "x -> z, 0, x_to_z"
+#' )
+#' # define paths that are required
+#' model_shared = "
+#'   x -> y, 0, x_to_y
+#' "
+#'
+#' # Do selection
+#' step = stepwise_selection(
+#'   model_options = model_options,
+#'   model_shared = model_shared,
+#'   tsdata = tsdata,
+#'   quiet = TRUE
+#' )
+#'
+#' # Check selected model
+#' cat(step$model)
+#'
 #' @export
 stepwise_selection <-
 function( model_options,
@@ -34,7 +63,7 @@ function( model_options,
 
   # Loop
   best = rep(0, length(model_options) )
-  record = NULL
+  step = NULL
   while(TRUE){
     if(isFALSE(quiet)) message("Running with ", sum(best), " vars included: ", Sys.time() )
     df_options = outer( rep(1,length(best)), best )
@@ -51,8 +80,8 @@ function( model_options,
       AIC_i[i] = AIC(myfit)
     }
 
-    # Save record and decide whether to continue
-    record[[length(record)+1]] = cbind( AIC_i, df_options )
+    # Save step and decide whether to continue
+    step[[length(step)+1]] = cbind( AIC_i, df_options )
     if(which.min(AIC_i)==1){
       break()
     }else{
@@ -64,5 +93,5 @@ function( model_options,
   model = paste( paste(model_options[which(best==1)],collapse="\n"),
                  paste(model_shared,collapse="\n"),
                  sep="\n" )
-  return(list(model=model, record=record))
+  return(list(model=model, step=step))
 }

@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Fit Dynamic Structural Equation Models
-Version: 1.4.1
-Date: 2025-01-31
+Version: 1.5.0
+Date: 2025-02-10
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -13,18 +13,25 @@ Authors@R:
              family = "Goodman",
              role = c("ctb"),
              email = "goodman.maurice@gmail.com",
-             comment = c(ORCID = "0000-0002-6874-2313"))    
+             comment = c(ORCID = "0000-0002-6874-2313")),    
+      person(given = "Wouter", 
+ 	     family = "van der Bijl",
+             role = c("ctb"),
+             comment = c(ORCID = "0000-0002-7366-1868", "template for d-separation test"))
     )
 Imports:
     TMB,
     Matrix,
     sem,
     igraph,
+    utils,
     RTMB (>= 1.7.0),
     ggraph,
     ggplot2,
     grid,
-    methods
+    methods,
+    stats,
+    ggm
 Depends:
     R (>= 4.0.0),
 Suggests:

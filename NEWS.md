@@ -1,3 +1,15 @@
+# dsem 1.5.0
+
+* Fix bug when adding missing variances (PR 36)
+* Fix bug in detecting high ratio of variances (issue 35)
+* Added `test_dsep(.)` to calculate a p-value for the probability that a
+  a data set arose from the specified model (highly experimental)
+* Added `total_effect(.)` to calculate total effects
+* Fixed bug where dsem crashed when `quiet = FALSE` and running without data
+  e.g., as qualitative network model
+* Added vignette showing how to approximate diffusive movement using DSEM with
+  paths among adjacent strata
+
 # dsem 1.4.1
 
 * Edits to allow DSEM to run when all path coefficients are fixed 

@@ -7,7 +7,11 @@
 #'        \code{\link[dsem]{make_dsem_ram}} for more description
 #' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}
 #' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
-#'        each element must be \code{fixed} or \code{normal}.
+#'        each element must be \code{fixed} (for no measurement error), 
+#'        \code{normal} for normal measurement error using an identity link,
+#'        \code{gamma} for a gamma measurement error using a fixed CV and log-link, 
+#'        \code{bernoulli} for a Bernoulli measurement error using a logit-link, or
+#'        \code{poisson} for a Poisson measurement error using a log-link.
 #'        \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
 #'        Other options correspond to different specifications of measurement error.
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
@@ -34,14 +38,16 @@
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
-#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis
-#' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0
+#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
+#' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
 #' @importFrom ggplot2 aes
 #' @importFrom grid arrow
 #' @importFrom methods is
+#' @importFrom ggm basiSet findPath isAcyclic topSort
+#' @importFrom utils combn
 #'
 #' @details
 #' A DSEM involves (at a minimum):
@@ -142,8 +148,8 @@ function( sem,
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
-  if( control$gmrf_parameterization=="projection" ){
-    if( any(family=="fixed" & colSums(!is.na(tsdata))>0) ){
+  if( isTRUE(control$gmrf_parameterization=="projection") ){
+    if( isTRUE(any(family=="fixed" & colSums(!is.na(tsdata))>0)) ){
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
   }
@@ -152,7 +158,7 @@ function( sem,
   # General warnings
   if( isFALSE(control$quiet) ){
     tsdata_SD = apply( tsdata, MARGIN=2, FUN=sd, na.rm=TRUE )
-    if( any((max(tsdata_SD,rm.na=TRUE)/min(tsdata_SD,rm.na=TRUE)) > 100) ){
+    if( isTRUE( (max(tsdata_SD,na.rm=TRUE)/min(tsdata_SD,na.rm=TRUE)) > 10) ){
        warning("Some variables in `tsdata` have much higher variance than others. Please consider rescaling variables to prevent issues with numerical convergence.")
     }
   }
@@ -166,17 +172,17 @@ function( sem,
   ram = out$ram
 
   # Error checks
-  if( any((out$model[,'direction']==2) & (out$model[,2]!=0)) ){
+  if( isTRUE(any((out$model[,'direction']==2) & (out$model[,2]!=0))) ){
     stop("All two-headed arrows should have lag=0")
   }
-  if( !all(c(out$model[,'first'],out$model[,'second']) %in% colnames(tsdata)) ){
+  if( isFALSE(all(c(out$model[,'first'],out$model[,'second']) %in% colnames(tsdata))) ){
     stop("Some variable in `sem` is not in `tsdata`")
   }
-  if( ncol(tsdata) != length(unique(colnames(tsdata))) ){
+  if( isFALSE(ncol(tsdata) == length(unique(colnames(tsdata)))) ){
     stop("Please check `colnames(tsdata)` to confirm that all variables (columns) have a unique name")
   }
-  if( !all(control$lower == -Inf) | !all(control$upper == Inf) ){
-    if( control$newton_loops > 0 ){
+  if( isFALSE(all(control$lower == -Inf)) | isFALSE(all(control$upper == Inf)) ){
+    if( isTRUE(control$newton_loops > 0) ){
       stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
     }
   }
@@ -191,7 +197,7 @@ function( sem,
   Data = list( "options" = options,
                "RAM" = as.matrix(na.omit(ram[,1:4])),
                "RAMstart" = as.numeric(ram[,5]),
-               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "gamma"=4 ),
+               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
                "y_tj" = tsdata )
 
   # Construct parameters
@@ -228,8 +234,10 @@ function( sem,
   # Construct map
   if( is.null(control$map) ){
     Map = list()
+    # Map off x_tj for fixed when data is available
     Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
-    Map$lnsigma_j = factor( ifelse(Data$familycode_j==0, NA, seq_along(Params$lnsigma_j)) )
+    # Map off sigma_j for fixed / bernoulli / Poisson
+    Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
@@ -291,6 +299,7 @@ function( sem,
 
   # Export stuff
   if( control$run_model==FALSE ){
+    class(out) = "dsem"
     return( out )
   }
 
