@@ -10,6 +10,7 @@ library(igraph)
 
 ##############
 # No time simulation
+#  Right model has good performance WITH or WITHOUT imputing data, for p_missing = c(0, 0.2), and starts degrading for p_missing = 0.5
 ##############
 
 # Confirm that graph has conditional dependencies with non-null conditioning set
@@ -18,14 +19,14 @@ basiSet(A)
 plot(graph_from_adjacency_matrix(A))
 
 # Settings
-p_missing = 0.25
-use_imputed_data = FALSE
+p_missing = 0.5
 
 # Simulation loop
 pvalue_rz = array(NA, dim=c(100,4) )
 for( r in seq_len(dim(pvalue_rz)[1]) ){
   if( any(is.na(pvalue_rz[r,])) ){
     set.seed(r)
+    message("Running ", r)
 
     # simulate normal distribution
     a = rnorm(100)
@@ -48,12 +49,11 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
     "
     fit1 = dsem(
       tsdata = ts(data),
-      sem = sem1
+      sem = sem1,
+      control = dsem_control( quiet = TRUE )
     )
-    test1 = test_dsep( fit1, use_imputed_data = FALSE, what = "all" )
-    test2 = test_dsep( fit1, use_imputed_data = TRUE, what = "all" )
-    pvalue_rz[r,1] = test1$pvalue
-    pvalue_rz[r,2] = test2$pvalue
+    pvalue_rz[r,1] = test_dsep( fit1, impute_data = FALSE )
+    pvalue_rz[r,2] = test_dsep( fit1, impute_data = TRUE )
 
     # Backwards causality
     sem2 = "
@@ -64,9 +64,10 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
     "
     fit2 = dsem(
       tsdata = ts(data),
-      sem = sem2
+      sem = sem2,
+      control = dsem_control( quiet = TRUE )
     )
-    pvalue_rz[r,3] = test_dsep( fit2 )
+    pvalue_rz[r,3] = test_dsep( fit2, impute_data = TRUE )
 
     # Flat regression structure
     sem3 = "
@@ -76,9 +77,10 @@ for( r in seq_len(dim(pvalue_rz)[1]) ){
     "
     fit3 = dsem(
       tsdata = ts(data),
-      sem = sem2
+      sem = sem2,
+      control = dsem_control( quiet = TRUE )
     )
-    pvalue_rz[r,4] = test_dsep( fit3 )
+    pvalue_rz[r,4] = test_dsep( fit3, impute_data = TRUE )
   }
 }
 
@@ -120,6 +122,7 @@ fit_selex = dsem(
 
 #################
 # VAR simulation
+# Complex + p_missing = 0.2 :  imputing works and not imputing doesn't work
 #################
 
 model = c( "simple", "complex" )[2]
@@ -180,7 +183,7 @@ if( model == "complex" ){
 }
 
 # Simulation loop
-n_replicates = 500
+n_replicates = 100
 n_t = 100
 pvalue_rz = array(NA, dim=c(n_replicates,4) )
 for( r in seq_len(n_replicates) ){
@@ -213,15 +216,18 @@ for( r in seq_len(n_replicates) ){
       estimate_delta0 = FALSE
     )
     test1 = test_dsep( fit1,
-      #test = "lr"
-      what = "all" )
+      #test = "lr",
+      what = "all",
+      #seed = 101,
+      impute_data = FALSE )
     # system.time( test_dsep(fit1, test="wald") )
     pvalue_rz[r,1] = test1$pvalue
 
     test2 = test_dsep( fit1,
-      #test = "lr"
+      #test = "lr",
       what = "all",
-      use_imputed_data = TRUE )
+      #seed = 101,
+      impute_data = TRUE )
     pvalue_rz[r,2] = test2$pvalue
 
     # Wrong SEM
@@ -234,13 +240,16 @@ for( r in seq_len(n_replicates) ){
     )
     test3 = test_dsep( fit3,
       #test = "lr",
-      what = "all" )
+      what = "all",
+      #seed = 101,
+      impute_data = FALSE )
     pvalue_rz[r,3] = test3$pvalue
 
     test4 = test_dsep( fit3,
-      #test = "lr"
+      #test = "lr",
       what = "all",
-      use_imputed_data = TRUE )
+      #seed = 101,
+      impute_data = TRUE )
     pvalue_rz[r,4] = test4$pvalue
 #    # Wrong SEM
 #    fit4 = dsem(
@@ -273,12 +282,11 @@ sems3 = sapply( test3$sems, FUN = \(x){paste0(x,collapse=" \n ")} )
 # Real data
 #############
 
-# Bering Sea
+# Bering Sea ... published full model
 data(bering_sea)
-Z = ts( bering_sea )
+Z = ts(bering_sea)
 family = rep('fixed', ncol(bering_sea))
 
-# Specify model
 sem = "
   # Link, lag, param_name
   log_seaice -> log_CP, 0, seaice_to_CP
@@ -299,20 +307,96 @@ sem = "
   log_PercentEuph -> log_PercentEuph, 1, AR8, 0.001
   log_PercentCop -> log_PercentCop, 1, AR9, 0.001
 "
-
-# Fit
 fit = dsem( sem = sem,
             tsdata = Z,
             family = family,
             control = dsem_control(use_REML=FALSE, quiet=TRUE) )
-test = test_dsep( fit,
-                  what = "all" )
+summary(fit)
+pvalues = sapply( seq_len(100), FUN = \(x) test_dsep(fit) )
+pcrit = -2 * sum(log(pvalues))
+# Assemble values
+1 - pchisq( pcrit, df = 2*length(pvalues), log=FALSE )
+exp(mean(log(pvalues)))
 
-# Sort by missing links
-order = order( test$pvalues, decreasing = FALSE )
-links = sapply( test$sem,
-        FUN = function(vec) vec[1] )
-data.frame( link=links, test$pvalues )[order,]
+# Bering Sea ... reduced model
+data(bering_sea)
+bering_sea = bering_sea[,c('log_seaice','log_CP','log_Cfall','log_Esummer','log_RperS','SSB')]
+Z = ts( bering_sea )
+family = rep('fixed', ncol(bering_sea))
+
+# Specify model
+sem = c(
+  "log_seaice -> log_CP, 0, SI_to_CP",
+  "log_CP -> log_Esummer, 0, CP_to_E",
+  "log_CP -> log_Cfall, 0, CP_to_C",
+  "log_Esummer -> log_RperS, 0, E_to_RperS",
+  "log_Cfall -> log_RperS, 0, C_to_RperS",
+  "SSB -> log_RperS, 0, SSB_to_RperS"
+  #"log_CP -> SSB, 0, CP_to_SSB",
+  #"log_CP -> log_RperS, 0, CP_to_RperS"
+)
+sem0 = "
+  log_seaice -> log_seaice, 1,  AR1, 0.001
+  log_CP -> log_CP, 1,  AR2, 0.001
+  log_Cfall -> log_Cfall, 1,  AR3, 0.001
+  log_Esummer -> log_Esummer, 1, AR5, 0.001
+  SSB -> SSB, 1, AR6, 0.001
+  log_RperS ->  log_RperS, 1, AR7, 0.001
+"
+
+# Fit
+fit = dsem( sem = paste( paste0(sem,collapse="\n"), "\n", sem0),
+            tsdata = Z,
+            family = family,
+            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
+summary(fit)
+pvalues = sapply( seq_len(100), FUN = \(x) test_dsep(fit) )
+pcrit = -2 * sum(log(pvalues))
+# Assemble values
+1 - pchisq( pcrit, df = 2*length(pvalues), log=FALSE )
+exp(mean(log(pvalues)))
+
+# AIC
+selexAIC = stepwise_selection(
+  model_options = sem,
+  model_shared = sem0,
+  options_initial = sem,
+  tsdata = Z,
+  family = family,
+  control = dsem_control(use_REML=FALSE, quiet=TRUE)
+)
+fitAIC = dsem( selexAIC$model,
+            tsdata = Z,
+            family = family,
+            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
+summary(fitAIC)
+pvalues = sapply( seq_len(100), FUN = \(x) test_dsep(fit) )
+pcrit = -2 * sum(log(pvalues))
+# Assemble values
+1 - pchisq( pcrit, df = 2*length(pvalues), log=FALSE )
+exp(mean(log(pvalues)))
+
+# Selex using CIC depends on random seed
+#CIC = function(object){
+#  set.seed(102)
+#  test_dsep( object,
+#                    what = "CIC" )
+#}
+#selexCIC = stepwise_selection(
+#  model_options = sem,
+#  model_shared = sem0,
+#  options_initial = sem,
+#  tsdata = Z,
+#  family = family,
+#  criterion = CIC,
+#  control = dsem_control(use_REML=FALSE, quiet=TRUE)
+#)
+#fitCIC = dsem( selexCIC$model,
+#            tsdata = Z,
+#            family = family,
+#            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
+#summary(fitCIC)
+#test_dsep( fitCIC )
 
 ###############
 # Wolf-Moose
@@ -321,19 +405,30 @@ data.frame( link=links, test$pvalues )[order,]
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
 
-sem = "
-  # Link, lag, param_name
-  wolves -> wolves, 1, arW
-  moose -> wolves, 1, MtoW
-  wolves -> moose, 1, WtoM
-  moose -> moose, 1, arM
-  moose -> wolves, 0, cross_cor
-"
-# initial first without delta0 (to improve starting values)
-fit = dsem( sem = sem,
-             tsdata = data,
-             estimate_delta0 = FALSE )
-test = test_dsep( fit, what = "all" )
-test$pvalue
-test$CIC
+sem = c(
+  # Lag-1
+  "wolves -> wolves, 1, rho1_ww",
+  "moose -> wolves, 1, rho1_mw",
+  "wolves -> moose, 1, rho1_wm",
+  "moose -> moose, 1, rho1_mm",
+  #"moose -> wolves, 0, cross_cor",
+
+  # Lag-2
+  "wolves -> wolves, 2, rho2_ww",
+  "moose -> wolves, 2, rho2_mw",
+  "wolves -> moose, 2, rho2_wm",
+  "moose -> moose, 2, rho2_mm"
+)
+# AIC selection
+selexAIC = stepwise_selection(
+  model_options = sem,
+  model_shared = "",
+  tsdata = data,
+  estimate_delta0 = FALSE
+)
+fitAIC = dsem( sem = selexAIC$model,
+           tsdata = data,
+           estimate_delta0 = FALSE )
+summary(fitAIC)
+test_dsep( fitAIC )
 

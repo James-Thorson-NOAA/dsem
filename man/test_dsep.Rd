@@ -10,7 +10,7 @@ test_dsep(
   n_burnin = NULL,
   what = c("pvalue", "CIC", "all"),
   test = c("wald", "lr"),
-  use_imputed_data = TRUE
+  impute_data = TRUE
 )
 }
 \arguments{
@@ -35,12 +35,12 @@ and also faster (does not require standard errors), but also is not
 used by phylopath and therefore less supported by previous d-dsep
 testing applications.}
 
-\item{use_imputed_data}{whether to independently impute missing data for each
+\item{impute_data}{whether to independently impute missing data for each
 conditional independence test, or to use imputed values from the original
-fit.  The data are imputed once, and then used repeatedly in
-each conditional independence test.  \code{set.seed} will then result in
-a consistent p-value even when imputing data.  Preliminary testing suggests
-that using imputed data improves test performance.}
+fit.  The data are imputed separately for each conditional independence
+test, so that they are uncorrelated as expected when combining them
+using Fisher's method.  Preliminary testing suggests
+that using imputed data improves test performance}
 }
 \value{
 A p-value representing the weight of evidence that the data arises
