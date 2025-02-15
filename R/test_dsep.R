@@ -177,7 +177,7 @@ function( object,
   if( isTRUE(impute_data) ){
     # Simulate random effects from joint precision, and measurement errors from states
     tsdata = simulate( object,
-                       variance = ifelse(length(fit1$obj$env$random)==0,"none","random"),
+                       variance = ifelse(length(object$obj$env$random)==0,"none","random"),
                        fill_missing = TRUE )[[1]]
   }
 
