@@ -339,8 +339,12 @@ function( sem,
     if( isTRUE(any(Grad_fixed > 0.01)) ){
       warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
     }
-    # Hessian check ... condition and positive definite
+    # Hessian check
     Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par))) )
+    if( any(is.na(Hess_fixed)) ){
+      stop("`Hess_fixed` has NA values, indicating a problem with convergence")
+    }
+    # Eigen checks ... condition and positive definite
     Eigen_fixed = eigen( Hess_fixed, only.values=TRUE )
     if( (max(Eigen_fixed$values)/min(Eigen_fixed$values)) > 1e6 ){
       # See McCullough and Vinod 2003

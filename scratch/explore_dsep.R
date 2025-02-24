@@ -123,10 +123,13 @@ fit_selex = dsem(
 #################
 # VAR simulation
 # Complex + p_missing = 0.2 :  imputing works and not imputing doesn't work
+# Complex + p_missing = 0.5 :  imputing works but is breaking down, and not imputing doesn't work
+# Simple + pmissing = 0.2 : imputing works and not imputing doesn't work
+# Simple + pmissing = 0.5 : imputing works and not imputing doesn't work
 #################
 
-model = c( "simple", "complex" )[2]
-p_missing = 0.5
+model = c( "simple", "complex" )[1]
+p_missing = 0.2
 
 if( model == "simple" ){
   vars = letters[1:2]
@@ -316,6 +319,7 @@ pvalues = sapply( seq_len(100), FUN = \(x) test_dsep(fit) )
 pcrit = -2 * sum(log(pvalues))
 # Assemble values
 1 - pchisq( pcrit, df = 2*length(pvalues), log=FALSE )
+mean(pvalues < 0.05)
 exp(mean(log(pvalues)))
 
 # Bering Sea ... reduced model
@@ -354,6 +358,7 @@ pvalues = sapply( seq_len(100), FUN = \(x) test_dsep(fit) )
 pcrit = -2 * sum(log(pvalues))
 # Assemble values
 1 - pchisq( pcrit, df = 2*length(pvalues), log=FALSE )
+mean(pvalues < 0.05)
 exp(mean(log(pvalues)))
 
 # AIC
@@ -370,10 +375,11 @@ fitAIC = dsem( selexAIC$model,
             family = family,
             control = dsem_control(use_REML=FALSE, quiet=TRUE) )
 summary(fitAIC)
-pvalues = sapply( seq_len(100), FUN = \(x) test_dsep(fit) )
+pvalues = sapply( seq_len(100), FUN = \(x) test_dsep(fitAIC) )
 pcrit = -2 * sum(log(pvalues))
 # Assemble values
 1 - pchisq( pcrit, df = 2*length(pvalues), log=FALSE )
+mean(pvalues < 0.05)
 exp(mean(log(pvalues)))
 
 # Selex using CIC depends on random seed

@@ -163,13 +163,14 @@ function( path ){
 fit_dsem <-
 function( object,
           sem,
-          getsd = TRUE,
-          impute_data = TRUE ){
+          impute_data = TRUE,
+          seed,
+          getsd = TRUE ){
 
   # Modify controls
   control = object$internal$control
     control$quiet = TRUE
-    control$extra_convergence_checks = FALSE
+    control$extra_convergence_checks = TRUE
     control$newton_loops = 0
     control$getsd = getsd
 
@@ -178,24 +179,25 @@ function( object,
     # Simulate random effects from joint precision, and measurement errors from states
     tsdata = simulate( object,
                        variance = ifelse(length(object$obj$env$random)==0,"none","random"),
+                       seed = seed,
                        fill_missing = TRUE )[[1]]
   }
 
   # Refit
   if( inherits(object,"dsemRTMB") ){
-    fit = dsemRTMB( sem = paste0(sem, collapse=" \n "),
+    fit = try(dsemRTMB( sem = paste0(sem, collapse=" \n "),
                   tsdata = tsdata,
                   family = object$internal$family,
                   estimate_delta0 = object$internal$estimate_delta0,
                   log_prior = object$internal$log_prior,
-                  control = control )
+                  control = control ))
   }else{
-    fit = dsem( sem = paste0(sem, collapse=" \n "),
+    fit = try(dsem( sem = paste0(sem, collapse=" \n "),
                   tsdata = tsdata,
                   family = object$internal$family,
                   estimate_delta0 = object$internal$estimate_delta0,
                   prior_negloglike = object$internal$prior_negloglike,
-                  control = control )
+                  control = control ))
   }
   return(fit)
 }
@@ -290,6 +292,7 @@ function( object,
           n_burnin = NULL,
           what = c("pvalue","CIC","all"),
           test = c("wald","lr"),
+          seed = 123456,
           impute_data = TRUE ){
 
   # Check inputs
@@ -299,6 +302,7 @@ function( object,
   out = list( n_time = n_time,
               n_burnin = n_burnin )
 
+  # TO CHECK:
   # Using a single imputed data set for all conditional independence tests is a
   # bad idea because it induces a correlation among tests, which the Fisher method ignores,
   # such that p-values are skewed towards zero even for the right model
@@ -354,24 +358,42 @@ function( object,
   # Eliminate duplicates
   out$sems = unique(out$sems)
   # Fit models
-  out$fits = lapply( out$sems,
-                     FUN = fit_dsem,
-                     object = object,
-                     getsd = ifelse( test=="lr", FALSE, TRUE),
-                     #seed = seq_along(out$sems_null),
-                     impute_data = impute_data )
+  #out$fits = lapply( out$sems,
+  #                   FUN = fit_dsem,
+  #                   object = object,
+  #                   getsd = ifelse( test=="lr", FALSE, TRUE),
+  #                   #seed = seq_along(out$sems_null),
+  #                   impute_data = impute_data )
+  for(i in seq_along(out$sems)){
+    out$fits[[i]] = fit_dsem(
+              object = object,
+              sem=out$sems[[i]],
+              impute_data = impute_data,
+              #tsdata = out$tsdata,
+              seed = seed + i,
+              getsd = ifelse( test=="lr", FALSE, TRUE) )
+  }
 
   if( test == "lr" ){
     # eliminate target variable and refit
     # Requires a fixed seed for each paired comparison of out$fits and out$fits_null
     out$sems_null = lapply( out$sems,
                         FUN = function(vec){vec[-1]} )
-    out$fits_null = lapply( out$sems_null,
-                            FUN = fit_dsem,
-                            object = object,
-                            getsd = FALSE,
-                            #seed = seq_along(out$sems_null),
-                            impute_data = impute_data )
+    #out$fits_null = lapply( out$sems_null,
+    #                        FUN = fit_dsem,
+    #                        object = object,
+    #                        getsd = FALSE,
+    #                        #seed = seq_along(out$sems_null),
+    #                        impute_data = impute_data )
+    for(i in seq_along(out$sems_null)){
+      out$fits[[i]] = fit_dsem(
+                object = object,
+                sem=out$sems_null[[i]],
+                impute_data = impute_data,
+                #tsdata = out$tsdata,
+                seed = seed + i,
+                getsd = FALSE )
+    }
     # Compare objectives as likelihood ratio test (chi-squared with 1 degree of freedom)
     objectives = sapply( out$fits,
                          FUN = function(list) list$opt$obj )
@@ -380,8 +402,11 @@ function( object,
     out$pvalues = 1 - pchisq( 2*objectives_null - 2*objectives, df = 1 )
   }else{
     summaries = lapply( out$fits, summary )
-    out$pvalues = sapply( summaries, function(l) l[1,'p_value'] )
+    get_pvalue = function(l) if(is.null(nrow(l))){NA}else{l[1,'p_value']}
+    out$pvalues = sapply( summaries,
+                          FUN = get_pvalue )
   }
+  #for(i in seq_along(summaries)) get_pvalue( summaries[[i]] )
 
   # Compute test statistics
   C_p = -2 * sum( log(out$pvalues) )
