@@ -10,6 +10,7 @@ test_dsep(
   n_burnin = NULL,
   what = c("pvalue", "CIC", "all"),
   test = c("wald", "lr"),
+  seed = 123456,
   impute_data = TRUE
 )
 }
@@ -34,6 +35,9 @@ The likelihood-ratio test might be more accurate given estimation covariance
 and also faster (does not require standard errors), but also is not
 used by phylopath and therefore less supported by previous d-dsep
 testing applications.}
+
+\item{seed}{random number seed used when simulating imputed data, so that
+results are reproducible.}
 
 \item{impute_data}{whether to independently impute missing data for each
 conditional independence test, or to use imputed values from the original

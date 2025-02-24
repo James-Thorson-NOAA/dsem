@@ -229,6 +229,8 @@ function( object,
 #'        test, so that they are uncorrelated as expected when combining them
 #'        using Fisher's method.  Preliminary testing suggests
 #'        that using imputed data improves test performance
+#' @param seed random number seed used when simulating imputed data, so that
+#'        results are reproducible.
 #'
 #' @details
 #' A user-specified SEM implies a set of conditional independence relationships
