@@ -165,6 +165,7 @@ function( object,
           sem,
           impute_data = TRUE,
           seed,
+          tsdata,
           getsd = TRUE ){
 
   # Modify controls
@@ -174,13 +175,18 @@ function( object,
     control$newton_loops = 0
     control$getsd = getsd
 
-  tsdata = object$internal$tsdata
-  if( isTRUE(impute_data) ){
+  if( impute_data == "none" ){
+    tsdata = object$internal$tsdata
+  }
+  if( impute_data == "by_test" ){
     # Simulate random effects from joint precision, and measurement errors from states
     tsdata = simulate( object,
                        variance = ifelse(length(object$obj$env$random)==0,"none","random"),
                        seed = seed,
                        fill_missing = TRUE )[[1]]
+  }
+  if( impute_data == "single" ){
+    # use tsdata passed from test_dsep
   }
 
   # Refit
@@ -295,11 +301,12 @@ function( object,
           what = c("pvalue","CIC","all"),
           test = c("wald","lr"),
           seed = 123456,
-          impute_data = TRUE ){
+          impute_data = c("by_test","single","none") ){
 
   # Check inputs
   what = match.arg(what)
   test = match.arg(test)
+  impute_data = match.arg(impute_data)
   if( test=="lr" & isTRUE(impute_data) ) stop("LR test is not designed to work when imputing data")
   out = list( n_time = n_time,
               n_burnin = n_burnin )
@@ -309,13 +316,13 @@ function( object,
   # bad idea because it induces a correlation among tests, which the Fisher method ignores,
   # such that p-values are skewed towards zero even for the right model
   #out$tsdata = object$internal$tsdata
-  #if( isTRUE(impute_data) ){
-  #  # Simulate random effects from joint precision, and measurement errors from states
-  #  out$tsdata = simulate( object,
-  #                     variance = "random",
-  #                     fill_missing = TRUE,
-  #                     seed = seed )[[1]]
-  #}
+  if( impute_data == "single" ){
+    # Simulate random effects from joint precision, and measurement errors from states
+    out$tsdata = simulate( object,
+                       variance = ifelse(length(object$obj$env$random)==0,"none","random"),
+                       fill_missing = TRUE,
+                       seed = seed )[[1]]
+  }
 
   # Detect n_time and n_burnin
   if( is.null(out$n_burnin) ){
@@ -371,10 +378,11 @@ function( object,
               object = object,
               sem=out$sems[[i]],
               impute_data = impute_data,
-              #tsdata = out$tsdata,
+              tsdata = out$tsdata,
               seed = seed + i,
               getsd = ifelse( test=="lr", FALSE, TRUE) )
   }
+  # out$fits[[2]]$obj$env$data$y_tj
 
   if( test == "lr" ){
     # eliminate target variable and refit
@@ -392,7 +400,7 @@ function( object,
                 object = object,
                 sem=out$sems_null[[i]],
                 impute_data = impute_data,
-                #tsdata = out$tsdata,
+                tsdata = out$tsdata,
                 seed = seed + i,
                 getsd = FALSE )
     }
