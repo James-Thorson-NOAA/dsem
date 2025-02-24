@@ -11,7 +11,7 @@ test_dsep(
   what = c("pvalue", "CIC", "all"),
   test = c("wald", "lr"),
   seed = 123456,
-  impute_data = TRUE
+  impute_data = c("by_test", "single", "none")
 )
 }
 \arguments{
