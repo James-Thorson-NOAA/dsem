@@ -19,7 +19,8 @@ dsemRTMB(
 including lagged or simultaneous effects.  See Details section in
 \code{\link[dsem]{make_dsem_ram}} for more description}
 
-\item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
+\item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}, with \code{NA}
+for missing values.}
 
 \item{family}{Character-vector listing the distribution used for each column of \code{tsdata}, where
 each element must be \code{fixed} (for no measurement error), 
@@ -62,7 +63,7 @@ Fits a dynamic structural equation model
 \details{
 \code{dsemRTMB} is interchangeable with \code{\link{dsem}}, but uses RTMB
 instead of TMB for estimation.  Both are provided for comparison and
-real-world comparison.
+real-world comparison. See \code{?dsem} for more details
 }
 \examples{
 # Define model

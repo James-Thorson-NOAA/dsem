@@ -18,7 +18,7 @@
 #' @details
 #' \code{dsemRTMB} is interchangeable with \code{\link{dsem}}, but uses RTMB
 #' instead of TMB for estimation.  Both are provided for comparison and
-#' real-world comparison.
+#' real-world comparison. See \code{?dsem} for more details
 #'
 #' @return
 #' An object (list) of class `dsem`, fitted using RTMB
