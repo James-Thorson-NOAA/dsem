@@ -11,6 +11,7 @@ test_dsep(
   what = c("pvalue", "CIC", "all"),
   test = c("wald", "lr"),
   seed = 123456,
+  order = NULL,
   impute_data = c("by_test", "single", "none")
 )
 }
@@ -38,6 +39,9 @@ testing applications.}
 
 \item{seed}{random number seed used when simulating imputed data, so that
 results are reproducible.}
+
+\item{order}{an optional character vector providing the order for variables to be
+tested when defining the directed acyclic graph for use in d-sep testing}
 
 \item{impute_data}{whether to independently impute missing data for each
 conditional independence test, or to use imputed values from the original

@@ -1,6 +1,6 @@
 Package: dsem
 Type: Package
-Title: Fit Dynamic Structural Equation Models
+Title: Dynamic Structural Equation Models
 Version: 1.5.1
 Date: 2025-02-13
 Authors@R: 

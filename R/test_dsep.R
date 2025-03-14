@@ -235,6 +235,8 @@ function( object,
 #'        test, so that they are uncorrelated as expected when combining them
 #'        using Fisher's method.  Preliminary testing suggests
 #'        that using imputed data improves test performance
+#' @param order an optional character vector providing the order for variables to be
+#'        tested when defining the directed acyclic graph for use in d-sep testing
 #' @param seed random number seed used when simulating imputed data, so that
 #'        results are reproducible.
 #'
@@ -301,6 +303,7 @@ function( object,
           what = c("pvalue","CIC","all"),
           test = c("wald","lr"),
           seed = 123456,
+          order = NULL,
           impute_data = c("by_test","single","none") ){
 
   # Check inputs
@@ -346,10 +349,14 @@ function( object,
   A = ifelse( d==0, 0, 1)
 
   # Re-order
-  order = find_consensus_order(list(A))
+  if( is.null(order) ){
+    out$order = find_consensus_order(list(A))
+  }else{
+    out$order = order
+  }
   # Find paths
   out$paths = find_paths( A,
-                      order = order )
+                      order = out$order )
   # Remove paths from initial "burn-in" buffer in time-stepping
   out$paths = remove_paths( out$paths,
                             n_burnin = out$n_burnin )
