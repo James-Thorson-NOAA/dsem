@@ -42,7 +42,7 @@ function( beta_p,
   "c" <- ADoverload("c")
   "[<-" <- ADoverload("[<-")
   model <- as.data.frame(model)
-  model$parameter = as.integer(model[,'parameter'])
+  model[,'parameter'] = as.integer(model[,'parameter'])
 
   # Combine fixed, estimated, and mapped parameters into vector
   beta_i = rep(0, nrow(model))
