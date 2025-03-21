@@ -4,6 +4,9 @@
 * Remove `ggm` from Imports (because it Imports `graph` which is not on CRAN)
   and instead define a locally copy of relevant functions.  Also adding Giovanni M.
   Marchetti (the maintainer of `ggm` as contributor in DESCRIPTION)
+* Update `test_dsep(.)` to allow options for imputing missing data prior to test,
+  and using default `impute_data = "by_test"` based on explorations to date
+* Add example for `total_effect`
 
 # dsem 1.5.0
 
