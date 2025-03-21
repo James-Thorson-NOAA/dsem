@@ -1,3 +1,10 @@
+# dsem 1.6.0
+
+* Export and document `make_matrices`
+* Remove `ggm` from Imports (because it Imports `graph` which is not on CRAN)
+  and instead define a locally copy of relevant functions.  Also adding Giovanni M.
+  Marchetti (the maintainer of `ggm` as contributor in DESCRIPTION)
+
 # dsem 1.5.0
 
 * Add option to simulate data with or without missingness pattern of original data
