@@ -109,7 +109,7 @@ represents a latent variable, and all others are called manifest variables.
 The identifiability criteria for latent variables
 can be complicated.  To explain, we ignore lagged effects (only simultaneous paths)
 and classify three types of latent variables:
-\itemize{
+\describe{
   \item{factor latent variables: }{any latent variable \eqn{\mathbf F} that includes paths out from it
         to manifest variables, but has no paths from manifest variables into \eqn{\mathbf F} is a
         factor variable.  These are identifable by fixing their SD (i.e., at one), and using a
