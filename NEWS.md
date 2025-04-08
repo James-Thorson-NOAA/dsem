@@ -7,6 +7,7 @@
 * Update `test_dsep(.)` to allow options for imputing missing data prior to test,
   and using default `impute_data = "by_test"` based on explorations to date
 * Add example for `total_effect`
+* Adding "model structura" vignette and re-organizing pkgdown page
 
 # dsem 1.5.0
 

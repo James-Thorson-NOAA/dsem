@@ -1,4 +1,73 @@
-url: ~
+url: https://james-thorson-NOAA.github.io/dsem/
 template:
   bootstrap: 5
+
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - model-description
+  - features
+  - dynamic_factor_analysis
+  - spatial_diffusion
+
+reference:
+- title: internal
+  contents:
+  - classify_variables
+  - TMBAIC
+  - list_parameters
+  - parse_path
+  - read_model
+
+- title: 'Specification and fitting'
+  desc: |
+    Core tools for model fitting and diagnostics.
+  contents:
+  - dsem
+  - dsemRTMB
+  - dsem_control
+  - stepwise_selection
+
+- title: 'Specifying the DSEM'
+  desc: |
+    Tools to specify interactions among variables and over time.
+  contents:
+  - make_dsem_ram
+  - make_dfa
+  - convert_equations
+
+- title: 'Predicting and residuals'
+  desc: |
+    Core tools for model predictions and residuals.
+  contents:
+  - simulate.dsem
+  - loo_residuals
+  - residuals.dsem
+  - cAIC
+  - logLik.dsem
+
+- title: 'Interpret output'
+  desc: |
+    Tools for interpreting output.
+  contents:
+  - summary.dsem
+  - test_dsep
+  - total_effect
+  - vcov.dsem
+  - as_fitted_DAG
+  - as_sem
+  - plot.dsem
+  - predict.dsem
+  - print.dsem
+  - make_matrices
+
+- title: 'Data sets'
+  desc: |
+    Data sets used for illustration and testing.
+  contents:
+  - bering_sea
+  - isle_royale
+  - sea_otter
+
 
