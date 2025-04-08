@@ -158,6 +158,7 @@ function( parlist,
   }
 
   # Likelihood of data | random effects
+  # Simulates new data even for NA values, which can then be excluded during simulate.dsem
   loglik_tj = mu_tj = devresid_tj = matrix( 0, nrow=n_t, ncol=n_j )
   pow = function(a,b) a^b
   for( t in 1:n_t ){
@@ -165,10 +166,8 @@ function( parlist,
     # familycode = 0 :  don't include likelihood
     if( family[j]=="fixed" ){
       mu_tj[t,j] = z_tj[t,j];
-      if(!is.na(y_tj[t,j])){
-        if( isTRUE(simulate_data) ){
-          y_tj[t,j] = mu_tj[t,j];
-        }
+      if( isTRUE(simulate_data) ){
+        y_tj[t,j] = mu_tj[t,j];
       }
       devresid_tj[t,j] = 0;
     }
@@ -177,9 +176,9 @@ function( parlist,
       mu_tj[t,j] = z_tj[t,j];
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dnorm( y_tj[t,j], mu_tj[t,j], sigma_j[j], TRUE );
-        if( isTRUE(simulate_data) ){
-          y_tj[t,j] = rnorm( n=1, mean=mu_tj[t,j], sd=sigma_j[j] )
-        }
+      }
+      if( isTRUE(simulate_data) ){
+        y_tj[t,j] = rnorm( n=1, mean=mu_tj[t,j], sd=sigma_j[j] )
       }
       devresid_tj[t,j] = y_tj[t,j] - mu_tj[t,j];
     }
@@ -188,9 +187,9 @@ function( parlist,
       mu_tj[t,j] = plogis(z_tj[t,j]);
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dbinom( y_tj[t,j], 1.0, mu_tj[t,j], TRUE );
-        if( isTRUE(simulate_data) ){
-          y_tj[t,j] = rbinom( n=1, size=1, prob=mu_tj[t,j] );
-        }
+      }
+      if( isTRUE(simulate_data) ){
+        y_tj[t,j] = rbinom( n=1, size=1, prob=mu_tj[t,j] );
       }
       devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * sqrt( -2*((1-y_tj[t,j])*log(1-mu_tj[t,j]) + y_tj[t,j]*log(mu_tj[t,j])) );
     }
@@ -199,9 +198,9 @@ function( parlist,
       mu_tj[t,j] = exp(z_tj[t,j]);
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dpois( y_tj[t,j], mu_tj[t,j], TRUE );
-        if( isTRUE(simulate_data) ){
-          y_tj[t,j] = rpois( n=1, lambda=mu_tj[t,j] );
-        }
+      }
+      if( isTRUE(simulate_data) ){
+        y_tj[t,j] = rpois( n=1, lambda=mu_tj[t,j] );
       }
       devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * sqrt( 2*(y_tj[t,j]*log((1e-10 + y_tj[t,j])/mu_tj[t,j]) - (y_tj[t,j]-mu_tj[t,j])) );
     }
@@ -210,9 +209,9 @@ function( parlist,
       mu_tj[t,j] = exp(z_tj[t,j]);
       if(!is.na(y_tj[t,j])){
         loglik_tj[t,j] = dgamma( y_tj[t,j], pow(sigma_j[j],-2), mu_tj[t,j]*pow(sigma_j[j],2), TRUE );
-        if( isTRUE(simulate_data) ){
-          y_tj[t,j] = rgamma( n=1, shape=pow(sigma_j[j],-2), scale=mu_tj[t,j]*pow(sigma_j[j],2) );
-        }
+      }
+      if( isTRUE(simulate_data) ){
+        y_tj[t,j] = rgamma( n=1, shape=pow(sigma_j[j],-2), scale=mu_tj[t,j]*pow(sigma_j[j],2) );
       }
       devresid_tj[t,j] = sign(y_tj[t,j] - mu_tj[t,j]) * sqrt( 2*((y_tj[t,j]-mu_tj[t,j])/mu_tj[t,j] - log(y_tj[t,j]/mu_tj[t,j])) );
     }

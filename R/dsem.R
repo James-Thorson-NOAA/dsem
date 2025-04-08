@@ -5,7 +5,8 @@
 #' @param sem Specification for time-series structural equation model structure
 #'        including lagged or simultaneous effects.  See Details section in
 #'        \code{\link[dsem]{make_dsem_ram}} for more description
-#' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}
+#' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}, with \code{NA}
+#'        for missing values.
 #' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
 #'        each element must be \code{fixed} (for no measurement error), 
 #'        \code{normal} for normal measurement error using an identity link,
@@ -41,12 +42,11 @@
 #' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom sem sem
-#' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_
+#' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_ graph.adjacency clusters
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
 #' @importFrom ggplot2 aes
 #' @importFrom grid arrow
 #' @importFrom methods is
-#' @importFrom ggm basiSet findPath isAcyclic topSort
 #' @importFrom utils combn
 #'
 #' @details
@@ -78,6 +78,35 @@
 #' are estimated from the matrix of second derivatives of the log-marginal likelihod,
 #' and standard errors for random effects (i.e., missing or state-space variables) are estimated
 #' from a generalization of this method (see \code{\link[TMB]{sdreport}} for details).
+#'
+#' Any column \eqn{\mathbf x_c} of \code{tsdata} that includes only \code{NA} values
+#' represents a latent variable, and all others are called manifest variables.
+#' The identifiability criteria for latent variables
+#' can be complicated.  To explain, we ignore lagged effects (only simultaneous paths)
+#' and classify three types of latent variables:
+#' \describe{
+#'   \item{factor latent variables: }{any latent variable \eqn{\mathbf F} that includes paths out from it
+#'         to manifest variables, but has no paths from manifest variables into \eqn{\mathbf F} is a
+#'         factor variable.  These are identifable by fixing their SD (i.e., at one), and using a
+#'         trimmed Cholesky parameterization (i.e., each successive factor includes fewer paths to
+#'         manifest variables).  See the DFA vignette for an example.  Factor latent variables
+#'         can be used to represent residual covariance while also estimating the source of
+#'         that covariance explicitly}
+#'   \item{intermediate latent variables: }{Any latent variable \eqn{\mathbf Y} that includes paths in
+#'         from some manifest variables \eqn{\mathbf X} and some paths out to manifest variables
+#'         \eqn{\mathbf Z} is an intermediate latent variable.  In general, the at least one path
+#'         in or out must be fixed a priori (e.g., at one) to identify the scale of the intermediate
+#'         LV.  These intermediate latent variables can represent ecological concepts that serve
+#'         as intermediate link between different manifest variables}
+#'   \item{composite latent variables: }{Any latent variable \eqn{\mathbf C} that includes paths in
+#'         from some manifest variables \eqn{\mathbf X} and no paths out to manifest variables
+#'         is a composite latent variable.  In general, you must fix all paths to composite variables
+#'         a priori, and must also fix the SD a priori (e.g., at zero).  These composite variables
+#'         allow DSEM to estimate a response with standard errors that integrates
+#'         across multiple manifest variables}
+#' }
+#' As stated, these criteria do not involve paths from one to another latent variable.  These
+#' are also possible, but involve more complicated identifiability criteria.
 #'
 #' @return
 #' An object (list) of class `dsem`. Elements include:
@@ -268,7 +297,8 @@ function( sem,
     family = family,
     estimate_delta0 = estimate_delta0,
     control = control,
-    covs = covs
+    covs = covs,
+    prior_negloglike = prior_negloglike
   )
 
   # Parse priors
@@ -339,8 +369,12 @@ function( sem,
     if( isTRUE(any(Grad_fixed > 0.01)) ){
       warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
     }
-    # Hessian check ... condition and positive definite
+    # Hessian check
     Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par))) )
+    if( any(is.na(Hess_fixed)) ){
+      stop("`Hess_fixed` has NA values, indicating a problem with convergence")
+    }
+    # Eigen checks ... condition and positive definite
     Eigen_fixed = eigen( Hess_fixed, only.values=TRUE )
     if( (max(Eigen_fixed$values)/min(Eigen_fixed$values)) > 1e6 ){
       # See McCullough and Vinod 2003
@@ -649,6 +683,8 @@ function( x,
 #' @param resimulate_gmrf whether to resimulate the GMRF based on estimated or
 #'        simulated random effects (determined by argument \code{variance})
 #' @param seed random seed
+#' @param fill_missing whether to fill in simulate all data (including values
+#'        that are missing in the original data set)
 #' @param ... Not used
 #'
 #' @details
@@ -674,6 +710,7 @@ function( object,
           seed = NULL,
           variance = c("none", "random", "both"),
           resimulate_gmrf = FALSE,
+          fill_missing = FALSE,
           ... ){
 
   # Front stuff
@@ -739,6 +776,10 @@ function( object,
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
       out[[r]] = obj$simulate( par_zr[,r] )$y_tj
+    }
+    if(isFALSE(fill_missing)){
+      # Use missingness pattern from original data
+      out[[r]] = ifelse( is.na(tsdata), NA, out[[r]] )
     }
     colnames(out[[r]]) = colnames(tsdata)
     tsp(out[[r]]) = attr(tsdata,"tsp")
@@ -944,12 +985,21 @@ function( object,
     #newfit = eval(newcall)
     control = object$internal$control
     control$run_model = FALSE
-    newfit = dsem( sem = object$internal$sem,
-                   tsdata = newdata,
-                   family = object$internal$family,
-                   estimate_delta0 = object$internal$estimate_delta0,
-                   control = object$internal$control,
-                   covs = object$internal$covs )
+    if( inherits(object,"dsemRTMB") ){
+      newfit = dsemRTMB( sem = object$internal$sem,
+                     tsdata = newdata,
+                     family = object$internal$family,
+                     estimate_delta0 = object$internal$estimate_delta0,
+                     control = object$internal$control,
+                     covs = object$internal$covs )
+    }else{
+      newfit = dsem( sem = object$internal$sem,
+                     tsdata = newdata,
+                     family = object$internal$family,
+                     estimate_delta0 = object$internal$estimate_delta0,
+                     control = object$internal$control,
+                     covs = object$internal$covs )
+    }
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor

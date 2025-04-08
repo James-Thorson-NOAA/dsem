@@ -10,6 +10,7 @@
   seed = NULL,
   variance = c("none", "random", "both"),
   resimulate_gmrf = FALSE,
+  fill_missing = FALSE,
   ...
 )
 }
@@ -26,6 +27,9 @@ or include estimation uncertainty in both fixed and random effects}
 
 \item{resimulate_gmrf}{whether to resimulate the GMRF based on estimated or
 simulated random effects (determined by argument \code{variance})}
+
+\item{fill_missing}{whether to fill in simulate all data (including values
+that are missing in the original data set)}
 
 \item{...}{Not used}
 }

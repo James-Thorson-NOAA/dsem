@@ -24,5 +24,37 @@ from 0 (simultaneous effects) to a user-specified maximum lag.
 }
 \details{
 Total effects are taken from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}},
-where \eqn{\mathbf{P}} is the path matrix across variables and times.
+where \eqn{\mathbf{P}} is the path matrix across variables and times. This
+calculates the effect of a pulse perturbation at lag=0 for a given variable (from)
+upon any other variable (to) either in the same time (lag=0), or subsequent times
+(lag >= 1).
+}
+\examples{
+# Define linear model with slope of 0.5
+sem = "
+  # from, to, lag, name, starting_value
+  x -> y, 0, slope, 0.5
+"
+# Build DSEM with specified value for path coefficients
+mod = dsem(
+  sem = sem,
+  tsdata = ts(data.frame(x=rep(0,20),y=rep(0,20))),
+  control = dsem_control( run_model = FALSE )
+)
+# Show that total effect of X on Y is 0.5 but does not propagate over time
+total_effect(mod, n_lags = 2)
+
+# Define linear model with slope of 0.5 and autocorrelated response
+sem = "
+  x -> y, 0, slope, 0.5
+  y -> y, 1, ar_y, 0.8
+"
+mod = dsem(
+  sem = sem,
+  tsdata = ts(data.frame(x=rep(0,20),y=rep(0,20))),
+  control = dsem_control( run_model = FALSE )
+)
+# Show that total effect of X on Y is 0.5 with decay of 0.8 for each time
+total_effect(mod, n_lags = 4)
+
 }

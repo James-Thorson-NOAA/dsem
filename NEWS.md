@@ -1,3 +1,20 @@
+# dsem 1.6.0
+
+* Export and document `make_matrices`
+* Remove `ggm` from Imports (because it Imports `graph` which is not on CRAN)
+  and instead define a locally copy of relevant functions.  Also adding Giovanni M.
+  Marchetti (the maintainer of `ggm` as contributor in DESCRIPTION)
+* Update `test_dsep(.)` to allow options for imputing missing data prior to test,
+  and using default `impute_data = "by_test"` based on explorations to date
+* Add example for `total_effect`
+* Adding "model structura" vignette and re-organizing pkgdown page
+
+# dsem 1.5.0
+
+* Add option to simulate data with or without missingness pattern of original data
+* Change `test_dsep(.)` to have option to impute missing data, and changing that
+  to be the default behavior
+
 # dsem 1.5.0
 
 * Fix bug when adding missing variances (PR 36)

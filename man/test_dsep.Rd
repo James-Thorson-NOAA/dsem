@@ -9,7 +9,10 @@ test_dsep(
   n_time = NULL,
   n_burnin = NULL,
   what = c("pvalue", "CIC", "all"),
-  test = c("wald", "lr")
+  test = c("wald", "lr"),
+  seed = 123456,
+  order = NULL,
+  impute_data = c("by_test", "single", "none")
 )
 }
 \arguments{
@@ -33,6 +36,19 @@ The likelihood-ratio test might be more accurate given estimation covariance
 and also faster (does not require standard errors), but also is not
 used by phylopath and therefore less supported by previous d-dsep
 testing applications.}
+
+\item{seed}{random number seed used when simulating imputed data, so that
+results are reproducible.}
+
+\item{order}{an optional character vector providing the order for variables to be
+tested when defining the directed acyclic graph for use in d-sep testing}
+
+\item{impute_data}{whether to independently impute missing data for each
+conditional independence test, or to use imputed values from the original
+fit.  The data are imputed separately for each conditional independence
+test, so that they are uncorrelated as expected when combining them
+using Fisher's method.  Preliminary testing suggests
+that using imputed data improves test performance}
 }
 \value{
 A p-value representing the weight of evidence that the data arises

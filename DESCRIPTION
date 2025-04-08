@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
-Title: Fit Dynamic Structural Equation Models
-Version: 1.5.0
-Date: 2025-02-10
+Title: Dynamic Structural Equation Models
+Version: 1.6.0
+Date: 2025-03-21
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -17,7 +17,12 @@ Authors@R:
       person(given = "Wouter", 
  	     family = "van der Bijl",
              role = c("ctb"),
-             comment = c(ORCID = "0000-0002-7366-1868", "template for d-separation test"))
+             comment = c(ORCID = "0000-0002-7366-1868", "template for d-separation test")),
+      person(given = "Giovanni M.", 
+	     family = "Marchetti", 
+	     email = "giovanni.marchetti@unifi.it", 
+             role = c("ctr"),
+	     comment = c("creator of ggm, from which functions are copied to avoid dependency on package graph not on CRAN"))
     )
 Imports:
     TMB,
@@ -30,8 +35,7 @@ Imports:
     ggplot2,
     grid,
     methods,
-    stats,
-    ggm
+    stats
 Depends:
     R (>= 4.0.0),
 Suggests:

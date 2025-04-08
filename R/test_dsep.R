@@ -56,12 +56,36 @@ function(model_set) {
   res
 }
 
+#basiSet <-
+#function( amat ){
+#  amat <- topSort(amat)
+#  nod <- rownames(amat)
+#  dv <- length(nod)
+#  ind <- NULL
+#  for (r in 1:dv) {
+#  for (s in r:dv) {
+#    if ((amat[r, s] != 0) | (s == r)) {
+#      next
+#    }
+#    else{
+#      ed <- nod[c(r, s)]
+#      pa.r <- nod[amat[, r] == 1]
+#      pa.s <- nod[amat[, s] == 1]
+#      dsep <- union(pa.r, pa.s)
+#      dsep <- setdiff(dsep, ed)
+#      b <- list(c(ed, dsep))
+#      ind <- c(ind, b)
+#    }
+#  }}
+#  ind
+#}
+
 # Modified from phylopath
 find_paths <-
 function( A,
           order ) {
 
-  s <- basiSet(A[order,order])
+  s <- basiSet(A) #[order,order])
   #s <- basiSet(A)
   if (is.null(s)) {
     stop('One or some of your models are fully connected, and cannot be tested.')
@@ -139,21 +163,48 @@ function( path ){
 fit_dsem <-
 function( object,
           sem,
+          impute_data = TRUE,
+          seed,
+          tsdata,
           getsd = TRUE ){
 
   # Modify controls
   control = object$internal$control
     control$quiet = TRUE
-    control$extra_convergence_checks = FALSE
+    control$extra_convergence_checks = TRUE
     control$newton_loops = 0
     control$getsd = getsd
 
+  if( impute_data == "none" ){
+    tsdata = object$internal$tsdata
+  }
+  if( impute_data == "by_test" ){
+    # Simulate random effects from joint precision, and measurement errors from states
+    tsdata = simulate( object,
+                       variance = ifelse(length(object$obj$env$random)==0,"none","random"),
+                       seed = seed,
+                       fill_missing = TRUE )[[1]]
+  }
+  if( impute_data == "single" ){
+    # use tsdata passed from test_dsep
+  }
+
   # Refit
-  fit = dsem( sem = paste0(sem, collapse=" \n "),
-                tsdata = object$internal$tsdata,
-                family = object$internal$family,
-                estimate_delta0 = object$internal$estimate_delta0,
-                control = control )
+  if( inherits(object,"dsemRTMB") ){
+    fit = try(dsemRTMB( sem = paste0(sem, collapse=" \n "),
+                  tsdata = tsdata,
+                  family = object$internal$family,
+                  estimate_delta0 = object$internal$estimate_delta0,
+                  log_prior = object$internal$log_prior,
+                  control = control ))
+  }else{
+    fit = try(dsem( sem = paste0(sem, collapse=" \n "),
+                  tsdata = tsdata,
+                  family = object$internal$family,
+                  estimate_delta0 = object$internal$estimate_delta0,
+                  prior_negloglike = object$internal$prior_negloglike,
+                  control = control ))
+  }
   return(fit)
 }
 
@@ -178,6 +229,16 @@ function( object,
 #'        and also faster (does not require standard errors), but also is not
 #'        used by phylopath and therefore less supported by previous d-dsep
 #'        testing applications.
+#' @param impute_data whether to independently impute missing data for each
+#'        conditional independence test, or to use imputed values from the original
+#'        fit.  The data are imputed separately for each conditional independence
+#'        test, so that they are uncorrelated as expected when combining them
+#'        using Fisher's method.  Preliminary testing suggests
+#'        that using imputed data improves test performance
+#' @param order an optional character vector providing the order for variables to be
+#'        tested when defining the directed acyclic graph for use in d-sep testing
+#' @param seed random number seed used when simulating imputed data, so that
+#'        results are reproducible.
 #'
 #' @details
 #' A user-specified SEM implies a set of conditional independence relationships
@@ -240,13 +301,31 @@ function( object,
           n_time = NULL,
           n_burnin = NULL,
           what = c("pvalue","CIC","all"),
-          test = c("wald","lr") ){
+          test = c("wald","lr"),
+          seed = 123456,
+          order = NULL,
+          impute_data = c("by_test","single","none") ){
 
   # Check inputs
   what = match.arg(what)
   test = match.arg(test)
+  impute_data = match.arg(impute_data)
+  if( test=="lr" & isTRUE(impute_data) ) stop("LR test is not designed to work when imputing data")
   out = list( n_time = n_time,
               n_burnin = n_burnin )
+
+  # TO CHECK:
+  # Using a single imputed data set for all conditional independence tests is a
+  # bad idea because it induces a correlation among tests, which the Fisher method ignores,
+  # such that p-values are skewed towards zero even for the right model
+  #out$tsdata = object$internal$tsdata
+  if( impute_data == "single" ){
+    # Simulate random effects from joint precision, and measurement errors from states
+    out$tsdata = simulate( object,
+                       variance = ifelse(length(object$obj$env$random)==0,"none","random"),
+                       fill_missing = TRUE,
+                       seed = seed )[[1]]
+  }
 
   # Detect n_time and n_burnin
   if( is.null(out$n_burnin) ){
@@ -270,13 +349,20 @@ function( object,
   A = ifelse( d==0, 0, 1)
 
   # Re-order
-  order = find_consensus_order(list(A))
+  if( is.null(order) ){
+    out$order = find_consensus_order(list(A))
+  }else{
+    out$order = order
+  }
   # Find paths
   out$paths = find_paths( A,
-                      order=order )
+                      order = out$order )
   # Remove paths from initial "burn-in" buffer in time-stepping
   out$paths = remove_paths( out$paths,
                             n_burnin = out$n_burnin )
+  if(length(out$paths)==0){
+    stop("No paths remain. The model appears to have no conditional independence relationships to test.")
+  }
   # convert to arrow-and-lag notation in variable-by-lag
   out$arrows = lapply( out$paths,
                        FUN = path_to_arrow)
@@ -288,20 +374,44 @@ function( object,
   # Eliminate duplicates
   out$sems = unique(out$sems)
   # Fit models
-  out$fits = lapply( out$sems,
-                   FUN = fit_dsem,
-                   object = object,
-                   getsd = ifelse( test=="lr", FALSE, TRUE) )
+  #out$fits = lapply( out$sems,
+  #                   FUN = fit_dsem,
+  #                   object = object,
+  #                   getsd = ifelse( test=="lr", FALSE, TRUE),
+  #                   #seed = seq_along(out$sems_null),
+  #                   impute_data = impute_data )
+  for(i in seq_along(out$sems)){
+    out$fits[[i]] = fit_dsem(
+              object = object,
+              sem=out$sems[[i]],
+              impute_data = impute_data,
+              tsdata = out$tsdata,
+              seed = seed + i,
+              getsd = ifelse( test=="lr", FALSE, TRUE) )
+  }
+  # out$fits[[2]]$obj$env$data$y_tj
 
   if( test == "lr" ){
     # eliminate target variable and refit
+    # Requires a fixed seed for each paired comparison of out$fits and out$fits_null
     out$sems_null = lapply( out$sems,
                         FUN = function(vec){vec[-1]} )
-    out$fits_null = lapply( out$sems_null,
-                        FUN = fit_dsem,
-                        object = object,
-                        getsd = FALSE )
-    # Compare objectives as likelihood ratio test
+    #out$fits_null = lapply( out$sems_null,
+    #                        FUN = fit_dsem,
+    #                        object = object,
+    #                        getsd = FALSE,
+    #                        #seed = seq_along(out$sems_null),
+    #                        impute_data = impute_data )
+    for(i in seq_along(out$sems_null)){
+      out$fits[[i]] = fit_dsem(
+                object = object,
+                sem=out$sems_null[[i]],
+                impute_data = impute_data,
+                tsdata = out$tsdata,
+                seed = seed + i,
+                getsd = FALSE )
+    }
+    # Compare objectives as likelihood ratio test (chi-squared with 1 degree of freedom)
     objectives = sapply( out$fits,
                          FUN = function(list) list$opt$obj )
     objectives_null = sapply( out$fits_null,
@@ -309,11 +419,15 @@ function( object,
     out$pvalues = 1 - pchisq( 2*objectives_null - 2*objectives, df = 1 )
   }else{
     summaries = lapply( out$fits, summary )
-    out$pvalues = sapply( summaries, function(l) l[1,'p_value'] )
+    get_pvalue = function(l) if(is.null(nrow(l))){NA}else{l[1,'p_value']}
+    out$pvalues = sapply( summaries,
+                          FUN = get_pvalue )
   }
+  #for(i in seq_along(summaries)) get_pvalue( summaries[[i]] )
 
   # Compute test statistics
   C_p = -2 * sum( log(out$pvalues) )
+  # Fisher's method: sum(log(pvalues)) follows chi-squared distribution with 2*length(pvalues) degrees of freedom
   out$pvalue = 1 - pchisq( C_p, df = 2 * length(out$pvalues) )
   out$CIC = C_p + 2 * length(object$opt$par)
 

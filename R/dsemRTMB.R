@@ -18,7 +18,7 @@
 #' @details
 #' \code{dsemRTMB} is interchangeable with \code{\link{dsem}}, but uses RTMB
 #' instead of TMB for estimation.  Both are provided for comparison and
-#' real-world comparison.
+#' real-world comparison. See \code{?dsem} for more details
 #'
 #' @return
 #' An object (list) of class `dsem`, fitted using RTMB
@@ -187,7 +187,8 @@ function( sem,
     family = family,
     estimate_delta0 = estimate_delta0,
     control = control,
-    covs = covs
+    covs = covs,
+    log_prior = log_prior
   )
 
   # Further bundle
@@ -200,7 +201,7 @@ function( sem,
 
   # Export stuff
   if( control$run_model==FALSE ){
-    class(out) = "dsem"
+    class(out) = c( "dsem", "dsemRTMB" )
     return( out )
   }
 
@@ -277,6 +278,6 @@ function( sem,
   out$run_time = Sys.time() - start_time
 
   # output
-  class(out) = "dsem"
+  class(out) = c( "dsem", "dsemRTMB" )
   return(out)
 }

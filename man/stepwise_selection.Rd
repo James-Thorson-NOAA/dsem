@@ -4,7 +4,14 @@
 \alias{stepwise_selection}
 \title{Simulate dsem}
 \usage{
-stepwise_selection(model_options, model_shared, quiet = FALSE, ...)
+stepwise_selection(
+  model_options,
+  model_shared,
+  options_initial = c(),
+  quiet = FALSE,
+  criterion = AIC,
+  ...
+)
 }
 \arguments{
 \item{model_options}{character-vector containing sem elements
@@ -14,7 +21,17 @@ parsimony}
 \item{model_shared}{character-vector containing sem elements
 that must be included regardless of parsimony}
 
+\item{options_initial}{character-vector containing some (possible empty)
+subset of \code{model_options}, where stepwise selection begins
+with that set of model options included.}
+
 \item{quiet}{whether to avoid displaying progress to terminal}
+
+\item{criterion}{function that computes the information criterion to be
+minimized, typically using \code{AIC}.  However, users can instead supply
+a function that computes CIC using
+\code{\link{test_dsep}} and desired settings, presumably including a \code{set.seed}
+if missing data are being imputed}
 
 \item{...}{arguments passed to \code{\link{dsem}},
 other than \code{sem} e.g., \code{tsdata}, \code{family}

@@ -1,3 +1,38 @@
+#' @title Make path matrices
+#'
+#' @description Constructs path matrices for dynamic structural equation model (DSEM)
+#'        using a vector of parameters and specification of the DSEM
+#'
+#' @param beta_p vector parameters.
+#' @param model matrix or data.frame with the following columns, and one row
+#'   per one-headed or two-headed arrow in the dynamic structural model:
+#' \describe{
+#' \item{direction}{whether a path coefficient is one-headed (1) or two-headed (2)}
+#' \item{lag}{whether the lag associated with a given coefficient}
+#' \item{start}{starting value, used when \code{parameter=0}}
+#' \item{parameter}{The parameter number from \code{beta_p} associated with a given path}
+#' \item{first}{The variable at the tail of a given path}
+#' \item{second}{The variable at the head of a given path}
+#' }
+#' @param times integer-vector of times to use when defining matrices
+#' @param variables character-vector listing variables
+#'
+#' @importFrom Matrix solve Diagonal sparseMatrix drop0 kronecker
+#' @importFrom RTMB ADoverload AD
+#'
+#' @details
+#' When \code{length(times)} is \eqn{T} and \code{length(variables)} is \eqn{J},
+#' \code{make_matrices} returns matrices of dimension \eqn{TJ \times TJ} representing
+#' paths among \eqn{vec(\mathbf{X})} where matrix \eqn{\mathbf{X}} has dimension
+#' \eqn{T \times J} and \eqn{vec} stacks columns into a single long vector
+#'
+#' @return
+#' A named list of matrices including:
+#' \describe{
+#' \item{P_kk}{The matrix of interactions, i.e., one-headed arrows}
+#' \item{G_kk}{The matrix of exogenous covariance, i.e., two-headed arrows}
+#' }
+#' @export
 make_matrices <-
 function( beta_p,
           model,
@@ -7,7 +42,7 @@ function( beta_p,
   "c" <- ADoverload("c")
   "[<-" <- ADoverload("[<-")
   model <- as.data.frame(model)
-  model$parameter = as.integer(model$parameter)
+  model[,'parameter'] = as.integer(model[,'parameter'])
 
   # Combine fixed, estimated, and mapped parameters into vector
   beta_i = rep(0, nrow(model))
@@ -25,7 +60,7 @@ function( beta_p,
   #P_kk = AD(P_kk)
   G_kk = (P_kk)
   for( i in seq_len(nrow(model)) ){
-    lag = as.numeric(model[i,2])
+    lag = as.numeric(model[i,'lag'])
     # Time-lag matrix ... transpose if negative lag
     L_tt = sparseMatrix( i = seq(abs(lag)+1,length(times)),
                          j = seq(1,length(times)-abs(lag)),

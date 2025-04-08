@@ -19,7 +19,8 @@ dsem(
 including lagged or simultaneous effects.  See Details section in
 \code{\link[dsem]{make_dsem_ram}} for more description}
 
-\item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}}
+\item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}, with \code{NA}
+for missing values.}
 
 \item{family}{Character-vector listing the distribution used for each column of \code{tsdata}, where
 each element must be \code{fixed} (for no measurement error), 
@@ -102,6 +103,35 @@ Standard errors for fixed effects (path coefficients, exogenoux variance paramet
 are estimated from the matrix of second derivatives of the log-marginal likelihod,
 and standard errors for random effects (i.e., missing or state-space variables) are estimated
 from a generalization of this method (see \code{\link[TMB]{sdreport}} for details).
+
+Any column \eqn{\mathbf x_c} of \code{tsdata} that includes only \code{NA} values
+represents a latent variable, and all others are called manifest variables.
+The identifiability criteria for latent variables
+can be complicated.  To explain, we ignore lagged effects (only simultaneous paths)
+and classify three types of latent variables:
+\describe{
+  \item{factor latent variables: }{any latent variable \eqn{\mathbf F} that includes paths out from it
+        to manifest variables, but has no paths from manifest variables into \eqn{\mathbf F} is a
+        factor variable.  These are identifable by fixing their SD (i.e., at one), and using a
+        trimmed Cholesky parameterization (i.e., each successive factor includes fewer paths to
+        manifest variables).  See the DFA vignette for an example.  Factor latent variables
+        can be used to represent residual covariance while also estimating the source of
+        that covariance explicitly}
+  \item{intermediate latent variables: }{Any latent variable \eqn{\mathbf Y} that includes paths in
+        from some manifest variables \eqn{\mathbf X} and some paths out to manifest variables
+        \eqn{\mathbf Z} is an intermediate latent variable.  In general, the at least one path
+        in or out must be fixed a priori (e.g., at one) to identify the scale of the intermediate
+        LV.  These intermediate latent variables can represent ecological concepts that serve
+        as intermediate link between different manifest variables}
+  \item{composite latent variables: }{Any latent variable \eqn{\mathbf C} that includes paths in
+        from some manifest variables \eqn{\mathbf X} and no paths out to manifest variables
+        is a composite latent variable.  In general, you must fix all paths to composite variables
+        a priori, and must also fix the SD a priori (e.g., at zero).  These composite variables
+        allow DSEM to estimate a response with standard errors that integrates
+        across multiple manifest variables}
+}
+As stated, these criteria do not involve paths from one to another latent variable.  These
+are also possible, but involve more complicated identifiability criteria.
 }
 \examples{
 # Define model
