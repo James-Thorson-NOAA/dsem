@@ -202,8 +202,10 @@ We can parse this DSEM and construct the precision using internal functions:
 
 
 ```{r echo=TRUE, eval=TRUE}
-# call dsem without estimating parameters
+# Load package
 library(dsem)
+
+# call dsem without estimating parameters
 out = dsem(
   tsdata = ts(data.frame( x = rep(1,10) )),
   sem = dsem,
@@ -215,7 +217,9 @@ out = dsem(
 
 # Extract covariance
 Sigma1 = solve(as.matrix(out$obj$report()$Q_kk))
-plot( x=1:10, y = diag(Sigma1), xlab="time", ylab="Marginal variance", type="l", ylim = c(0,max(diag(Sigma1))))
+plot( x=1:10, y = diag(Sigma1), xlab="time", 
+      ylab="Marginal variance", type="l", 
+      ylim = c(0,max(diag(Sigma1))))
 ```
 
 where we can see that the diagonal of this covariance matrix is non-constant.
@@ -260,7 +264,74 @@ out = dsem(
 
 # Extract covariance
 Sigma2 = solve(as.matrix(out$obj$report()$Q_kk))
-plot( x=1:10, y = diag(Sigma2), xlab="time", ylab="Marginal variance", type="l", ylim = c(0,max(diag(Sigma1))))
+plot( x=1:10, y = diag(Sigma2), xlab="time", 
+      ylab="Marginal variance", type="l", 
+      ylim = c(0,max(diag(Sigma1))))
 ```
 
-This shows that the corrected (nonstationary) exogenous variance results in a stationary marginal variance for the AR1 process.  This correction can be done in two different ways that are identical when the exogenous covariance is diagonal (as it is in this simple example), but differ when specifying some exogenous covariance.  However, we do not discuss this in detail here.  Note that this calculating this correction for a constant marginal variance requires the inverse of the squared values of Leontief matrix (which is itself a matrix inverse).  It therefore is computationally expensive for large models containing complicated dependencies.   
+This shows that the corrected (nonstationary) exogenous variance results in a stationary marginal variance for the AR1 process.  This correction can be done in two different ways that are identical when the exogenous covariance is diagonal (as it is in this simple example), but differ when specifying some exogenous covariance.  However, we do not discuss this in detail here.  Note that this calculating this correction for a constant marginal variance requires the inverse of the squared values of Leontief matrix (which is itself a matrix inverse).  It therefore is computationally expensive for large models containing complicated dependencies. 
+
+### Reduced rank models
+
+We note that some DSEM specifications will be reduced rank.  This arises for example when specifying a dynamic factor analysis, where $J$ variables are explained by $F < J$ factors that each follow a random walk:
+
+```{r echo=TRUE, eval=TRUE}
+#
+dsem = "
+  # Factor follows random walk with unit variance
+  F <-> F, 0, NA, 1
+  F -> F, 1, NA, 1
+  # Loadings on two manifest variables
+  F -> x, 0, b_x, 1
+  F -> y, 0, b_y, 1
+  # No residual variance for manifest variables
+  x <-> x, 0, NA, 0
+  y <-> y, 0, NA, 0
+"
+data = data.frame( 
+  x = rnorm(10),
+  y = rnorm(10),
+  F = rep(NA,10)
+)
+
+# call dsem without estimating parameters
+out = dsem(
+  tsdata = ts(data),
+  sem = dsem,
+  family = c("normal","normal","fixed"),
+  control = dsem_control(
+    run_model = FALSE, 
+    quiet = TRUE,
+    gmrf_parameterization = "projection"
+  )
+)
+```
+
+We can extract the covariance and inspect the eigenvalues:
+
+```{r echo=TRUE, eval=TRUE}
+# Extract covariance
+library(Matrix)
+IminusRho_kk = out$obj$report()$IminusRho_kk
+G_kk = out$obj$report()$Gamma_kk
+Q_kk = t(IminusRho_kk) %*% t(G_kk) %*% G_kk %*% IminusRho_kk
+
+# Display eigenvalues
+eigen(Q_kk)$values
+```
+
+where this shows that the precision has a rank of 10 while being a $30 \times 30$ matrix.
+
+To address this circumstance, we can switch to using `gmrf_parameterization = "projection"`.  This evaluates the probability density of a set of innovations $\B X^*$ that follow a unit variance:
+
+$$
+\B X^* \sim \PL{GMRF}(\B{0, I})
+$$
+and then projects these full-rank innovations to the reduced rank states:
+
+$$
+\B X = (\mathbf{I - P}_{\PL{joint}})^{-1} \B G_{\PL{joint}} \B X^*
+$$
+
+This parameterization allows us to fit DSEM using a rank-deficient structural model.  
+
