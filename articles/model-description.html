@@ -64,7 +64,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.6.0/vignettes/model-description.Rmd" class="external-link"><code>vignettes/model-description.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/vignettes/model-description.Rmd" class="external-link"><code>vignettes/model-description.Rmd</code></a></small>
       <div class="d-none name"><code>model-description.Rmd</code></div>
     </div>
 
@@ -496,12 +496,12 @@ defined).</p>
 probability density of a set of innovations
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐗</mi><mo>*</mo></msup><annotation encoding="application/x-tex">\mathbf X^*</annotation></semantics></math>
 that follow a unit variance:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>𝐗</mi><mo>*</mo></msup><mo>∼</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">F</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mn>𝟎</mn><mo mathvariant="bold">,</mo><mi>𝐈</mi></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
-\mathbf X^* \sim \mathrm{GMRF}(\mathbf{0, I})
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>*</mo></msup><mo>∼</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">F</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mn>𝟎</mn><mo mathvariant="bold">,</mo><mi>𝐈</mi></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\mathrm{vec}(\mathbf X)^* \sim \mathrm{GMRF}(\mathbf{0, I})
 </annotation></semantics></math> and then projects these full-rank
 innovations to the reduced rank states:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐗</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><msup><mi>𝐗</mi><mo>*</mo></msup></mrow><annotation encoding="application/x-tex">
-\mathbf X = (\mathbf{I - P}_{\mathrm{joint}})^{-1} \mathbf G_{\mathrm{joint}} \mathbf X^*
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>*</mo></msup></mrow><annotation encoding="application/x-tex">
+\mathrm{vec}(\mathbf X) = (\mathbf{I - P}_{\mathrm{joint}})^{-1} \mathbf G_{\mathrm{joint}} \mathrm{vec}(\mathbf X)^*
 </annotation></semantics></math></p>
 <p>This parameterization allows us to fit DSEM using a rank-deficient
 structural model.</p>
