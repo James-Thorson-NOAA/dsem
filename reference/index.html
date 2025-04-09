@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,9 +18,10 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-description.html">dsem model description</a></li>
+    <li><a class="dropdown-item" href="../articles/features.html">Demonstration of selected features</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
-    <li><a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -38,9 +39,9 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="specification-and-fitting">Specification and fitting<a class="anchor" aria-label="anchor" href="#specification-and-fitting"></a></h2>
 
-
+      <div class="section-desc"><p>Core tools for model fitting and diagnostics.</p></div>
 
 
     </div><div class="section level2">
@@ -49,48 +50,6 @@
 
 
       <dl><dt>
-
-          <code><a href="TMBAIC.html">TMBAIC()</a></code>
-
-        </dt>
-        <dd>Calculate marginal AIC for a fitted model</dd>
-      </dl><dl><dt>
-
-          <code><a href="as_fitted_DAG.html">as_fitted_DAG()</a></code>
-
-        </dt>
-        <dd>Convert output from package dsem to phylopath</dd>
-      </dl><dl><dt>
-
-          <code><a href="as_sem.html">as_sem()</a></code>
-
-        </dt>
-        <dd>Convert dsem to sem output</dd>
-      </dl><dl><dt>
-
-          <code><a href="bering_sea.html">bering_sea</a></code>
-
-        </dt>
-        <dd>Bering Sea marine ecosystem</dd>
-      </dl><dl><dt>
-
-          <code><a href="cAIC.html">cAIC()</a></code>
-
-        </dt>
-        <dd>Calculate conditional AIC</dd>
-      </dl><dl><dt>
-
-          <code><a href="classify_variables.html">classify_variables()</a></code>
-
-        </dt>
-        <dd>Classify variables path</dd>
-      </dl><dl><dt>
-
-          <code><a href="convert_equations.html">convert_equations()</a></code>
-
-        </dt>
-        <dd>Convert equations notation</dd>
-      </dl><dl><dt>
 
           <code><a href="dsem.html">dsem()</a></code>
 
@@ -110,28 +69,27 @@
         <dd>Detailed control for dsem structure</dd>
       </dl><dl><dt>
 
-          <code><a href="isle_royale.html">isle_royale</a></code>
+          <code><a href="stepwise_selection.html">stepwise_selection()</a></code>
 
         </dt>
-        <dd>Isle Royale wolf and moose</dd>
-      </dl><dl><dt>
+        <dd>Simulate dsem</dd>
+      </dl></div><div class="section level2">
+      <h2 id="specifying-the-dsem">Specifying the DSEM<a class="anchor" aria-label="anchor" href="#specifying-the-dsem"></a></h2>
 
-          <code><a href="list_parameters.html">list_parameters()</a></code>
+      <div class="section-desc"><p>Tools to specify interactions among variables and over time.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="make_dsem_ram.html">make_dsem_ram()</a></code>
 
         </dt>
-        <dd>List fixed and random effects</dd>
-      </dl><dl><dt>
-
-          <code><a href="logLik.dsem.html">logLik(<i>&lt;dsem&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Marginal log-likelihood</dd>
-      </dl><dl><dt>
-
-          <code><a href="loo_residuals.html">loo_residuals()</a></code>
-
-        </dt>
-        <dd>Calculate leave-one-out residuals</dd>
+        <dd>Make a RAM (Reticular Action Model)</dd>
       </dl><dl><dt>
 
           <code><a href="make_dfa.html">make_dfa()</a></code>
@@ -140,40 +98,33 @@
         <dd>Make text for dynamic factor analysis</dd>
       </dl><dl><dt>
 
-          <code><a href="make_dsem_ram.html">make_dsem_ram()</a></code>
+          <code><a href="convert_equations.html">convert_equations()</a></code>
 
         </dt>
-        <dd>Make a RAM (Reticular Action Model)</dd>
-      </dl><dl><dt>
+        <dd>Convert equations notation</dd>
+      </dl></div><div class="section level2">
+      <h2 id="predicting-and-residuals">Predicting and residuals<a class="anchor" aria-label="anchor" href="#predicting-and-residuals"></a></h2>
 
-          <code><a href="parse_path.html">parse_path()</a></code>
+      <div class="section-desc"><p>Core tools for model predictions and residuals.</p></div>
 
-        </dt>
-        <dd>Parse path</dd>
-      </dl><dl><dt>
 
-          <code><a href="plot.dsem.html">plot(<i>&lt;dsem&gt;</i>)</a></code>
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="simulate.dsem.html">simulate(<i>&lt;dsem&gt;</i>)</a></code>
 
         </dt>
         <dd>Simulate dsem</dd>
       </dl><dl><dt>
 
-          <code><a href="predict.dsem.html">predict(<i>&lt;dsem&gt;</i>)</a></code>
+          <code><a href="loo_residuals.html">loo_residuals()</a></code>
 
         </dt>
-        <dd>predictions using dsem</dd>
-      </dl><dl><dt>
-
-          <code><a href="print.dsem.html">print(<i>&lt;dsem&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Print fitted dsem object</dd>
-      </dl><dl><dt>
-
-          <code><a href="read_model.html">read_model()</a></code>
-
-        </dt>
-        <dd>Make a RAM (Reticular Action Model)</dd>
+        <dd>Calculate leave-one-out residuals</dd>
       </dl><dl><dt>
 
           <code><a href="residuals.dsem.html">residuals(<i>&lt;dsem&gt;</i>)</a></code>
@@ -182,23 +133,28 @@
         <dd>Calculate residuals</dd>
       </dl><dl><dt>
 
-          <code><a href="sea_otter.html">sea_otter</a></code>
+          <code><a href="cAIC.html">cAIC()</a></code>
 
         </dt>
-        <dd>Sea otter trophic cascade</dd>
+        <dd>Calculate conditional AIC</dd>
       </dl><dl><dt>
 
-          <code><a href="simulate.dsem.html">simulate(<i>&lt;dsem&gt;</i>)</a></code>
+          <code><a href="logLik.dsem.html">logLik(<i>&lt;dsem&gt;</i>)</a></code>
 
         </dt>
-        <dd>Simulate dsem</dd>
-      </dl><dl><dt>
+        <dd>Marginal log-likelihood</dd>
+      </dl></div><div class="section level2">
+      <h2 id="interpret-output">Interpret output<a class="anchor" aria-label="anchor" href="#interpret-output"></a></h2>
 
-          <code><a href="stepwise_selection.html">stepwise_selection()</a></code>
+      <div class="section-desc"><p>Tools for interpreting output.</p></div>
 
-        </dt>
-        <dd>Simulate dsem</dd>
-      </dl><dl><dt>
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="summary.dsem.html">summary(<i>&lt;dsem&gt;</i>)</a></code>
 
@@ -222,8 +178,74 @@
 
         </dt>
         <dd>Extract Variance-Covariance Matrix</dd>
+      </dl><dl><dt>
+
+          <code><a href="as_fitted_DAG.html">as_fitted_DAG()</a></code>
+
+        </dt>
+        <dd>Convert output from package dsem to phylopath</dd>
+      </dl><dl><dt>
+
+          <code><a href="as_sem.html">as_sem()</a></code>
+
+        </dt>
+        <dd>Convert dsem to sem output</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot.dsem.html">plot(<i>&lt;dsem&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Simulate dsem</dd>
+      </dl><dl><dt>
+
+          <code><a href="predict.dsem.html">predict(<i>&lt;dsem&gt;</i>)</a></code>
+
+        </dt>
+        <dd>predictions using dsem</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.dsem.html">print(<i>&lt;dsem&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print fitted dsem object</dd>
+      </dl><dl><dt>
+
+          <code><a href="make_matrices.html">make_matrices()</a></code>
+
+        </dt>
+        <dd>Make path matrices</dd>
+      </dl></div><div class="section level2">
+      <h2 id="data-sets">Data sets<a class="anchor" aria-label="anchor" href="#data-sets"></a></h2>
+
+      <div class="section-desc"><p>Data sets used for illustration and testing.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="bering_sea.html">bering_sea</a></code>
+
+        </dt>
+        <dd>Bering Sea marine ecosystem</dd>
+      </dl><dl><dt>
+
+          <code><a href="isle_royale.html">isle_royale</a></code>
+
+        </dt>
+        <dd>Isle Royale wolf and moose</dd>
+      </dl><dl><dt>
+
+          <code><a href="sea_otter.html">sea_otter</a></code>
+
+        </dt>
+        <dd>Sea otter trophic cascade</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

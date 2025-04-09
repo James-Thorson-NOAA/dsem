@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,9 +18,10 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-description.html">dsem model description</a></li>
+    <li><a class="dropdown-item" href="../articles/features.html">Demonstration of selected features</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
-    <li><a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,7 +36,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Fit dynamic structural equation model</h1>
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/R/dsemRTMB.R" class="external-link"><code>R/dsemRTMB.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/R/dsemRTMB.R" class="external-link"><code>R/dsemRTMB.R</code></a></small>
       <div class="d-none name"><code>dsemRTMB.Rd</code></div>
     </div>
 
@@ -67,7 +68,8 @@ including lagged or simultaneous effects.  See Details section in
 
 
 <dt id="arg-tsdata">tsdata<a class="anchor" aria-label="anchor" href="#arg-tsdata"></a></dt>
-<dd><p>time-series data, as outputted using <code><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></code></p></dd>
+<dd><p>time-series data, as outputted using <code><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></code>, with <code>NA</code>
+for missing values.</p></dd>
 
 
 <dt id="arg-family">family<a class="anchor" aria-label="anchor" href="#arg-family"></a></dt>
@@ -120,7 +122,7 @@ save time for models with many variables.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>dsemRTMB</code> is interchangeable with <code><a href="dsem.html">dsem</a></code>, but uses RTMB
 instead of TMB for estimation.  Both are provided for comparison and
-real-world comparison.</p>
+real-world comparison. See <code><a href="dsem.html">?dsem</a></code> for more details</p>
     </div>
 
     <div class="section level2">

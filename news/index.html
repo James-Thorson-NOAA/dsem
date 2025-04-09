@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,9 +18,10 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-description.html">dsem model description</a></li>
+    <li><a class="dropdown-item" href="../articles/features.html">Demonstration of selected features</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
-    <li><a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,11 +36,26 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.6.0" id="dsem-160">dsem 1.6.0<a class="anchor" aria-label="anchor" href="#dsem-160"></a></h2><p class="text-muted">CRAN release: 2025-03-22</p>
+<ul><li>Export and document <code>make_matrices</code>
+</li>
+<li>Remove <code>ggm</code> from Imports (because it Imports <code>graph</code> which is not on CRAN) and instead define a locally copy of relevant functions. Also adding Giovanni M. Marchetti (the maintainer of <code>ggm</code> as contributor in DESCRIPTION)</li>
+<li>Update <code>test_dsep(.)</code> to allow options for imputing missing data prior to test, and using default <code>impute_data = "by_test"</code> based on explorations to date</li>
+<li>Add example for <code>total_effect</code>
+</li>
+<li>Adding “model structura” vignette and re-organizing pkgdown page</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.5.0" id="dsem-150">dsem 1.5.0<a class="anchor" aria-label="anchor" href="#dsem-150"></a></h2><p class="text-muted">CRAN release: 2025-02-13</p>
+<ul><li>Add option to simulate data with or without missingness pattern of original data</li>
+<li>Change <code>test_dsep(.)</code> to have option to impute missing data, and changing that to be the default behavior</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.5.0" id="dsem-150-1">dsem 1.5.0<a class="anchor" aria-label="anchor" href="#dsem-150-1"></a></h2><p class="text-muted">CRAN release: 2025-02-13</p>
 <ul><li>Fix bug when adding missing variances (PR 36)</li>
 <li>Fix bug in detecting high ratio of variances (issue 35)</li>
 <li>Added <code>test_dsep(.)</code> to calculate a p-value for the probability that a a data set arose from the specified model (highly experimental)</li>

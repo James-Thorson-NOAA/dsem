@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,9 +18,10 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-description.html">dsem model description</a></li>
+    <li><a class="dropdown-item" href="../articles/features.html">Demonstration of selected features</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
-    <li><a class="dropdown-item" href="../articles/vignette.html">Demonstration of selected features</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,7 +36,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Fit dynamic structural equation model</h1>
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/R/dsem.R" class="external-link"><code>R/dsem.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/R/dsem.R" class="external-link"><code>R/dsem.R</code></a></small>
       <div class="d-none name"><code>dsem.Rd</code></div>
     </div>
 
@@ -67,7 +68,8 @@ including lagged or simultaneous effects.  See Details section in
 
 
 <dt id="arg-tsdata">tsdata<a class="anchor" aria-label="anchor" href="#arg-tsdata"></a></dt>
-<dd><p>time-series data, as outputted using <code><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></code></p></dd>
+<dd><p>time-series data, as outputted using <code><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></code>, with <code>NA</code>
+for missing values.</p></dd>
 
 
 <dt id="arg-family">family<a class="anchor" aria-label="anchor" href="#arg-family"></a></dt>
@@ -172,6 +174,38 @@ Standard errors for fixed effects (path coefficients, exogenoux variance paramet
 are estimated from the matrix of second derivatives of the log-marginal likelihod,
 and standard errors for random effects (i.e., missing or state-space variables) are estimated
 from a generalization of this method (see <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code> for details).</p>
+<p>Any column \(\mathbf x_c\) of <code>tsdata</code> that includes only <code>NA</code> values
+represents a latent variable, and all others are called manifest variables.
+The identifiability criteria for latent variables
+can be complicated.  To explain, we ignore lagged effects (only simultaneous paths)
+and classify three types of latent variables:</p><dl><dt>factor latent variables: </dt>
+<dd><p>any latent variable \(\mathbf F\) that includes paths out from it
+        to manifest variables, but has no paths from manifest variables into \(\mathbf F\) is a
+        factor variable.  These are identifable by fixing their SD (i.e., at one), and using a
+        trimmed Cholesky parameterization (i.e., each successive factor includes fewer paths to
+        manifest variables).  See the DFA vignette for an example.  Factor latent variables
+        can be used to represent residual covariance while also estimating the source of
+        that covariance explicitly</p></dd>
+
+  <dt>intermediate latent variables: </dt>
+<dd><p>Any latent variable \(\mathbf Y\) that includes paths in
+        from some manifest variables \(\mathbf X\) and some paths out to manifest variables
+        \(\mathbf Z\) is an intermediate latent variable.  In general, the at least one path
+        in or out must be fixed a priori (e.g., at one) to identify the scale of the intermediate
+        LV.  These intermediate latent variables can represent ecological concepts that serve
+        as intermediate link between different manifest variables</p></dd>
+
+  <dt>composite latent variables: </dt>
+<dd><p>Any latent variable \(\mathbf C\) that includes paths in
+        from some manifest variables \(\mathbf X\) and no paths out to manifest variables
+        is a composite latent variable.  In general, you must fix all paths to composite variables
+        a priori, and must also fix the SD a priori (e.g., at zero).  These composite variables
+        allow DSEM to estimate a response with standard errors that integrates
+        across multiple manifest variables</p></dd>
+
+
+</dl><p>As stated, these criteria do not involve paths from one to another latent variable.  These
+are also possible, but involve more complicated identifiability criteria.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
