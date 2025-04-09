@@ -325,12 +325,12 @@ where this shows that the precision has a rank of 10 while being a $30 \times 30
 To address this circumstance, we can switch to using `gmrf_parameterization = "projection"`.  This evaluates the probability density of a set of innovations $\B X^*$ that follow a unit variance:
 
 $$
-\B X^* \sim \PL{GMRF}(\B{0, I})
+\PL{vec}(\B X)^* \sim \PL{GMRF}(\B{0, I})
 $$
 and then projects these full-rank innovations to the reduced rank states:
 
 $$
-\B X = (\mathbf{I - P}_{\PL{joint}})^{-1} \B G_{\PL{joint}} \B X^*
+\PL{vec}(\B X) = (\mathbf{I - P}_{\PL{joint}})^{-1} \B G_{\PL{joint}} \PL{vec}(\B X)^*
 $$
 
 This parameterization allows us to fit DSEM using a rank-deficient structural model.  
