@@ -340,10 +340,15 @@ function( sem,
   #                   ... )
 
   # Optimize
+  if( isTRUE(control$suppress_nlminb_warnings) ){
+    do_nlminb = function( ... ) suppressWarnings(nlminb( ... ))
+  }else{
+    do_nlminb = function( ... ) nlminb( ... )
+  }
   out$opt = list( "par"=obj$par )
   for( i in seq_len(max(0,control$nlminb_loops)) ){
     if( isFALSE(control$quiet) ) message("Running nlminb_loop #", i)
-    out$opt = nlminb( start = out$opt$par,
+    out$opt = do_nlminb( start = out$opt$par,
                   objective = obj$fn,
                   gradient = obj$gr,
                   upper = control$upper,
@@ -464,6 +469,9 @@ function( sem,
 #'        If unspecified, all parameters are assumed to be unconstrained.
 #' @param upper vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
 #'        If unspecified, all parameters are assumed to be unconstrained.
+#' @param suppress_nlminb_warnings whether to suppress uniformative warnings
+#'        from \code{nlminb} arising when a function evaluation is NA, which
+#'        are then replaced with Inf and avoided during estimation
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -488,7 +496,8 @@ function( nlminb_loops = 1,
           getJointPrecision = FALSE,
           extra_convergence_checks = TRUE,
           lower = -Inf,
-          upper = Inf ){
+          upper = Inf,
+          suppress_nlminb_warnings = TRUE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -512,7 +521,8 @@ function( nlminb_loops = 1,
     getJointPrecision = getJointPrecision,
     extra_convergence_checks = extra_convergence_checks,
     lower = lower,
-    upper = upper
+    upper = upper,
+    suppress_nlminb_warnings = suppress_nlminb_warnings
   ), class = "dsem_control" )
 }
 

@@ -22,7 +22,8 @@ dsem_control(
   getJointPrecision = FALSE,
   extra_convergence_checks = TRUE,
   lower = -Inf,
-  upper = Inf
+  upper = Inf,
+  suppress_nlminb_warnings = TRUE
 )
 }
 \arguments{
@@ -93,6 +94,10 @@ If unspecified, all parameters are assumed to be unconstrained.}
 
 \item{upper}{vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
 If unspecified, all parameters are assumed to be unconstrained.}
+
+\item{suppress_nlminb_warnings}{whether to suppress uniformative warnings
+from \code{nlminb} arising when a function evaluation is NA, which
+are then replaced with Inf and avoided during estimation}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

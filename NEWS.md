@@ -1,5 +1,10 @@
 # dsem 1.6.0
 
+* Add option to turn off useless `NA/NaN function evaluation` function evaluations
+  from `nlminb` (enabled by default, but overriden in `dsem_control`)
+
+# dsem 1.6.0
+
 * Export and document `make_matrices`
 * Remove `ggm` from Imports (because it Imports `graph` which is not on CRAN)
   and instead define a locally copy of relevant functions.  Also adding Giovanni M.
