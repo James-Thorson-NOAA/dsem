@@ -1,7 +1,8 @@
-# dsem 1.6.0
+# dsem 1.6.1
 
 * Add option to turn off useless `NA/NaN function evaluation` function evaluations
   from `nlminb` (enabled by default, but overriden in `dsem_control`)
+* Use `Matrix::bandSparse` to simplify logic in `make_matrices`
 
 # dsem 1.6.0
 
