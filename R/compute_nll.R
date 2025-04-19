@@ -31,7 +31,7 @@ function( parlist,
   #    return(invx)
   #  }
   #}
-  sparse_solve = solve
+  #sparse_solve = solve
 
   # Unpack parameters explicitly
   beta_z = parlist$beta_z
@@ -70,7 +70,7 @@ function( parlist,
 
   # Rescale I-Rho and Gamma if using constant marginal variance options
   if( (options[2]==1) || (options[2]==2) ){
-    invIminusRho_kk = sparse_solve(IminusRho_kk)     # solve(adsparse) returns dense-matrix
+    invIminusRho_kk = solve(IminusRho_kk)     # solve(adsparse) returns dense-matrix
 
     # Hadamard squared LU-decomposition
     # See: https://eigen.tuxfamily.org/dox/group__QuickRefPage.html
@@ -127,7 +127,7 @@ function( parlist,
     #Q_kk = t(IminusRho_kk) %*% invV_kk %*% IminusRho_kk
 
     # Works in general
-    invV_kk = sparse_solve( V_kk )
+    invV_kk = solve( V_kk )
     Q_kk = t(IminusRho_kk) %*% invV_kk %*% IminusRho_kk
 
     # Fine from here
