@@ -215,3 +215,97 @@ function( object,
   return(out)
 }
 
+#' @title Partition variance in one variable due to another (EXPERIMENTAL)
+#'
+#' @description
+#' Calculate the proportion of variance for a response variable that is
+#' attributed to another set of predictor variables, calculated across lags from
+#' from 0 (simultaneous effects) to a user-specified maximum lag.
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param which_pred character-vector matching colnames from \code{tsdata}
+#' identifying predictor variables
+#' @param which_response string matching colnames from \code{tsdata}
+#' identifying response variable
+#' @param n_lags Number of lags over which to calculate total effects
+#'
+#' @details
+#' This function calculates the variance for each variable and lag, and then
+#' recalculates it when setting exogenous variance to zero for all variables except
+#' \code{which_pred}.  It then calculates the ratio of the diagonal of these two.
+#' This represents the proportion of variance in the full model that is attributable
+#' to one or more variables.
+#'
+#' This function is under development and may still change or be removed.
+#'
+#' @return
+#' Numeric vector with the proportion of variance for each lag
+#'
+#' @examples
+#' # Simulate linear model
+#' x = rnorm(100)
+#' y = 1 + 1 * x + rnorm(100)
+#' data = data.frame(x=x, y=y)
+#'
+#' # Fit as DSEM
+#' fit = dsem( sem = "x -> y, 0, beta",
+#'             tsdata = ts(data),
+#'             control = dsem_control(quiet=TRUE) )
+#'
+#' # Apply
+#' partition_variance( fit,
+#'                     which_pred = "x",
+#'                     which_response = "y",
+#'                     n_lags = 10 )
+#'
+#' @export
+partition_variance <-
+function( object,
+          which_pred,
+          which_response,
+          n_lags = 10 ){
+
+  # Unpack stuff
+  Z = object$internal$tsdata
+  if(is.null(object$internal$parhat)){
+    object$internal$parhat = object$obj$env$parList()
+  }
+
+  # Error checks
+  if( !(which_pred %in% colnames(Z)) ){
+    stop("`which_pred` not found in colnames of `tsdata`")
+  }
+  if( !(which_response %in% colnames(Z)) ){
+    stop("`which_response` not found in colnames of `tsdata`")
+  }
+
+  # Extract path matrix
+  matrices = make_matrices(
+    beta_p = object$internal$parhat$beta,
+    model = object$sem_full,
+    times = seq_len(n_lags),
+    variables = colnames(Z)
+  )
+  out = expand.grid(lag = seq_len(n_lags) - 1, variable = colnames(Z) )
+
+  #
+  IminusP_kk = matrices$IminusP_kk
+  invIminusP_kk = Matrix::solve(IminusP_kk)
+  G0_kk = G_kk = matrices$G_kk
+
+  # Extract variance for fitted model
+  V_kk = Matrix::t(G_kk) %*% G_kk
+  Sigma1_kk = invIminusP_kk %*% V_kk %*% Matrix::t(invIminusP_kk)
+
+  # Zero out variances
+  match_cols = which( out$variable %in% which_pred )
+  G0_kk[,-match_cols] = 0
+  V0_kk = Matrix::t(G0_kk) %*% G0_kk
+  Sigma0_kk = invIminusP_kk %*% V0_kk %*% Matrix::t(invIminusP_kk)
+
+  #
+  match_vals = which( out$variable %in% which_response )
+  var_ratio = Matrix::diag(Sigma0_kk)[match_vals] / Matrix::diag(Sigma1_kk)[match_vals]
+  names(var_ratio) = paste0( "lag_", seq_len(n_lags)-1 )
+  return(var_ratio)
+}
