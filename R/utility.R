@@ -241,9 +241,9 @@ function( object,
 #' \describe{
 #'  \item{total_variance}{A matrix of the total variance for each variable (column)
 #'    and each time from 1 to \code{n_times}}
-#'  \item{variance_explained}{A matrix of the variance explained for variable
-#'    \code{which_response} by each model variable (column) and each time from 1
-#'    to \code{n_times}}
+#'  \item{proportion_variance_explained}{A matrix of the proportion of variance
+#'    explained for variable \code{which_response} by each model variable
+#'    (column) and each time from 1 to \code{n_times}}
 #' }
 #' Note that in a model with lagged effects, the total_variance and variance_explained
 #' will vary for each time (row), and the analyst might want to either choose a time
@@ -262,7 +262,6 @@ function( object,
 #'
 #' # Apply
 #' partition_variance( fit,
-#'                     which_pred = "x",
 #'                     which_response = "y",
 #'                     n_times = 10 )
 #'
@@ -317,6 +316,6 @@ function( object,
   var_tj = prop_tj
   var_tj[] = Matrix::diag( Sigma0_kk )
   out = list( "total_variance" = var_tj,
-              "variance_explained" = prop_tj )
+              "proportion_variance_explained" = prop_tj )
   return(out)
 }
