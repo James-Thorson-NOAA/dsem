@@ -223,11 +223,9 @@ function( object,
 #' from 0 (simultaneous effects) to a user-specified maximum lag.
 #'
 #' @param object Output from \code{\link{dsem}}
-#' @param which_pred character-vector matching colnames from \code{tsdata}
-#' identifying predictor variables
 #' @param which_response string matching colnames from \code{tsdata}
 #' identifying response variable
-#' @param n_lags Number of lags over which to calculate total effects
+#' @param n_times Number of lags over which to calculate total effects
 #'
 #' @details
 #' This function calculates the variance for each variable and lag, and then
@@ -239,7 +237,17 @@ function( object,
 #' This function is under development and may still change or be removed.
 #'
 #' @return
-#' Numeric vector with the proportion of variance for each lag
+#' A list with two elements:
+#' \describe{
+#'  \item{total_variance}{A matrix of the total variance for each variable (column)
+#'    and each time from 1 to \code{n_times}}
+#'  \item{variance_explained}{A matrix of the variance explained for variable
+#'    \code{which_response} by each model variable (column) and each time from 1
+#'    to \code{n_times}}
+#' }
+#' Note that in a model with lagged effects, the total_variance and variance_explained
+#' will vary for each time (row), and the analyst might want to either choose a time
+#' for which the value has stabilized.
 #'
 #' @examples
 #' # Simulate linear model
@@ -256,14 +264,13 @@ function( object,
 #' partition_variance( fit,
 #'                     which_pred = "x",
 #'                     which_response = "y",
-#'                     n_lags = 10 )
+#'                     n_times = 10 )
 #'
 #' @export
 partition_variance <-
 function( object,
-          which_pred,
           which_response,
-          n_lags = 10 ){
+          n_times = 10 ){
 
   # Unpack stuff
   Z = object$internal$tsdata
@@ -272,9 +279,6 @@ function( object,
   }
 
   # Error checks
-  if( !(which_pred %in% colnames(Z)) ){
-    stop("`which_pred` not found in colnames of `tsdata`")
-  }
   if( !(which_response %in% colnames(Z)) ){
     stop("`which_response` not found in colnames of `tsdata`")
   }
@@ -283,29 +287,36 @@ function( object,
   matrices = make_matrices(
     beta_p = object$internal$parhat$beta,
     model = object$sem_full,
-    times = seq_len(n_lags),
+    times = seq_len(n_times),
     variables = colnames(Z)
   )
-  out = expand.grid(lag = seq_len(n_lags) - 1, variable = colnames(Z) )
+  out = expand.grid(lag = seq_len(n_times), variable = colnames(Z) )
 
   #
   IminusP_kk = matrices$IminusP_kk
   invIminusP_kk = Matrix::solve(IminusP_kk)
-  G0_kk = G_kk = matrices$G_kk
 
   # Extract variance for fitted model
+  G_kk = matrices$G_kk
   V_kk = Matrix::t(G_kk) %*% G_kk
-  Sigma1_kk = invIminusP_kk %*% V_kk %*% Matrix::t(invIminusP_kk)
+  Sigma0_kk = invIminusP_kk %*% V_kk %*% Matrix::t(invIminusP_kk)
 
   # Zero out variances
-  match_cols = which( out$variable %in% which_pred )
-  G0_kk[,-match_cols] = 0
-  V0_kk = Matrix::t(G0_kk) %*% G0_kk
-  Sigma0_kk = invIminusP_kk %*% V0_kk %*% Matrix::t(invIminusP_kk)
+  match_vals = which( out$variable %in% which_response )
+  prop_tj = array(NA, dim=c(n_times,ncol(Z)), dimnames=list(paste0("t_",seq_len(n_times)),colnames(Z)))
+  for( which_pred in colnames(Z) ){
+    match_cols = which( out$variable %in% which_pred )
+    G0_kk = matrices$G_kk
+    G0_kk[,-match_cols] = 0
+    V0_kk = Matrix::t(G0_kk) %*% G0_kk
+    Sigma1_kk = invIminusP_kk %*% V0_kk %*% Matrix::t(invIminusP_kk)
+    prop_tj[,which_pred] = Matrix::diag(Sigma1_kk)[match_vals] / Matrix::diag(Sigma0_kk)[match_vals]
+  }
 
   #
-  match_vals = which( out$variable %in% which_response )
-  var_ratio = Matrix::diag(Sigma0_kk)[match_vals] / Matrix::diag(Sigma1_kk)[match_vals]
-  names(var_ratio) = paste0( "lag_", seq_len(n_lags)-1 )
-  return(var_ratio)
+  var_tj = prop_tj
+  var_tj[] = Matrix::diag( Sigma0_kk )
+  out = list( "total_variance" = var_tj,
+              "variance_explained" = prop_tj )
+  return(out)
 }

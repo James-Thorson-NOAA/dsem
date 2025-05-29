@@ -4,21 +4,31 @@
 \alias{partition_variance}
 \title{Partition variance in one variable due to another (EXPERIMENTAL)}
 \usage{
-partition_variance(object, which_pred, which_response, n_lags = 10)
+partition_variance(object, which_response, n_times = 10)
 }
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
 
-\item{which_pred}{character-vector matching colnames from \code{tsdata}
-identifying predictor variables}
-
 \item{which_response}{string matching colnames from \code{tsdata}
 identifying response variable}
 
-\item{n_lags}{Number of lags over which to calculate total effects}
+\item{n_times}{Number of lags over which to calculate total effects}
+
+\item{which_pred}{character-vector matching colnames from \code{tsdata}
+identifying predictor variables}
 }
 \value{
-Numeric vector with the proportion of variance for each lag
+A list with two elements:
+\describe{
+ \item{total_variance}{A matrix of the total variance for each variable (column)
+   and each time from 1 to \code{n_times}}
+ \item{variance_explained}{A matrix of the variance explained for variable
+   \code{which_response} by each model variable (column) and each time from 1
+   to \code{n_times}}
+}
+Note that in a model with lagged effects, the total_variance and variance_explained
+will vary for each time (row), and the analyst might want to either choose a time
+for which the value has stabilized.
 }
 \description{
 Calculate the proportion of variance for a response variable that is
@@ -49,6 +59,6 @@ fit = dsem( sem = "x -> y, 0, beta",
 partition_variance( fit,
                     which_pred = "x",
                     which_response = "y",
-                    n_lags = 10 )
+                    n_times = 10 )
 
 }
