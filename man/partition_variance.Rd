@@ -13,9 +13,6 @@ partition_variance(object, which_response, n_times = 10)
 identifying response variable}
 
 \item{n_times}{Number of lags over which to calculate total effects}
-
-\item{which_pred}{character-vector matching colnames from \code{tsdata}
-identifying predictor variables}
 }
 \value{
 A list with two elements:
