@@ -32,7 +32,7 @@ that was passed to \code{dsem}.
 }
 \description{
 Calculates quantile residuals using the predictive distribution from
-             a jacknife (i.e., leave-one-out predictive distribution)
+a jacknife (i.e., leave-one-out predictive distribution)
 }
 \details{
 Conditional quantile residuals cannot be calculated when using \code{family = "fixed"}, because

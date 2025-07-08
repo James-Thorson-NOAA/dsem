@@ -24,7 +24,8 @@
 #' @details
 #' This function conducts stepwise (i.e., forwards and backwards) model
 #' selection using marginal AIC, while forcing some model elements to be
-#' included and selecting among others.
+#' included and selecting among others.  See \code{link{dsem}} for further
+#' discussion of model selection.
 #'
 #' @return
 #' An object (list) that includes:

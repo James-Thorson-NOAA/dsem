@@ -79,6 +79,8 @@
 #' and standard errors for random effects (i.e., missing or state-space variables) are estimated
 #' from a generalization of this method (see \code{\link[TMB]{sdreport}} for details).
 #'
+#' **Latent variables**
+#'
 #' Any column \eqn{\mathbf x_c} of \code{tsdata} that includes only \code{NA} values
 #' represents a latent variable, and all others are called manifest variables.
 #' The identifiability criteria for latent variables
@@ -107,6 +109,26 @@
 #' }
 #' As stated, these criteria do not involve paths from one to another latent variable.  These
 #' are also possible, but involve more complicated identifiability criteria.
+#'
+#' **When to do (ot not do) model selection**
+#'
+#' In general, DSEM can be used for predictive modelling and/or
+#' structural causal modelling.
+#'
+#' For predictive modelling, DSEM provides an expressive
+#' interface to specify any number of fixed effects and use these to represent the
+#' covariance among variables and over time.  The predictive error is expected to
+#' decrease when using a parsimonious model, and model selection might be appropriate
+#' using either \code{\link{stepwise_selection}} or some manual rule for dropping
+#' coefficients that are not statistically significant using a likelihood ratio or
+#' Wald test.
+#'
+#' However, structural causal modelling (SCM) is necessary for models to be transferable
+#' to new environments (patterns of colinearity), or for counterfactual analysis.
+#' In general, SCM does not involve using parsimony as a basis for model selection.
+#' Instead, SCM structure should be defined based on ecological knowledge, and
+#' models can be further elaborated using tests of directional separation
+#' (see \code{\link{test_dsep}}).
 #'
 #' @return
 #' An object (list) of class `dsem`. Elements include:

@@ -16,5 +16,5 @@ Tagged-list defining variables and direction for a specified path coefficient
 \code{parse_path} is copied from \code{sem::parse.path}
 }
 \details{
-Copied from package `sem` under licence GPL (>= 2) with permission from John Fox
+Copied from package \code{sem} under licence GPL (>= 2) with permission from John Fox
 }

@@ -12,13 +12,13 @@ total_effect(object, n_lags = 4)
 \item{n_lags}{Number of lags over which to calculate total effects}
 }
 \value{
-A data frame listing the time-lag (lag), variable that is undergoing some 
-exogenous change (from), and the variable being impacted (to), along with the 
+A data frame listing the time-lag (lag), variable that is undergoing some
+exogenous change (from), and the variable being impacted (to), along with the
 total effect (total_effect) including direct and indirect pathways, and the
 partial "direct" effect (direct_effect)
 }
 \description{
-Calculate a data frame of total effects, representing the 
+Calculate a data frame of total effects, representing the
 estimated effect of every variable on every other variable and any time-lag
 from 0 (simultaneous effects) to a user-specified maximum lag.
 }

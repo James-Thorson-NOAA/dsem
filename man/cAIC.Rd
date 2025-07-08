@@ -40,14 +40,14 @@ Note that, for models that include profiled fixed effects, these profiles
 are turned off.
 }
 \references{
-**Deriving the general approximation to cAIC used here**
+\strong{Deriving the general approximation to cAIC used here}
 
 Zheng, N., Cadigan, N., & Thorson, J. T. (2024).
 A note on numerical evaluation of conditional Akaike information for
 nonlinear mixed-effects models (arXiv:2411.14185). arXiv.
 \doi{10.48550/arXiv.2411.14185}
 
-**The utility of EDF to diagnose hierarchical model behavior**
+\strong{The utility of EDF to diagnose hierarchical model behavior}
 
 Thorson, J. T. (2024). Measuring complexity for hierarchical
 models using effective degrees of freedom. Ecology,

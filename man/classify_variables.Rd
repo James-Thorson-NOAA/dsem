@@ -16,5 +16,5 @@ Tagged-list defining exogenous and endogenous variables
 \code{classify_variables} is copied from \code{sem:::classifyVariables}
 }
 \details{
-Copied from package `sem` under licence GPL (>= 2) with permission from John Fox
+Copied from package \code{sem} under licence GPL (>= 2) with permission from John Fox
 }
