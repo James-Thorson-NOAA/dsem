@@ -1,4 +1,5 @@
-## Dynamic structural equation models
+## Dynamic structural equation models <a href='https://github.com/James-Thorson-NOAA/dsem'><img src='man/figures/logo.png' align="right" style="height:139px;"/></a>
+
 
 [![](https://www.r-pkg.org/badges/version/dsem)](https://cran.r-project.org/package=dsem)
 [![](https://cranlogs.r-pkg.org/badges/dsem)](https://cran.r-project.org/package=dsem)
