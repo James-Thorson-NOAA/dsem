@@ -1094,6 +1094,11 @@ function( fit,
   coefs = coefs[ which(coefs[,2]==lag), ]
   coefs = coefs[ which(coefs[,'direction'] %in% direction), ]
 
+  # Replace NA with 0 for SE of fixed values
+  if("Std_Error" %in% colnames(coefs)){
+    coefs[,"Std_Error"] = ifelse( is.na(coefs[,"Std_Error"]), 0, coefs[,"Std_Error"] )
+  }
+
   #
   #vars = unique( c(coefs[,'first'],coefs[,'second']) )
   vars = colnames(fit$tmb_inputs$data$y_tj)
