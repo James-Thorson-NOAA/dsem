@@ -136,6 +136,7 @@ As stated, these criteria do not involve paths from one to another latent variab
 are also possible, but involve more complicated identifiability criteria.
 
 \strong{When to do (ot not do) model selection}
+
 In general, DSEM can be used for predictive modelling and/or
 structural causal modelling.
 

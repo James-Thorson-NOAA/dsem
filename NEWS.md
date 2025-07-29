@@ -4,6 +4,7 @@
   from `nlminb` (enabled by default, but overriden in `dsem_control`)
 * Use `Matrix::bandSparse` to simplify logic in `make_matrices`
 * Add experimental function `partition_variance`
+* Extend `total_effect` to compute result for either pulse or press experiment
 
 # dsem 1.6.0
 
