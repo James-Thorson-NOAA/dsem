@@ -71,7 +71,7 @@ function( beta_p,
     L_tt = bandSparse( n = length(times),
                        m = length(times),
                        k = -1 * lag,  # positive lag means below diagonal
-                       diag = list(rep(1,length(times))) )
+                       diagonals = list(rep(1,length(times))) )
 
     # Interaction matrix
     P_jj = sparseMatrix( i = match(model[i,'second'],variables),

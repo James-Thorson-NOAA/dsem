@@ -10,6 +10,10 @@ total_effect(object, n_lags = 4, type = c("pulse", "press"))
 \item{object}{Output from \code{\link{dsem}}}
 
 \item{n_lags}{Number of lags over which to calculate total effects}
+
+\item{type}{Whether a pulse or press experiment is intended.  A pulse experiment
+answers the question:  \verb{What happens if a variable is changed for only a single time-interval?" A press experiment answers the question:  }What happens if a variable is permanently changed
+starting in a given time-interval?}
 }
 \value{
 A data frame listing the time-lag (lag), variable that is undergoing some
@@ -27,10 +31,17 @@ from 0 (simultaneous effects) to a user-specified maximum lag.
 }
 \details{
 Total effects are taken from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}},
-where \eqn{\mathbf{P}} is the path matrix across variables and times. This
-calculates the effect of a perturbation at \eqn{t=0} for a given variable (from)
+where \eqn{\mathbf{P}} is the path matrix across variables and times.
+\eqn{\mathbf{(I-P)}^{-1} \mathbf{\delta} }
+calculates the effect of a perturbation represented by vector \eqn{\mathbf{\delta}}
+with length \eqn{n_{\mathrm{lags}} \times n_{\mathrm{J}}} where \eqn{n_{\mathrm{J}}} is the number of variables.
+\eqn{\mathbf{(I-P)}^{-1} \mathbf{\delta} } calculates the total effect of
+a given variable (from)
 upon any other variable (to) either in the same time (\eqn{t=0}), or subsequent times
-(\eqn{t \geq 1}).
+(\eqn{t \geq 1}), where \eqn{\mathbf{\delta} = \mathbf{i}_{\mathrm{T}} \otimes \mathbf{i}_{\mathrm{J}}},
+where \eqn{\mathbf{i}_{\mathrm{J}}} is one for the \code{from} variable and zero otherwise.
+For a pulse experiment, \eqn{\mathbf{i}_{\mathrm{T}}} is one at \eqn{t=0} and zero for other times.
+For a press experiment, \eqn{\mathbf{i}_{\mathrm{T}}} is one for all times.
 
 We compute and list the total effect at each time from time \code{t=0}
 to \code{t=n_lags-1}.  For press experiments, this includes transient values as the the total effect
