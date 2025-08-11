@@ -37,10 +37,11 @@ Eigen::SparseMatrix<Type> get_submatrix( Eigen::SparseMatrix<Type> A,
 // see scratch/simulate_conditional_gmrf.R
 // modified from tinyVAST::conditional_gmrf
 template<class Type>
-Eigen::SparseMatrix<Type> GMRF_conditional( vector<Type> x,  // x[obs_idx] is the observed values
-                                            Eigen::SparseMatrix<Type> Q,
-                                            vector<int> obs_idx,
-                                            vector<int> unobs_idx ){
+Type GMRF_conditional( vector<Type> x,  // x[obs_idx] is the observed values
+                       Eigen::SparseMatrix<Type> Q,
+                       vector<int> obs_idx,
+                       vector<int> unobs_idx ){
+  using namespace density;
   Type out;
 
   // Only compute if some are conditional
@@ -65,13 +66,14 @@ Eigen::SparseMatrix<Type> GMRF_conditional( vector<Type> x,  // x[obs_idx] is th
 
     // Compute conditional mean and covariance
     // mu_cond <- -Q_uu_inv %*% Q_uo %*% x_obs
-    Eigen::SparseMatrix<Type> projx = Q_uo * obs_x;
-    vector<Type> mu_cond = -1 * inverseQ_uu.solve(projx);
+    matrix<Type> projx = Q_uo * obs_x;
+    matrix<Type> mu_cond = -1 * inverseQ_uu.solve(projx);
 
     //
-    out = density::GMRF(Q_uu)( unobs_x - mu_cond );
+    vector<Type> diff_x = unobs_x - mu_cond.array();
+    out = GMRF( Q_uu )( diff_x );
   }else{
-    out = density::GMRF( Q )( x );
+    out = GMRF( Q )( x );
   }
   return out;
 }
@@ -84,7 +86,7 @@ Type objective_function<Type>::operator() ()
 
   // Data
   DATA_IVECTOR( options ); 
-  // options(0) -> 0: full rank;  1: rank-reduced GMRF
+  // options(0) -> 0: full rank;  1: rank-reduced GMRF;  2: conditional krigging
   // options(1) -> 0: constant conditional variance;  1: constant marginal variance
   //DATA_INTEGER( resimulate_gmrf );
   DATA_IMATRIX( RAM );
@@ -274,10 +276,30 @@ Type objective_function<Type>::operator() ()
     // Add back mean and deviation
     z_tj += xhat_tj + delta_tj;
   }
-  // Option-3:  use conditional GMRF
+  // Option-3:  use conditional GMRF ... in-development
+  // Eliminates family = "fixed" from GMRF density and hence cannot estimate mean or exogenous SD
   if( options(0)==2 ){
-    // TODO
-    error("not implemented yet");
+    DATA_IVECTOR( obs_idx );
+    DATA_IVECTOR( unobs_idx );
+    //error("not implemented yet");
+
+    // Only compute Vinv_kk if Gamma_kk is full rank
+    Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
+    matrix<Type> Vinv_kk = invertSparseMatrix( V_kk );
+    Eigen::SparseMatrix<Type> Vinv2_kk = asSparseMatrix( Vinv_kk );
+    Eigen::SparseMatrix<Type> Q_kk = IminusRho_kk.transpose() * Vinv2_kk * IminusRho_kk;
+
+    // debugging
+    //Eigen::SparseMatrix<Type> Q_uo = get_submatrix( Q_kk, unobs_idx, obs_idx );
+    //Eigen::SparseMatrix<Type> Q_uu = get_submatrix( Q_kk, unobs_idx, unobs_idx );
+    //REPORT( Q_uo );
+    //REPORT( Q_uu );
+
+    // Centered GMRF
+    vector<Type> diff = x_tj - xhat_tj - delta_tj;
+    jnll_gmrf = GMRF_conditional( diff, Q_kk, obs_idx, unobs_idx );
+    z_tj = x_tj;
+    REPORT( Q_kk );
   }
 
   //SIMULATE{

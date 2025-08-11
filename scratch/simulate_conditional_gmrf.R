@@ -42,3 +42,59 @@ polygon(
 #setwd( R'(C:\Users\James.Thorson\Desktop\Git\dsem\src)' )
 #TMB::compile( "dsem.cpp", framework = "TMBad" )
 
+
+#######################
+# TEST OPTION
+#######################
+
+# devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
+library(dsem)
+
+# simulate normal distribution
+n_sim = 10
+x = 2 + rnorm(n_sim)
+y = 1 + 0.5 * x + rnorm(n_sim)
+data = data.frame(x=x, y=y)
+
+# Fit as linear model
+Lm = lm( y ~ x, data=data )
+
+# Fit as DSEM
+fit = dsem( sem = "x -> y, 0, beta",
+            tsdata = ts(data),
+            family = c("fixed", "normal"),
+            control = dsem_control( getsd = FALSE,
+                                    run_model = TRUE,
+                                    use_REML = FALSE ) )
+# Fit as DSEM
+sem = "
+  x -> y, 0, beta
+  x <-> x, 0, NA, 1
+"
+control = dsem_control( getsd = FALSE,
+                                    trace = 1,
+                                    run_model = TRUE,
+                                    use_REML = FALSE )
+control$gmrf_parameterization = "conditional_krig"
+fit1 = dsem( sem = sem,
+            tsdata = ts(data),
+            family = c("fixed", "normal"),
+            control = control )
+obj = fit1$obj
+opt = nlminb( obj$par, obj$fn, obj$gr, control = list(trace=1) )
+
+obj$fn( c(0,1,0) )
+rep = obj$report()
+
+#
+obj = TMB::MakeADFun( data = fit1$tmb_inputs$data,
+                 parameters = fit1$tmb_inputs$par,
+                 #random = fit1$tmb_inputs$random,
+                 map = fit1$tmb_inputs$map,
+                 #profile = control$profile,
+                 DLL = "dsem",
+                 silent = TRUE )
+obj$fn(obj$par)
+obj$gr(obj$par)
+opt = nlminb( obj$par, obj$fn, obj$gr )
+H = optimHess( opt$par, obj$fn, obj$gr )

@@ -253,9 +253,9 @@ function( sem,
 
   #
   if( options[1] == 2 ){
-    familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tz) )
-    Data$obs_idx = which( familycode_z == 0 )
-    Data$unobs_idx = which( familycode_z != 0 )
+    familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tj) )
+    Data$obs_idx = which( familycode_z == 0 ) - 1                 # Convert to CPP indexing
+    Data$unobs_idx = which( familycode_z != 0 ) - 1               # Convert to CPP indexing
   }
 
   # Construct parameters
@@ -299,6 +299,11 @@ function( sem,
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
+
+    # Map off mean for family = "fixed" if using gmrf_parameterization = "conditional_krig"
+    if( options[1] == 2 ){
+      Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
+    }
   }else{
     Map = control$map
   }
@@ -516,7 +521,7 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
-          gmrf_parameterization = c("separable", "projection", "conditional_krig"),
+          gmrf_parameterization = c("separable", "projection"),       # "conditional_krig" is disabled from high-level user-interface
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
