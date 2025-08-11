@@ -8,6 +8,73 @@ Type sign(Type x){
   return x / pow(pow(x,2),0.5);
 }
 
+// Get sparse submatrix, for use in dgmrf_conditional
+// Modified from chatGPT-5
+template<class Type>
+Eigen::SparseMatrix<Type> get_submatrix( Eigen::SparseMatrix<Type> A,
+                                            vector<int> row_idx,
+                                            vector<int> col_idx ){
+
+  // Build submatrix manually
+  Eigen::SparseMatrix<Type> sub(row_idx.size(), col_idx.size());
+
+  for (int k = 0; k < A.outerSize(); ++k) {
+    for (typename Eigen::SparseMatrix<Type>::InnerIterator it(A, k); it; ++it) {
+      // find if row and col are in the selection
+      auto row_pos = std::find(row_idx.data(), row_idx.data() + row_idx.size(), it.row());
+      auto col_pos = std::find(col_idx.data(), col_idx.data() + col_idx.size(), it.col());
+      if (row_pos != row_idx.data() + row_idx.size() && col_pos != col_idx.data() + col_idx.size()) {
+        int new_row = row_pos - row_idx.data();
+        int new_col = col_pos - col_idx.data();
+        sub.coeffRef(new_row, new_col) = it.value();
+      }
+    }
+  }
+  return sub;
+}
+
+// Evaluate negative log-density from conditional-GMRF
+// see scratch/simulate_conditional_gmrf.R
+// modified from tinyVAST::conditional_gmrf
+template<class Type>
+Eigen::SparseMatrix<Type> GMRF_conditional( vector<Type> x,  // x[obs_idx] is the observed values
+                                            Eigen::SparseMatrix<Type> Q,
+                                            vector<int> obs_idx,
+                                            vector<int> unobs_idx ){
+  Type out;
+
+  // Only compute if some are conditional
+  if( obs_idx.size() > 0 ){
+    // Partition Q
+    Eigen::SparseMatrix<Type> Q_uo = get_submatrix( Q, unobs_idx, obs_idx );
+    Eigen::SparseMatrix<Type> Q_uu = get_submatrix( Q, unobs_idx, unobs_idx );
+
+    // Extract observed values
+    vector<Type> obs_x( obs_idx.size() );
+    for (int i = 0; i < obs_idx.size(); i++) {
+      obs_x(i) = x(obs_idx(i));
+    }
+    vector<Type> unobs_x( unobs_idx.size() );
+    for (int i = 0; i < unobs_idx.size(); i++) {
+      unobs_x(i) = x(unobs_idx(i));
+    }
+
+    // sparseLU
+    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseQ_uu;
+    inverseQ_uu.compute(Q_uu);
+
+    // Compute conditional mean and covariance
+    // mu_cond <- -Q_uu_inv %*% Q_uo %*% x_obs
+    Eigen::SparseMatrix<Type> projx = Q_uo * obs_x;
+    vector<Type> mu_cond = -1 * inverseQ_uu.solve(projx);
+
+    //
+    out = density::GMRF(Q_uu)( unobs_x - mu_cond );
+  }else{
+    out = density::GMRF( Q )( x );
+  }
+  return out;
+}
 
 template<class Type>
 Type objective_function<Type>::operator() ()
@@ -168,6 +235,7 @@ Type objective_function<Type>::operator() ()
 
   // Apply GMRF
   array<Type> z_tj( n_t, n_j );
+  // Option-1:  use full-rank GMRF
   if( options(0)==0 ){
     // Only compute Vinv_kk if Gamma_kk is full rank
     Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
@@ -179,8 +247,9 @@ Type objective_function<Type>::operator() ()
     jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_tj );
     z_tj = x_tj;
     REPORT( Q_kk );
-  }else{
-    // Rank-deficient (projection) method
+  }
+  // Option-2:  Rank-deficient (projection) method
+  if( options(0)==1 ){
     jnll_gmrf = GMRF(I_kk)( x_tj );
 
     // Forward-format matrix
@@ -205,6 +274,12 @@ Type objective_function<Type>::operator() ()
     // Add back mean and deviation
     z_tj += xhat_tj + delta_tj;
   }
+  // Option-3:  use conditional GMRF
+  if( options(0)==2 ){
+    // TODO
+    error("not implemented yet");
+  }
+
   //SIMULATE{
   //  if( resimulate_gmrf >= 1 ){
   //    //x_tj = GMRF(Q_kk).simulate(x_tj);

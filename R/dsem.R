@@ -240,7 +240,7 @@ function( sem,
 
   #
   options = c(
-    ifelse(control$gmrf_parameterization=="separable", 0, 1),
+    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "conditional_krig" = 2, NA),
     switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
   )
   
@@ -250,6 +250,13 @@ function( sem,
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
                "y_tj" = tsdata )
+
+  #
+  if( options[1] == 2 ){
+    familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tz) )
+    Data$obs_idx = which( familycode_z == 0 )
+    Data$unobs_idx = which( familycode_z != 0 )
+  }
 
   # Construct parameters
   if( is.null(control$parameters) ){
@@ -509,7 +516,7 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
-          gmrf_parameterization = c("separable", "projection"),
+          gmrf_parameterization = c("separable", "projection", "conditional_krig"),
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
