@@ -80,21 +80,26 @@ fit1 = dsem( sem = sem,
             tsdata = ts(data),
             family = c("fixed", "normal"),
             control = control )
-obj = fit1$obj
-opt = nlminb( obj$par, obj$fn, obj$gr, control = list(trace=1) )
 
-obj$fn( c(0,1,0) )
-rep = obj$report()
+c( AIC(fit1), AIC(Lm) )
+c( fit1$internal$parhat$mu_j[2], Lm$coef[1] )
+c( fit1$internal$parhat$beta_z[1], Lm$coef[2] )
 
+#obj = fit1$obj
+#opt = nlminb( obj$par, obj$fn, obj$gr, control = list(trace=1) )
 #
-obj = TMB::MakeADFun( data = fit1$tmb_inputs$data,
-                 parameters = fit1$tmb_inputs$par,
-                 #random = fit1$tmb_inputs$random,
-                 map = fit1$tmb_inputs$map,
-                 #profile = control$profile,
-                 DLL = "dsem",
-                 silent = TRUE )
-obj$fn(obj$par)
-obj$gr(obj$par)
-opt = nlminb( obj$par, obj$fn, obj$gr )
-H = optimHess( opt$par, obj$fn, obj$gr )
+#obj$fn( c(0,1,0) )
+#rep = obj$report()
+#
+##
+#obj = TMB::MakeADFun( data = fit1$tmb_inputs$data,
+#                 parameters = fit1$tmb_inputs$par,
+#                 #random = fit1$tmb_inputs$random,
+#                 map = fit1$tmb_inputs$map,
+#                 #profile = control$profile,
+#                 DLL = "dsem",
+#                 silent = TRUE )
+#obj$fn(obj$par)
+#obj$gr(obj$par)
+#opt = nlminb( obj$par, obj$fn, obj$gr )
+#H = optimHess( opt$par, obj$fn, obj$gr )
