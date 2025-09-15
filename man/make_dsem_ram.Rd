@@ -103,13 +103,13 @@ This is then parsed to a RAM:
 
 \tabular{rrrrr}{
 \strong{heads} \tab \strong{to} \tab \strong{from} \tab \strong{paarameter} \tab \strong{start} \cr
-1 \tab 2 \tab 1 \tab 1 \tab \if{html}{\out{<NA>}}\cr
-1 \tab 3 \tab 2 \tab 1 \tab \if{html}{\out{<NA>}}\cr
-1 \tab 4 \tab 3 \tab  1 \tab \if{html}{\out{<NA>}}\cr
-2 \tab 1 \tab 1 \tab 2 \tab \if{html}{\out{<NA>}}\cr
-2 \tab 2 \tab 2 \tab  2 \tab \if{html}{\out{<NA>}}\cr
-2 \tab 3 \tab 3 \tab 2 \tab \if{html}{\out{<NA>}}\cr
-2 \tab 4 \tab 4 \tab 2 \tab \if{html}{\out{<NA>}}
+1 \tab 2 \tab 1 \tab 1 \tab NA\cr
+1 \tab 3 \tab 2 \tab 1 \tab NA\cr
+1 \tab 4 \tab 3 \tab  1 \tab NA\cr
+2 \tab 1 \tab 1 \tab 2 \tab NA\cr
+2 \tab 2 \tab 2 \tab  2 \tab NA\cr
+2 \tab 3 \tab 3 \tab 2 \tab NA\cr
+2 \tab 4 \tab 4 \tab 2 \tab NA
 }
 
 Rows of this RAM where \code{heads=1} are then interpreted to construct the path matrix \eqn{\mathbf P}, where column "from"
