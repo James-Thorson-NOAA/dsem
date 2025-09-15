@@ -54,6 +54,7 @@ reference:
   - summary.dsem
   - test_dsep
   - total_effect
+  - partition_variance
   - vcov.dsem
   - as_fitted_DAG
   - as_sem
