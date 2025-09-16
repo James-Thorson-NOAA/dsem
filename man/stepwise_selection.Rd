@@ -41,7 +41,11 @@ etc.}
 An object (list) that includes:
 \describe{
 \item{model}{the string with the selected SEM model}
-\item{record}{a list showing the AIC and whether each \code{model_options} is included or not}
+\item{step}{a list, where each list element shows the models fitted during
+one step in the stepwise algorithm, from first to last step. Each step
+then lists a table, where each table row is a single fitted model,
+the first column is the AIC for that model, and the subsequent columns show
+whether each variable is included (1) or not (0)}
 }
 }
 \description{
@@ -50,7 +54,8 @@ Plot from a fitted \code{dsem} model
 \details{
 This function conducts stepwise (i.e., forwards and backwards) model
 selection using marginal AIC, while forcing some model elements to be
-included and selecting among others.
+included and selecting among others.  See \code{link{dsem}} for further
+discussion of model selection.
 }
 \examples{
 # Simulate x -> y -> z

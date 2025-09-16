@@ -107,5 +107,5 @@ test_dsep( right )
 \references{
 Shipley, B. (2000). A new inferential test
 for path models based on directed acyclic graphs. Structural
-  Equation Modeling, 7(2), 206-218. \doi{10.1207/S15328007SEM0702_4}
+Equation Modeling, 7(2), 206-218. \doi{10.1207/S15328007SEM0702_4}
 }

@@ -23,9 +23,9 @@ including lagged or simultaneous effects.  See Details section in
 for missing values.}
 
 \item{family}{Character-vector listing the distribution used for each column of \code{tsdata}, where
-each element must be \code{fixed} (for no measurement error), 
+each element must be \code{fixed} (for no measurement error),
 \code{normal} for normal measurement error using an identity link,
-\code{gamma} for a gamma measurement error using a fixed CV and log-link, 
+\code{gamma} for a gamma measurement error using a fixed CV and log-link,
 \code{bernoulli} for a Bernoulli measurement error using a logit-link, or
 \code{poisson} for a Poisson measurement error using a log-link.
 \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
@@ -49,16 +49,16 @@ use in \code{dsemRTMB}.  Note that the user must load RTMB using
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
 settings, and see documentation for that function for details.}
 
-\item{covs}{optional: a character vector of one or more elements, with each element giving a string of variable 
-names, separated by commas. Variances and covariances among all variables in each such string are 
-added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent: 
-covs="x1, x2" specifies the variance of x1, the variance of x2, and their covariance, 
+\item{covs}{optional: a character vector of one or more elements, with each element giving a string of variable
+names, separated by commas. Variances and covariances among all variables in each such string are
+added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent:
+covs="x1, x2" specifies the variance of x1, the variance of x2, and their covariance,
 while covs=c("x1", "x2") specifies the variance of x1 and the variance of x2 but not their covariance.
-These same covariances can be added manually via argument `sem`, but using argument `covs` might
+These same covariances can be added manually via argument \code{sem}, but using argument \code{covs} might
 save time for models with many variables.}
 }
 \value{
-An object (list) of class `dsem`. Elements include:
+An object (list) of class \code{dsem}. Elements include:
 \describe{
 \item{obj}{TMB object from \code{\link[TMB]{MakeADFun}}}
 \item{ram}{RAM parsed by \code{make_dsem_ram}}
@@ -67,7 +67,7 @@ An object (list) of class `dsem`. Elements include:
 \item{opt}{The output from \code{\link[stats]{nlminb}}}
 \item{sdrep}{The output from \code{\link[TMB]{sdreport}}}
 \item{interal}{Objects useful for package function, i.e., all arguments
-               passed during the call}
+passed during the call}
 \item{run_time}{Total time to run model}
 }
 }
@@ -77,11 +77,11 @@ Fits a dynamic structural equation model
 \details{
 A DSEM involves (at a minimum):
 \describe{
-  \item{Time series}{a matrix \eqn{\mathbf X} where column \eqn{\mathbf x_c} for variable c is
-        a time-series;}
-  \item{Path diagram}{a user-supplied specification for the path coefficients, which
-        define the precision (inverse covariance) \eqn{\mathbf Q} for a matrix of state-variables
-        and see \code{\link{make_dsem_ram}} for more details on the math involved.}
+\item{Time series}{a matrix \eqn{\mathbf X} where column \eqn{\mathbf x_c} for variable c is
+a time-series;}
+\item{Path diagram}{a user-supplied specification for the path coefficients, which
+define the precision (inverse covariance) \eqn{\mathbf Q} for a matrix of state-variables
+and see \code{\link{make_dsem_ram}} for more details on the math involved.}
 }
 The model also estimates the time-series mean \eqn{ \mathbf{\mu}_c } for each variable.
 The mean and precision matrix therefore define a Gaussian Markov random field for \eqn{\mathbf X}:
@@ -104,34 +104,56 @@ are estimated from the matrix of second derivatives of the log-marginal likeliho
 and standard errors for random effects (i.e., missing or state-space variables) are estimated
 from a generalization of this method (see \code{\link[TMB]{sdreport}} for details).
 
+\strong{Latent variables}
+
 Any column \eqn{\mathbf x_c} of \code{tsdata} that includes only \code{NA} values
 represents a latent variable, and all others are called manifest variables.
 The identifiability criteria for latent variables
 can be complicated.  To explain, we ignore lagged effects (only simultaneous paths)
 and classify three types of latent variables:
 \describe{
-  \item{factor latent variables: }{any latent variable \eqn{\mathbf F} that includes paths out from it
-        to manifest variables, but has no paths from manifest variables into \eqn{\mathbf F} is a
-        factor variable.  These are identifable by fixing their SD (i.e., at one), and using a
-        trimmed Cholesky parameterization (i.e., each successive factor includes fewer paths to
-        manifest variables).  See the DFA vignette for an example.  Factor latent variables
-        can be used to represent residual covariance while also estimating the source of
-        that covariance explicitly}
-  \item{intermediate latent variables: }{Any latent variable \eqn{\mathbf Y} that includes paths in
-        from some manifest variables \eqn{\mathbf X} and some paths out to manifest variables
-        \eqn{\mathbf Z} is an intermediate latent variable.  In general, the at least one path
-        in or out must be fixed a priori (e.g., at one) to identify the scale of the intermediate
-        LV.  These intermediate latent variables can represent ecological concepts that serve
-        as intermediate link between different manifest variables}
-  \item{composite latent variables: }{Any latent variable \eqn{\mathbf C} that includes paths in
-        from some manifest variables \eqn{\mathbf X} and no paths out to manifest variables
-        is a composite latent variable.  In general, you must fix all paths to composite variables
-        a priori, and must also fix the SD a priori (e.g., at zero).  These composite variables
-        allow DSEM to estimate a response with standard errors that integrates
-        across multiple manifest variables}
+\item{factor latent variables: }{any latent variable \eqn{\mathbf F} that includes paths out from it
+to manifest variables, but has no paths from manifest variables into \eqn{\mathbf F} is a
+factor variable.  These are identifable by fixing their SD (i.e., at one), and using a
+trimmed Cholesky parameterization (i.e., each successive factor includes fewer paths to
+manifest variables).  See the DFA vignette for an example.  Factor latent variables
+can be used to represent residual covariance while also estimating the source of
+that covariance explicitly}
+\item{intermediate latent variables: }{Any latent variable \eqn{\mathbf Y} that includes paths in
+from some manifest variables \eqn{\mathbf X} and some paths out to manifest variables
+\eqn{\mathbf Z} is an intermediate latent variable.  In general, the at least one path
+in or out must be fixed a priori (e.g., at one) to identify the scale of the intermediate
+LV.  These intermediate latent variables can represent ecological concepts that serve
+as intermediate link between different manifest variables}
+\item{composite latent variables: }{Any latent variable \eqn{\mathbf C} that includes paths in
+from some manifest variables \eqn{\mathbf X} and no paths out to manifest variables
+is a composite latent variable.  In general, you must fix all paths to composite variables
+a priori, and must also fix the SD a priori (e.g., at zero).  These composite variables
+allow DSEM to estimate a response with standard errors that integrates
+across multiple manifest variables}
 }
 As stated, these criteria do not involve paths from one to another latent variable.  These
 are also possible, but involve more complicated identifiability criteria.
+
+\strong{When to do (ot not do) model selection}
+
+In general, DSEM can be used for predictive modelling and/or
+structural causal modelling.
+
+For predictive modelling, DSEM provides an expressive
+interface to specify any number of fixed effects and use these to represent the
+covariance among variables and over time.  The predictive error is expected to
+decrease when using a parsimonious model, and model selection might be appropriate
+using either \code{\link{stepwise_selection}} or some manual rule for dropping
+coefficients that are not statistically significant using a likelihood ratio or
+Wald test.
+
+However, structural causal modelling (SCM) is necessary for models to be transferable
+to new environments (patterns of colinearity), or for counterfactual analysis.
+In general, SCM does not involve using parsimony as a basis for model selection.
+Instead, SCM structure should be defined based on ecological knowledge, and
+models can be further elaborated using tests of directional separation
+(see \code{\link{test_dsep}}).
 }
 \examples{
 # Define model
@@ -166,8 +188,8 @@ plot( fit, edge_label="value" )
 
 }
 \references{
-**Introducing the package, its features, and comparison with other software
-(to cite when using dsem):**
+\strong{Introducing the package, its features, and comparison with other software
+(to cite when using dsem):}
 
 Thorson, J. T., Andrews, A., Essington, T., Large, S. (2024).
 Dynamic structural equation models synthesize

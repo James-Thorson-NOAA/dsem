@@ -13,8 +13,8 @@
 }
 \value{
 object of class \code{logLik} with attributes
-  \item{val}{log-likelihood}
-  \item{df}{number of parameters}
+\item{val}{log-likelihood}
+\item{df}{number of parameters}
 
 Returns an object of class logLik. This has attributes
 "df" (degrees of freedom) giving the number of (estimated) fixed effects

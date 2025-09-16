@@ -79,6 +79,8 @@
 #' and standard errors for random effects (i.e., missing or state-space variables) are estimated
 #' from a generalization of this method (see \code{\link[TMB]{sdreport}} for details).
 #'
+#' **Latent variables**
+#'
 #' Any column \eqn{\mathbf x_c} of \code{tsdata} that includes only \code{NA} values
 #' represents a latent variable, and all others are called manifest variables.
 #' The identifiability criteria for latent variables
@@ -107,6 +109,26 @@
 #' }
 #' As stated, these criteria do not involve paths from one to another latent variable.  These
 #' are also possible, but involve more complicated identifiability criteria.
+#'
+#' **When to do (ot not do) model selection**
+#'
+#' In general, DSEM can be used for predictive modelling and/or
+#' structural causal modelling.
+#'
+#' For predictive modelling, DSEM provides an expressive
+#' interface to specify any number of fixed effects and use these to represent the
+#' covariance among variables and over time.  The predictive error is expected to
+#' decrease when using a parsimonious model, and model selection might be appropriate
+#' using either \code{\link{stepwise_selection}} or some manual rule for dropping
+#' coefficients that are not statistically significant using a likelihood ratio or
+#' Wald test.
+#'
+#' However, structural causal modelling (SCM) is necessary for models to be transferable
+#' to new environments (patterns of colinearity), or for counterfactual analysis.
+#' In general, SCM does not involve using parsimony as a basis for model selection.
+#' Instead, SCM structure should be defined based on ecological knowledge, and
+#' models can be further elaborated using tests of directional separation
+#' (see \code{\link{test_dsep}}).
 #'
 #' @return
 #' An object (list) of class `dsem`. Elements include:
@@ -218,7 +240,7 @@ function( sem,
 
   #
   options = c(
-    ifelse(control$gmrf_parameterization=="separable", 0, 1),
+    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "conditional_krig" = 2, NA),
     switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
   )
   
@@ -228,6 +250,13 @@ function( sem,
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
                "y_tj" = tsdata )
+
+  #
+  if( options[1] == 2 ){
+    familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tj) )
+    Data$obs_idx = which( familycode_z == 0 ) - 1                 # Convert to CPP indexing
+    Data$unobs_idx = which( familycode_z != 0 ) - 1               # Convert to CPP indexing
+  }
 
   # Construct parameters
   if( is.null(control$parameters) ){
@@ -270,6 +299,11 @@ function( sem,
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
+
+    # Map off mean for family = "fixed" if using gmrf_parameterization = "conditional_krig"
+    if( options[1] == 2 ){
+      Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
+    }
   }else{
     Map = control$map
   }
@@ -340,10 +374,15 @@ function( sem,
   #                   ... )
 
   # Optimize
+  if( isTRUE(control$suppress_nlminb_warnings) ){
+    do_nlminb = function( ... ) suppressWarnings(nlminb( ... ))
+  }else{
+    do_nlminb = function( ... ) nlminb( ... )
+  }
   out$opt = list( "par"=obj$par )
   for( i in seq_len(max(0,control$nlminb_loops)) ){
     if( isFALSE(control$quiet) ) message("Running nlminb_loop #", i)
-    out$opt = nlminb( start = out$opt$par,
+    out$opt = do_nlminb( start = out$opt$par,
                   objective = obj$fn,
                   gradient = obj$gr,
                   upper = control$upper,
@@ -464,6 +503,9 @@ function( sem,
 #'        If unspecified, all parameters are assumed to be unconstrained.
 #' @param upper vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
 #'        If unspecified, all parameters are assumed to be unconstrained.
+#' @param suppress_nlminb_warnings whether to suppress uniformative warnings
+#'        from \code{nlminb} arising when a function evaluation is NA, which
+#'        are then replaced with Inf and avoided during estimation
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -479,7 +521,7 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
-          gmrf_parameterization = c("separable", "projection"),
+          gmrf_parameterization = c("separable", "projection"),       # "conditional_krig" is disabled from high-level user-interface
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
@@ -488,7 +530,8 @@ function( nlminb_loops = 1,
           getJointPrecision = FALSE,
           extra_convergence_checks = TRUE,
           lower = -Inf,
-          upper = Inf ){
+          upper = Inf,
+          suppress_nlminb_warnings = TRUE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -512,7 +555,8 @@ function( nlminb_loops = 1,
     getJointPrecision = getJointPrecision,
     extra_convergence_checks = extra_convergence_checks,
     lower = lower,
-    upper = upper
+    upper = upper,
+    suppress_nlminb_warnings = suppress_nlminb_warnings
   ), class = "dsem_control" )
 }
 
@@ -1061,6 +1105,11 @@ function( fit,
   coefs = summary( fit )
   coefs = coefs[ which(coefs[,2]==lag), ]
   coefs = coefs[ which(coefs[,'direction'] %in% direction), ]
+
+  # Replace NA with 0 for SE of fixed values
+  if("Std_Error" %in% colnames(coefs)){
+    coefs[,"Std_Error"] = ifelse( is.na(coefs[,"Std_Error"]), 0, coefs[,"Std_Error"] )
+  }
 
   #
   #vars = unique( c(coefs[,'first'],coefs[,'second']) )

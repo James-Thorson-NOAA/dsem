@@ -24,13 +24,18 @@
 #' @details
 #' This function conducts stepwise (i.e., forwards and backwards) model
 #' selection using marginal AIC, while forcing some model elements to be
-#' included and selecting among others.
+#' included and selecting among others.  See \code{link{dsem}} for further
+#' discussion of model selection.
 #'
 #' @return
 #' An object (list) that includes:
 #' \describe{
 #' \item{model}{the string with the selected SEM model}
-#' \item{record}{a list showing the AIC and whether each \code{model_options} is included or not}
+#' \item{step}{a list, where each list element shows the models fitted during
+#'         one step in the stepwise algorithm, from first to last step. Each step
+#'         then lists a table, where each table row is a single fitted model,
+#'         the first column is the AIC for that model, and the subsequent columns show
+#'         whether each variable is included (1) or not (0)}
 #' }
 #'
 #' @examples
@@ -79,7 +84,8 @@ function( model_options,
     df_options = outer( rep(1,length(best)), best )
     which_diag = cbind( seq_len(nrow(df_options)), seq_len(nrow(df_options)) )
     df_options[which_diag] = 1 - df_options[which_diag]
-    df_options = rbind(best, df_options)
+    df_options = rbind( best, df_options)
+    rownames(df_options) = c( "start", paste0("alt_",seq_len(nrow(df_options)-1)) )
     IC_i = rep(NA, nrow(df_options))
 
     for(i in 1:nrow(df_options)){
@@ -91,7 +97,9 @@ function( model_options,
     }
 
     # Save step and decide whether to continue
-    step[[length(step)+1]] = cbind( IC_i, df_options )
+    step_table = cbind( IC_i, df_options )
+    colnames(step_table) = c("IC", model_options )
+    step[[length(step)+1]] = step_table
     if(which.min(IC_i)==1){
       break()
     }else{
@@ -100,6 +108,7 @@ function( model_options,
   }
 
   # Return best
+  names(step) = paste0( "algorithm_step_", seq_along(step) )
   model = paste( paste(model_options[which(best==1)],collapse="\n"),
                  paste(model_shared,collapse="\n"),
                  sep="\n" )

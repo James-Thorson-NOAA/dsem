@@ -23,9 +23,9 @@ including lagged or simultaneous effects.  See Details section in
 for missing values.}
 
 \item{family}{Character-vector listing the distribution used for each column of \code{tsdata}, where
-each element must be \code{fixed} (for no measurement error), 
+each element must be \code{fixed} (for no measurement error),
 \code{normal} for normal measurement error using an identity link,
-\code{gamma} for a gamma measurement error using a fixed CV and log-link, 
+\code{gamma} for a gamma measurement error using a fixed CV and log-link,
 \code{bernoulli} for a Bernoulli measurement error using a logit-link, or
 \code{poisson} for a Poisson measurement error using a log-link.
 \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
@@ -46,16 +46,16 @@ with mean of zero and sd of 0.1.  Note that the user must load RTMB using
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
 settings, and see documentation for that function for details.}
 
-\item{covs}{optional: a character vector of one or more elements, with each element giving a string of variable 
-names, separated by commas. Variances and covariances among all variables in each such string are 
-added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent: 
-covs="x1, x2" specifies the variance of x1, the variance of x2, and their covariance, 
+\item{covs}{optional: a character vector of one or more elements, with each element giving a string of variable
+names, separated by commas. Variances and covariances among all variables in each such string are
+added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent:
+covs="x1, x2" specifies the variance of x1, the variance of x2, and their covariance,
 while covs=c("x1", "x2") specifies the variance of x1 and the variance of x2 but not their covariance.
-These same covariances can be added manually via argument `sem`, but using argument `covs` might
+These same covariances can be added manually via argument \code{sem}, but using argument \code{covs} might
 save time for models with many variables.}
 }
 \value{
-An object (list) of class `dsem`, fitted using RTMB
+An object (list) of class \code{dsem}, fitted using RTMB
 }
 \description{
 Fits a dynamic structural equation model

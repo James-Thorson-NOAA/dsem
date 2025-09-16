@@ -4,32 +4,55 @@
 \alias{total_effect}
 \title{Calculate total effects}
 \usage{
-total_effect(object, n_lags = 4)
+total_effect(object, n_lags = 4, type = c("pulse", "press"))
 }
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
 
 \item{n_lags}{Number of lags over which to calculate total effects}
+
+\item{type}{Whether a pulse or press experiment is intended.  A pulse experiment
+answers the question:  \verb{What happens if a variable is changed for only a single time-interval?" A press experiment answers the question:  }What happens if a variable is permanently changed
+starting in a given time-interval?}
 }
 \value{
-A data frame listing the time-lag (lag), variable that is undergoing some 
-exogenous change (from), and the variable being impacted (to), along with the 
+A data frame listing the time-lag (lag), variable that is undergoing some
+exogenous change (from), and the variable being impacted (to), along with the
 total effect (total_effect) including direct and indirect pathways, and the
 partial "direct" effect (direct_effect)
 }
 \description{
-Calculate a data frame of total effects, representing the 
-estimated effect of every variable on every other variable and any time-lag
+Calculate a data frame of total effects, resulting from a pulse experiment
+(i.e., an exogenous and temporary change in a single variable in time \code{t=0}) or
+a press experiment (i.e., an exogenous and permanent change in a single variable
+starting in time \code{t=0} and continuing for \code{n_lags} times), representing the
+estimated effect of a change in any variable on every other variable and any time-lag
 from 0 (simultaneous effects) to a user-specified maximum lag.
 }
 \details{
 Total effects are taken from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}},
-where \eqn{\mathbf{P}} is the path matrix across variables and times. This
-calculates the effect of a pulse perturbation at lag=0 for a given variable (from)
-upon any other variable (to) either in the same time (lag=0), or subsequent times
-(lag >= 1).
+where \eqn{\mathbf{P}} is the path matrix across variables and times.
+\eqn{\mathbf{(I-P)}^{-1} \mathbf{\delta} }
+calculates the effect of a perturbation represented by vector \eqn{\mathbf{\delta}}
+with length \eqn{n_{\mathrm{lags}} \times n_{\mathrm{J}}} where \eqn{n_{\mathrm{J}}} is the number of variables.
+\eqn{\mathbf{(I-P)}^{-1} \mathbf{\delta} } calculates the total effect of
+a given variable (from)
+upon any other variable (to) either in the same time (\eqn{t=0}), or subsequent times
+(\eqn{t \geq 1}), where \eqn{\mathbf{\delta} = \mathbf{i}_{\mathrm{T}} \otimes \mathbf{i}_{\mathrm{J}}},
+where \eqn{\mathbf{i}_{\mathrm{J}}} is one for the \code{from} variable and zero otherwise.
+For a pulse experiment, \eqn{\mathbf{i}_{\mathrm{T}}} is one at \eqn{t=0} and zero for other times.
+For a press experiment, \eqn{\mathbf{i}_{\mathrm{T}}} is one for all times.
+
+We compute and list the total effect at each time from time \code{t=0}
+to \code{t=n_lags-1}.  For press experiments, this includes transient values as the the total effect
+approaches its asymptotic value (if this exists) as \eqn{t} approaches infinity.
+If the analyst wants an asymptotic effect from a press experiment, we recommend
+using a high lag (e.g., \code{n_lags = 100}) and then confirming that it has
+reached it's asymptote (i.e., the total effect is almost identical for the last
+and next-to-last lag), and then reporting the value for that last lag.
 }
 \examples{
+### EXAMPLE 1
 # Define linear model with slope of 0.5
 sem = "
   # from, to, lag, name, starting_value
@@ -41,9 +64,13 @@ mod = dsem(
   tsdata = ts(data.frame(x=rep(0,20),y=rep(0,20))),
   control = dsem_control( run_model = FALSE )
 )
-# Show that total effect of X on Y is 0.5 but does not propagate over time
-total_effect(mod, n_lags = 2)
 
+# Show that total effect of X on Y from pulse experiment is 0.5 but does not propagate over time
+pulse = total_effect(mod, n_lags = 2, type = "pulse")
+subset( pulse, from=="x" & to=="y")
+
+
+### EXAMPLE 2
 # Define linear model with slope of 0.5 and autocorrelated response
 sem = "
   x -> y, 0, slope, 0.5
@@ -54,7 +81,13 @@ mod = dsem(
   tsdata = ts(data.frame(x=rep(0,20),y=rep(0,20))),
   control = dsem_control( run_model = FALSE )
 )
-# Show that total effect of X on Y is 0.5 with decay of 0.8 for each time
-total_effect(mod, n_lags = 4)
+
+# Show that total effect of X on Y from pulse experiment  is 0.5 with decay of 0.8 for each time
+pulse = total_effect(mod, n_lags = 4, type = "pulse")
+subset( pulse, from=="x" & to=="y")
+
+# Show that total effect of X on Y from press experiment  asymptotes at 2.5
+press = total_effect(mod, n_lags = 50, type = "press")
+subset( press, from=="x" & to=="y")
 
 }

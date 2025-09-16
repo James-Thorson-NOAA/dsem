@@ -17,7 +17,7 @@
 #' @param times integer-vector of times to use when defining matrices
 #' @param variables character-vector listing variables
 #'
-#' @importFrom Matrix solve Diagonal sparseMatrix drop0 kronecker
+#' @importFrom Matrix solve Diagonal sparseMatrix drop0 kronecker bandSparse
 #' @importFrom RTMB ADoverload AD
 #'
 #' @details
@@ -62,12 +62,17 @@ function( beta_p,
   for( i in seq_len(nrow(model)) ){
     lag = as.numeric(model[i,'lag'])
     # Time-lag matrix ... transpose if negative lag
-    L_tt = sparseMatrix( i = seq(abs(lag)+1,length(times)),
-                         j = seq(1,length(times)-abs(lag)),
-                         x = 1,
-                         dims = rep(length(times),2) )
+    #L_tt = sparseMatrix( i = seq(abs(lag)+1,length(times)),
+    #                     j = seq(1,length(times)-abs(lag)),
+    #                     x = 1,
+    #                     dims = rep(length(times),2) )
+    #if(lag<0) L_tt = t(L_tt)
+    # Replace with more transparent logic:
+    L_tt = bandSparse( n = length(times),
+                       m = length(times),
+                       k = -1 * lag,  # positive lag means below diagonal
+                       diagonals = list(rep(1,length(times))) )
 
-    if(lag<0) L_tt = t(L_tt)
     # Interaction matrix
     P_jj = sparseMatrix( i = match(model[i,'second'],variables),
                          j = match(model[i,'first'],variables),

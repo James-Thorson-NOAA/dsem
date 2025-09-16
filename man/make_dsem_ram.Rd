@@ -43,33 +43,33 @@ Each line of the RAM specification for \code{\link[dsem]{make_dsem_ram}} consist
 separated by commas:
 
 \describe{
-  \item{1. Arrow specification:}{This is a simple formula, of the form
-    \code{A -> B} or, equivalently, \code{B <- A} for a regression
-    coefficient (i.e., a single-headed or directional arrow);
-    \code{A <-> A} for a variance or \code{A <-> B} for a covariance
-    (i.e., a double-headed or bidirectional arrow). Here, \code{A} and
-    \code{B} are variable names in the model. If a name does not correspond
-    to an observed variable, then it is assumed to be a latent variable.
-    Spaces can appear freely in an arrow specification, and
-    there can be any number of hyphens in the arrows, including zero: Thus,
-    e.g., \code{A->B}, \code{A --> B}, and \code{A>B} are all legitimate
-    and equivalent.}
-  \item{2. Lag (using positive values):}{An integer specifying whether the linkage
-    is simultaneous (\code{lag=0}) or lagged (e.g., \code{X -> Y, 1, XtoY}
-    indicates that X in time T affects Y in time T+1), where
-    only one-headed arrows can be lagged. Using positive values to indicate lags
-     then matches the notational convention used in package \pkg{dynlm}.}
-  \item{3. Parameter name:}{The name of the regression coefficient, variance,
-    or covariance specified by the arrow. Assigning the same name to two or
-    more arrows results in an equality constraint. Specifying the parameter name
-    as \code{NA} produces a fixed parameter.}
-  \item{4. Value:}{start value for a free parameter or value of a fixed parameter.
-    If given as \code{NA} (or simply omitted), the model is provide a default
-    starting value.}
+\item{1. Arrow specification:}{This is a simple formula, of the form
+\code{A -> B} or, equivalently, \code{B <- A} for a regression
+coefficient (i.e., a single-headed or directional arrow);
+\code{A <-> A} for a variance or \code{A <-> B} for a covariance
+(i.e., a double-headed or bidirectional arrow). Here, \code{A} and
+\code{B} are variable names in the model. If a name does not correspond
+to an observed variable, then it is assumed to be a latent variable.
+Spaces can appear freely in an arrow specification, and
+there can be any number of hyphens in the arrows, including zero: Thus,
+e.g., \code{A->B}, \code{A --> B}, and \code{A>B} are all legitimate
+and equivalent.}
+\item{2. Lag (using positive values):}{An integer specifying whether the linkage
+is simultaneous (\code{lag=0}) or lagged (e.g., \code{X -> Y, 1, XtoY}
+indicates that X in time T affects Y in time T+1), where
+only one-headed arrows can be lagged. Using positive values to indicate lags
+then matches the notational convention used in package \pkg{dynlm}.}
+\item{3. Parameter name:}{The name of the regression coefficient, variance,
+or covariance specified by the arrow. Assigning the same name to two or
+more arrows results in an equality constraint. Specifying the parameter name
+as \code{NA} produces a fixed parameter.}
+\item{4. Value:}{start value for a free parameter or value of a fixed parameter.
+If given as \code{NA} (or simply omitted), the model is provide a default
+starting value.}
 }
 
 Lines may end in a comment following #. The function extends code copied from package
-`sem` under licence GPL (>= 2) with permission from John Fox.
+\code{sem} under licence GPL (>= 2) with permission from John Fox.
 
 \strong{Simultaneous autoregressive process for simultaneous and lagged effects}
 
@@ -102,54 +102,58 @@ with independent errors.  This is specified by passing \code{ sem = "X -> X, 1, 
 This is then parsed to a RAM:
 
 \tabular{rrrrr}{
-  \strong{heads} \tab \strong{to} \tab \strong{from} \tab \strong{paarameter} \tab \strong{start} \cr
-  1 \tab 2 \tab 1 \tab 1 \tab <NA>\cr
-  1 \tab 3 \tab 2 \tab 1 \tab <NA>\cr
-  1 \tab 4 \tab 3 \tab  1 \tab <NA>\cr
-  2 \tab 1 \tab 1 \tab 2 \tab <NA>\cr
-  2 \tab 2 \tab 2 \tab  2 \tab <NA>\cr
-  2 \tab 3 \tab 3 \tab 2 \tab <NA>\cr
-  2 \tab 4 \tab 4 \tab 2 \tab <NA>
+\strong{heads} \tab \strong{to} \tab \strong{from} \tab \strong{paarameter} \tab \strong{start} \cr
+1 \tab 2 \tab 1 \tab 1 \tab NA \cr
+1 \tab 3 \tab 2 \tab 1 \tab NA \cr
+1 \tab 4 \tab 3 \tab  1 \tab NA \cr
+2 \tab 1 \tab 1 \tab 2 \tab NA \cr
+2 \tab 2 \tab 2 \tab  2 \tab NA \cr
+2 \tab 3 \tab 3 \tab 2 \tab NA \cr
+2 \tab 4 \tab 4 \tab 2 \tab NA
 }
 
 Rows of this RAM where \code{heads=1} are then interpreted to construct the path matrix \eqn{\mathbf P}, where column "from"
 in the RAM indicates column number in the matrix, column "to" in the RAM indicates row number in the matrix:
 
-    \deqn{ \mathbf P = \begin{bmatrix}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{\deqn{ \mathbf P = \begin{bmatrix}
     0 & 0 & 0 & 0 \\
     \rho & 0 & 0 & 0 \\
     0 & \rho & 0 & 0 \\
     0 & 0 & \rho & 0\\
     \end{bmatrix} }
+}\if{html}{\out{</div>}}
 
 While rows where \code{heads=2} are interpreted to construct the Cholesky of exogenous covariance \eqn{\mathbf \Gamma}
 and column "parameter" in the RAM associates each nonzero element of those
 two matrices with an element of a vector of estimated parameters:
 
-    \deqn{ \mathbf \Gamma = \begin{bmatrix}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{\deqn{ \mathbf \Gamma = \begin{bmatrix}
     \sigma & 0 & 0 & 0 \\
     0 & \sigma & 0 & 0 \\
     0 & 0 & \sigma & 0 \\
     0 & 0 & 0 & \sigma\\
     \end{bmatrix} }
+}\if{html}{\out{</div>}}
 
 with two estimated parameters \eqn{\mathbf \beta = (\rho, \sigma) }. This then results in covariance:
 
-    \deqn{ \mathrm{Cov}(\mathbf X) = \sigma^2 \begin{bmatrix}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{\deqn{ \mathrm{Cov}(\mathbf X) = \sigma^2 \begin{bmatrix}
     1      & \rho^1              & \rho^2                        & \rho^3                  \\
     \rho^1 & 1 + \rho^2          & \rho^1 (1 + \rho^2)           & \rho^2 (1 + \rho^2)     \\
     \rho^2 & \rho^1 (1 + \rho^2) & 1 + \rho^2 + \rho^4           & \rho^1 (1 + \rho^2 + \rho^4)                 \\
     \rho^3 & \rho^2 (1 + \rho^2) & \rho^1 (1 + \rho^2 + \rho^4)  & 1 + \rho^2 + \rho^4 + \rho^6 \\
     \end{bmatrix} }
+}\if{html}{\out{</div>}}
 
 Which converges on the stationary covariance for an AR1 process for times \eqn{t>>1}:
 
-    \deqn{ \mathrm{Cov}(\mathbf X) = \frac{\sigma^2}{1+\rho^2} \begin{bmatrix}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{\deqn{ \mathrm{Cov}(\mathbf X) = \frac{\sigma^2}{1+\rho^2} \begin{bmatrix}
     1 & \rho^1 & \rho^2 & \rho^3 \\
     \rho^1 & 1 & \rho^1 & \rho^2 \\
     \rho^2 & \rho^1 & 1 & \rho^1 \\
     \rho^3 & \rho^2 & \rho^1 & 1\\
     \end{bmatrix} }
+}\if{html}{\out{</div>}}
 
 except having a lower pointwise variance for the initial times, which arises as a "boundary effect".
 

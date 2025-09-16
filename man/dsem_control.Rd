@@ -22,7 +22,8 @@ dsem_control(
   getJointPrecision = FALSE,
   extra_convergence_checks = TRUE,
   lower = -Inf,
-  upper = Inf
+  upper = Inf,
+  suppress_nlminb_warnings = TRUE
 )
 }
 \arguments{
@@ -31,14 +32,14 @@ dsem_control(
 \item{newton_loops}{Integer number of Newton steps to do after running
 \code{\link[stats]{nlminb}}.}
 
-\item{trace}{Parameter values are printed every `trace` iteration
+\item{trace}{Parameter values are printed every \code{trace} iteration
 for the outer optimizer. Passed to
-`control` in \code{\link[stats]{nlminb}}.}
+\code{control} in \code{\link[stats]{nlminb}}.}
 
 \item{eval.max}{Maximum number of evaluations of the objective function
-allowed. Passed to `control` in \code{\link[stats]{nlminb}}.}
+allowed. Passed to \code{control} in \code{\link[stats]{nlminb}}.}
 
-\item{iter.max}{Maximum number of iterations allowed. Passed to `control` in
+\item{iter.max}{Maximum number of iterations allowed. Passed to \code{control} in
 \code{\link[stats]{nlminb}}.}
 
 \item{getsd}{Boolean indicating whether to call \code{\link[TMB]{sdreport}}}
@@ -48,24 +49,24 @@ allowed. Passed to `control` in \code{\link[stats]{nlminb}}.}
 \item{run_model}{Boolean indicating whether to estimate parameters (the default), or
 instead to return the model inputs and compiled TMB object without running;}
 
-\item{gmrf_parameterization}{Parameterization to use for the Gaussian Markov 
-random field, where the default `separable` constructs a precision matrix
-that must be full rank, and the alternative `projection` constructs
+\item{gmrf_parameterization}{Parameterization to use for the Gaussian Markov
+random field, where the default \code{separable} constructs a precision matrix
+that must be full rank, and the alternative \code{projection} constructs
 a full-rank and IID precision for variables over time, and then projects
 this using the inverse-cholesky of the precision, where this projection
 can be rank-deficient.}
 
-\item{constant_variance}{Whether to specify a constant conditional variance 
-\eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
-which results in a changing marginal variance      
+\item{constant_variance}{Whether to specify a constant conditional variance
+\eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"},
+which results in a changing marginal variance
 along the specified causal graph when lagged paths are present. Alternatively, the user can
 specify a constant marginal variance using \code{constant_variance="diagonal"}
 or \code{constant_variance="marginal"},
-such that \eqn{ \mathbf{\Gamma}} and \eqn{\mathbf{I-P}} are rescaled to achieve this constraint.  
+such that \eqn{ \mathbf{\Gamma}} and \eqn{\mathbf{I-P}} are rescaled to achieve this constraint.
 All options
 are equivalent when the model includes no lags (only simultaneous effects) and
 no covariances (no two-headed arrows).  \code{"diagonal"} and \code{"marginal"}
-are equivalent when the model includes no covariances. Given some exogenous covariance, 
+are equivalent when the model includes no covariances. Given some exogenous covariance,
 \code{constant_variance = "diagonal"} preserves the conditional correlation and has
 changing conditional variance, while \code{constant_variance = "marginal"} has changing
 conditional correlation along the causal graph.}
@@ -93,6 +94,10 @@ If unspecified, all parameters are assumed to be unconstrained.}
 
 \item{upper}{vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
 If unspecified, all parameters are assumed to be unconstrained.}
+
+\item{suppress_nlminb_warnings}{whether to suppress uniformative warnings
+from \code{nlminb} arising when a function evaluation is NA, which
+are then replaced with Inf and avoided during estimation}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

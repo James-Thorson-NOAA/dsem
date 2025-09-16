@@ -16,11 +16,11 @@ Converts equations to arrow-and-lag notation expected by dsem
 }
 \details{
 The function modifies code copied from package
-`sem` under licence GPL (>= 2) with permission from John Fox.
+\code{sem} under licence GPL (>= 2) with permission from John Fox.
 
 For specifyEquations, each input line is either a regression equation or the
 specification of a variance or covariance. Regression equations are of the form
-y = par1*x1 + par2*x2 + ... + park*xk
+y = par1\emph{x1 + par2}x2 + ... + park*xk
 where y and the xs are variables in the model (either observed or latent),
 and the pars are parameters. If a parameter is given as a numeric value
 (e.g., 1) then it is treated as fixed. Note that no error variable is

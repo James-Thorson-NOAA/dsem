@@ -10,7 +10,7 @@ make_matrices(beta_p, model, times, variables)
 \item{beta_p}{vector parameters.}
 
 \item{model}{matrix or data.frame with the following columns, and one row
-  per one-headed or two-headed arrow in the dynamic structural model:
+per one-headed or two-headed arrow in the dynamic structural model:
 \describe{
 \item{direction}{whether a path coefficient is one-headed (1) or two-headed (2)}
 \item{lag}{whether the lag associated with a given coefficient}
@@ -33,7 +33,7 @@ A named list of matrices including:
 }
 \description{
 Constructs path matrices for dynamic structural equation model (DSEM)
-       using a vector of parameters and specification of the DSEM
+using a vector of parameters and specification of the DSEM
 }
 \details{
 When \code{length(times)} is \eqn{T} and \code{length(variables)} is \eqn{J},

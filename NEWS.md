@@ -1,3 +1,14 @@
+# dsem 1.7.0
+
+* Add option to turn off useless `NA/NaN function evaluation` function evaluations
+  from `nlminb` (enabled by default, but overriden in `dsem_control`)
+* Use `Matrix::bandSparse` to simplify logic in `make_matrices`
+* Add experimental function `partition_variance`
+* Extend `total_effect` to compute result for either pulse or press experiment
+* Adding exploratory option `gmrf_parameterization = "conditional_krig"` that 
+  excludes `family = "fixed"` variables from the GMRF density calculation 
+  while still conditioning upon their value(s)
+
 # dsem 1.6.0
 
 * Export and document `make_matrices`

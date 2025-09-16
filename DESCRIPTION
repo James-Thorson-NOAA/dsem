@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Dynamic Structural Equation Models
-Version: 1.6.0
-Date: 2025-03-21
+Version: 1.7.0
+Date: 2025-09-15
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -64,7 +64,8 @@ Description: Applies dynamic structural equation models to time-series data
 	constrained by ecological mechanisms."  
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 LazyData: true
 URL: https://james-thorson-noaa.github.io/dsem/

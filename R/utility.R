@@ -129,19 +129,42 @@ function( object,
 
 #' @title Calculate total effects
 #'
-#' @description Calculate a data frame of total effects, representing the 
-#' estimated effect of every variable on every other variable and any time-lag
+#' @description 
+#' Calculate a data frame of total effects, resulting from a pulse experiment
+#' (i.e., an exogenous and temporary change in a single variable in time \code{t=0}) or 
+#' a press experiment (i.e., an exogenous and permanent change in a single variable 
+#' starting in time \code{t=0} and continuing for \code{n_lags} times), representing the 
+#' estimated effect of a change in any variable on every other variable and any time-lag
 #' from 0 (simultaneous effects) to a user-specified maximum lag.
 #'
 #' @param object Output from \code{\link{dsem}}
 #' @param n_lags Number of lags over which to calculate total effects
+#' @param type Whether a pulse or press experiment is intended.  A pulse experiment
+#' answers the question:  ``What happens if a variable is changed for only a single time-interval?"
+#' A press experiment answers the question:  ``What happens if a variable is permanently changed
+#' starting in a given time-interval? 
 #'
 #' @details
 #' Total effects are taken from the Leontief matrix \eqn{\mathbf{(I-P)^{-1}}},
-#' where \eqn{\mathbf{P}} is the path matrix across variables and times. This
-#' calculates the effect of a pulse perturbation at lag=0 for a given variable (from)
-#' upon any other variable (to) either in the same time (lag=0), or subsequent times
-#' (lag >= 1).
+#' where \eqn{\mathbf{P}} is the path matrix across variables and times. 
+#' \eqn{\mathbf{(I-P)}^{-1} \mathbf{\delta} }
+#' calculates the effect of a perturbation represented by vector \eqn{\mathbf{\delta}}
+#' with length \eqn{n_{\mathrm{lags}} \times n_{\mathrm{J}}} where \eqn{n_{\mathrm{J}}} is the number of variables.  
+#' \eqn{\mathbf{(I-P)}^{-1} \mathbf{\delta} } calculates the total effect of   
+#' a given variable (from)
+#' upon any other variable (to) either in the same time (\eqn{t=0}), or subsequent times
+#' (\eqn{t \geq 1}), where \eqn{\mathbf{\delta} = \mathbf{i}_{\mathrm{T}} \otimes \mathbf{i}_{\mathrm{J}}}, 
+#' where \eqn{\mathbf{i}_{\mathrm{J}}} is one for the \code{from} variable and zero otherwise.
+#' For a pulse experiment, \eqn{\mathbf{i}_{\mathrm{T}}} is one at \eqn{t=0} and zero for other times.
+#' For a press experiment, \eqn{\mathbf{i}_{\mathrm{T}}} is one for all times.  
+#' 
+#' We compute and list the total effect at each time from time \code{t=0}
+#' to \code{t=n_lags-1}.  For press experiments, this includes transient values as the the total effect 
+#' approaches its asymptotic value (if this exists) as \eqn{t} approaches infinity.
+#' If the analyst wants an asymptotic effect from a press experiment, we recommend
+#' using a high lag (e.g., \code{n_lags = 100}) and then confirming that it has
+#' reached it's asymptote (i.e., the total effect is almost identical for the last 
+#' and next-to-last lag), and then reporting the value for that last lag. 
 #'
 #' @return
 #' A data frame listing the time-lag (lag), variable that is undergoing some 
@@ -150,6 +173,7 @@ function( object,
 #' partial "direct" effect (direct_effect)
 #'
 #' @examples
+#' ### EXAMPLE 1
 #' # Define linear model with slope of 0.5
 #' sem = "
 #'   # from, to, lag, name, starting_value
@@ -161,9 +185,13 @@ function( object,
 #'   tsdata = ts(data.frame(x=rep(0,20),y=rep(0,20))),
 #'   control = dsem_control( run_model = FALSE )
 #' )
-#' # Show that total effect of X on Y is 0.5 but does not propagate over time
-#' total_effect(mod, n_lags = 2)
 #'
+#' # Show that total effect of X on Y from pulse experiment is 0.5 but does not propagate over time
+#' pulse = total_effect(mod, n_lags = 2, type = "pulse")
+#' subset( pulse, from=="x" & to=="y")
+#'
+#'
+#' ### EXAMPLE 2
 #' # Define linear model with slope of 0.5 and autocorrelated response
 #' sem = "
 #'   x -> y, 0, slope, 0.5
@@ -174,14 +202,24 @@ function( object,
 #'   tsdata = ts(data.frame(x=rep(0,20),y=rep(0,20))),
 #'   control = dsem_control( run_model = FALSE )
 #' )
-#' # Show that total effect of X on Y is 0.5 with decay of 0.8 for each time
-#' total_effect(mod, n_lags = 4)
+#'
+#' # Show that total effect of X on Y from pulse experiment  is 0.5 with decay of 0.8 for each time
+#' pulse = total_effect(mod, n_lags = 4, type = "pulse")
+#' subset( pulse, from=="x" & to=="y")
+#'
+#' # Show that total effect of X on Y from press experiment  asymptotes at 2.5
+#' press = total_effect(mod, n_lags = 50, type = "press")
+#' subset( press, from=="x" & to=="y")
 #'
 #' @export
 total_effect <-
 function( object,
-          n_lags = 4 ){
+          n_lags = 4,
+          type = c("pulse","press") ){
 
+  #
+  type = match.arg(type)
+  
   # Unpack stuff
   Z = object$internal$tsdata
   if(is.null(object$internal$parhat)){
@@ -196,8 +234,14 @@ function( object,
   )$P_kk            
 
   # Define innovations
-  delta_kj = kronecker( Diagonal(n=ncol(Z)), 
-                        sparseMatrix(i=1, j=1, x=1, dims=c(n_lags,1)) )
+  if( type == "pulse" ){
+    delta_kj = kronecker( Diagonal(n=ncol(Z)), 
+                          sparseMatrix(i=1, j=1, x=1, dims=c(n_lags,1)) )
+  }
+  if( type == "press" ){
+    delta_kj = kronecker( Diagonal(n=ncol(Z)), 
+                          sparseMatrix(i=seq_len(n_lags), j=rep(1,n_lags), x=rep(1,n_lags), dims=c(n_lags,1)) )
+  }
   IminusRho_kk = Diagonal(n=nrow(P_kk)) - P_kk
   
   # Calculate partial effect
@@ -215,3 +259,107 @@ function( object,
   return(out)
 }
 
+#' @title Partition variance in one variable due to another (EXPERIMENTAL)
+#'
+#' @description
+#' Calculate the proportion of variance for a response variable that is
+#' attributed to another set of predictor variables, calculated across lags from
+#' from 0 (simultaneous effects) to a user-specified maximum lag.
+#'
+#' @param object Output from \code{\link{dsem}}
+#' @param which_response string matching colnames from \code{tsdata}
+#' identifying response variable
+#' @param n_times Number of lags over which to calculate total effects
+#'
+#' @details
+#' This function calculates the variance for each variable and lag, and then
+#' recalculates it when setting exogenous variance to zero for all variables except
+#' \code{which_pred}.  It then calculates the ratio of the diagonal of these two.
+#' This represents the proportion of variance in the full model that is attributable
+#' to one or more variables.
+#'
+#' This function is under development and may still change or be removed.
+#'
+#' @return
+#' A list with two elements:
+#' \describe{
+#'  \item{total_variance}{A matrix of the total variance for each variable (column)
+#'    and each time from 1 to \code{n_times}}
+#'  \item{proportion_variance_explained}{A matrix of the proportion of variance
+#'    explained for variable \code{which_response} by each model variable
+#'    (column) and each time from 1 to \code{n_times}}
+#' }
+#' Note that in a model with lagged effects, the total_variance and variance_explained
+#' will vary for each time (row), and the analyst might want to either choose a time
+#' for which the value has stabilized.
+#'
+#' @examples
+#' # Simulate linear model
+#' x = rnorm(100)
+#' y = 1 + 1 * x + rnorm(100)
+#' data = data.frame(x=x, y=y)
+#'
+#' # Fit as DSEM
+#' fit = dsem( sem = "x -> y, 0, beta",
+#'             tsdata = ts(data),
+#'             control = dsem_control(quiet=TRUE) )
+#'
+#' # Apply
+#' partition_variance( fit,
+#'                     which_response = "y",
+#'                     n_times = 10 )
+#'
+#' @export
+partition_variance <-
+function( object,
+          which_response,
+          n_times = 10 ){
+
+  # Unpack stuff
+  Z = object$internal$tsdata
+  if(is.null(object$internal$parhat)){
+    object$internal$parhat = object$obj$env$parList()
+  }
+
+  # Error checks
+  if( !(which_response %in% colnames(Z)) ){
+    stop("`which_response` not found in colnames of `tsdata`")
+  }
+
+  # Extract path matrix
+  matrices = make_matrices(
+    beta_p = object$internal$parhat$beta,
+    model = object$sem_full,
+    times = seq_len(n_times),
+    variables = colnames(Z)
+  )
+  out = expand.grid(lag = seq_len(n_times), variable = colnames(Z) )
+
+  #
+  IminusP_kk = matrices$IminusP_kk
+  invIminusP_kk = Matrix::solve(IminusP_kk)
+
+  # Extract variance for fitted model
+  G_kk = matrices$G_kk
+  V_kk = Matrix::t(G_kk) %*% G_kk
+  Sigma0_kk = invIminusP_kk %*% V_kk %*% Matrix::t(invIminusP_kk)
+
+  # Zero out variances
+  match_vals = which( out$variable %in% which_response )
+  prop_tj = array(NA, dim=c(n_times,ncol(Z)), dimnames=list(paste0("t_",seq_len(n_times)),colnames(Z)))
+  for( which_pred in colnames(Z) ){
+    match_cols = which( out$variable %in% which_pred )
+    G0_kk = matrices$G_kk
+    G0_kk[,-match_cols] = 0
+    V0_kk = Matrix::t(G0_kk) %*% G0_kk
+    Sigma1_kk = invIminusP_kk %*% V0_kk %*% Matrix::t(invIminusP_kk)
+    prop_tj[,which_pred] = Matrix::diag(Sigma1_kk)[match_vals] / Matrix::diag(Sigma0_kk)[match_vals]
+  }
+
+  #
+  var_tj = prop_tj
+  var_tj[] = Matrix::diag( Sigma0_kk )
+  out = list( "total_variance" = var_tj,
+              "proportion_variance_explained" = prop_tj )
+  return(out)
+}
