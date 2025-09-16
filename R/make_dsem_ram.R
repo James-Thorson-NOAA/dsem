@@ -78,12 +78,12 @@
 #'
 #' \tabular{rrrrr}{
 #'   \strong{heads} \tab \strong{to} \tab \strong{from} \tab \strong{paarameter} \tab \strong{start} \cr
-#'   1 \tab 2 \tab 1 \tab 1 \tab NA\cr
-#'   1 \tab 3 \tab 2 \tab 1 \tab NA\cr
-#'   1 \tab 4 \tab 3 \tab  1 \tab NA\cr
-#'   2 \tab 1 \tab 1 \tab 2 \tab NA\cr
-#'   2 \tab 2 \tab 2 \tab  2 \tab NA\cr
-#'   2 \tab 3 \tab 3 \tab 2 \tab NA\cr
+#'   1 \tab 2 \tab 1 \tab 1 \tab NA \cr
+#'   1 \tab 3 \tab 2 \tab 1 \tab NA \cr
+#'   1 \tab 4 \tab 3 \tab  1 \tab NA \cr
+#'   2 \tab 1 \tab 1 \tab 2 \tab NA \cr
+#'   2 \tab 2 \tab 2 \tab  2 \tab NA \cr
+#'   2 \tab 3 \tab 3 \tab 2 \tab NA \cr
 #'   2 \tab 4 \tab 4 \tab 2 \tab NA
 #' }
 #'
