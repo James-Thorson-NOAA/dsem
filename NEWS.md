@@ -1,3 +1,7 @@
+# dsem 2.0.0
+
+* Add option to specify a path based fixed at another variable
+
 # dsem 1.7.0
 
 * Add option to turn off useless `NA/NaN function evaluation` function evaluations

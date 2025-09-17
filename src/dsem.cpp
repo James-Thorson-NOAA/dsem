@@ -133,7 +133,12 @@ Type objective_function<Type>::operator() ()
     }else{
       tmp = RAMstart(r);
     }
-    if(RAM(r,0)==1) Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
+    if(RAM(r,0)==0){
+      Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = x_tj( RAM(r,4)-1, RAM(r,5)-1 );
+    }
+    if(RAM(r,0)==1){
+      Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
+    }
     if(RAM(r,0)==2){
       Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp; // Cholesky of covariance, so -Inf to Inf;
     }

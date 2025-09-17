@@ -246,7 +246,8 @@ function( sem,
   
   #
   Data = list( "options" = options,
-               "RAM" = as.matrix(na.omit(ram[,1:4])),
+               #"RAM" = as.matrix(na.omit(ram[,1:4])),
+               "RAM" = as.matrix(ram[,-5]),
                "RAMstart" = as.numeric(ram[,5]),
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
                "y_tj" = tsdata )
@@ -260,7 +261,7 @@ function( sem,
 
   # Construct parameters
   if( is.null(control$parameters) ){
-    Params = list( "beta_z" = rep(0,max(ram[,4])),
+    Params = list( "beta_z" = rep(0,max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
                    "lnsigma_j" = rep(0,ncol(tsdata)),
                    "mu_j" = rep(0,ncol(tsdata)),
                    "delta0_j" = rep(0,ncol(tsdata)),
@@ -313,6 +314,17 @@ function( sem,
     Random = c( "x_tj", "mu_j" )
   }else{
     Random = "x_tj"
+  }
+
+  #
+  if( control$build_model==FALSE ){
+    out = list(
+      data = Data,
+      parameters = Params,
+      random = Random,
+      map = Map
+    )
+    return( out )
   }
 
   # Build object
@@ -467,6 +479,7 @@ function( sem,
 #' @param getsd Boolean indicating whether to call \code{\link[TMB]{sdreport}}
 #' @param run_model Boolean indicating whether to estimate parameters (the default), or
 #'        instead to return the model inputs and compiled TMB object without running;
+#' @param build_model Boolean indicating whether to return inputs to `MakeADFun`
 #' @param gmrf_parameterization Parameterization to use for the Gaussian Markov 
 #'        random field, where the default `separable` constructs a precision matrix
 #'        that must be full rank, and the alternative `projection` constructs
@@ -521,6 +534,7 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
+          build_model = TRUE,
           gmrf_parameterization = c("separable", "projection"),       # "conditional_krig" is disabled from high-level user-interface
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
@@ -546,6 +560,7 @@ function( nlminb_loops = 1,
     getsd = getsd,
     quiet = quiet,
     run_model = run_model,
+    build_model = build_model,
     gmrf_parameterization = gmrf_parameterization,
     constant_variance = constant_variance,
     use_REML = use_REML,

@@ -317,12 +317,15 @@ function( sem,
 
   # Deal with fixed values
   par.names = model[, 3]
+  # Exclude varying slopes
+  par.names = ifelse( par.names %in% variables, NA, par.names )
   pars = na.omit(unique(par.names))
+  
+  #
   if( length(pars)==0 ){
     par.nos = rep(0, nrow(model))
   }else{
     par.nos = apply(outer(pars, par.names, "=="), 2, which)
-    #par.nos = ifelse( sapply(par.nos,length)==0, 0, unlist(par.nos) )
     par.nos = unlist(sapply( par.nos, FUN=function(x) ifelse(length(x)==0, 0, x) ))
   }
   model = cbind( model, "parameter"=par.nos )
@@ -335,62 +338,91 @@ function( sem,
     model[i,c('first','second','direction')] = unlist( path[c('first','second','direction')] )
   }
 
+  # ADD LOGIC FOR PATHS
+  which_rows = model[,'name'] %in% variables
+  if( any(which_rows) ){
+    model[which_rows,'direction'] = 0  
+  }
+  
   # Loop through paths
-  G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
+  B_kk = G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
   #P_kk = new("dgCMatrix")
   #P_kk = Matrix()
   #P_kk@Dim <- as.integer(rep(length(variables)*length(times),2))
   #P_kk@p = integer(length(variables)*length(times)+1L)
   #G_kk = P_kk
   for( i in seq_len(nrow(model)) ){
-    lag = as.numeric(model[i,2])
+
     # Time-lag matrix ... transpose if negative lag
+    lag = as.numeric(model[i,2])
     L_tt = sparseMatrix( i = seq( abs(lag)+1,length(times)),
                          j = seq(1,length(times)-abs(lag)),
                          x = 1,
                          dims = rep(length(times),2) )
     if(lag<0) L_tt = t(L_tt)
+
     # Interaction matrix
     P_jj = sparseMatrix( i = match(model[i,'second'],variables),
                          j = match(model[i,'first'],variables),
                          x = 1,
                          dims = rep(length(variables),2) )
+
+    # Combine them 
     tmp_kk = kronecker(P_jj, L_tt)
-    if(abs(as.numeric(model[i,'direction']))==1){
+    if( abs(as.numeric(model[i,'direction'])) == 0 ){
+      B_kk = B_kk + tmp_kk * match(model[i,'name'],variables)
+    }
+    if( abs(as.numeric(model[i,'direction'])) == 1 ){
       P_kk = P_kk + tmp_kk * i
-    }else{
+    }
+    if( abs(as.numeric(model[i,'direction'])) == 2 ){
       G_kk = G_kk + tmp_kk * i
     }
-    #for( t in seq_along(times) ){
-    #  # Get index for "from"
-    #  from = c( times[t], model[i,'first'] )
-    #  from_index = match_row( Q_names, from )
-    #  from_index = ifelse( length(from_index)==0, NA, from_index )
-    #  # Get index for "to"
-    #  to = c( times[t+lag], model[i,'second'] )
-    #  to_index = match_row( Q_names, to )
-    #  to_index = ifelse( length(to_index)==0, NA, to_index )
-    #  ram_new = data.frame( "heads"=abs(as.numeric(model[i,'direction'])), "to"=to_index, "from"=from_index, "parameter"=par.no, "start"=startvalues[i] )
-    #  ram = rbind( ram, ram_new )
-    #}
   }
-  #rownames(ram) = NULL
-  #f = function(x) sapply(mat2triplet(drop0(x)),cbind)
-  f = function( x,
-                first_column = 1){
+  
+  # Convert to triplet
+  f = function( x, first_column = 1){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
-      data.frame(first_column, triplet$i, triplet$j, triplet$x)
+      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA, NA )
     }else{
-      data.frame(numeric(0), numeric(0), numeric(0), numeric(0))
+      out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
+    names(out) = seq_len(ncol(out))
+    return(out)
   }
+  # Convert to triplet for spatially varying slope
+  f2 = function( x ){
+    triplet = mat2triplet(x)
+    if( length(triplet$x)>0 ){
+      t_k = rep( seq_along(times), length(variables) )[triplet$i]
+      #j_k = rep( seq_along(variables), each = length(times) )[triplet$i]
+      # use NA for 4th so it keeps an NA for par.nos[ram[,4]
+      out = data.frame( 0, triplet$i, triplet$j, NA, t_k, triplet$x )
+    }else{
+      out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
+    }
+    names(out) = seq_len(ncol(out))
+    return(out)
+  }
+
+  # Combine
+  # heads (type)
+  # to (row of path matrix)
+  # from (column of path matrix)
+  # parameter (number from beta_k)
+  # starvalue (starting value)
+  # to_t (for varying path, row of tsdata)
+  # to_j (for varying path, column of tsdata)
   ram = rbind( f(P_kk, 1),
-               f(G_kk, 2) )
-  ram = data.frame( ram[,1:3,drop=FALSE],
+               f(G_kk, 2),
+               f2(B_kk) )  # Ignore column names
+  ram = data.frame( ram[,1:3, drop=FALSE],
                     as.numeric(par.nos)[ram[,4]],
-                    as.numeric(startvalues)[ram[,4]] )
-  colnames(ram) = c("heads", "to", "from", "parameter", "start")
+                    as.numeric(startvalues)[ram[,4]],
+                    ram[,5:6, drop=FALSE] )
+  colnames(ram) = c( "heads", "to", "from", "parameter", 
+                     "start", "to_t", "to_j")
 
   #
   #if( isTRUE(remove_na) ){
