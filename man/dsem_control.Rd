@@ -13,6 +13,7 @@ dsem_control(
   getsd = TRUE,
   quiet = FALSE,
   run_model = TRUE,
+  build_model = TRUE,
   gmrf_parameterization = c("separable", "projection"),
   constant_variance = c("conditional", "marginal", "diagonal"),
   use_REML = TRUE,
@@ -48,6 +49,8 @@ allowed. Passed to \code{control} in \code{\link[stats]{nlminb}}.}
 
 \item{run_model}{Boolean indicating whether to estimate parameters (the default), or
 instead to return the model inputs and compiled TMB object without running;}
+
+\item{build_model}{Boolean indicating whether to return inputs to \code{MakeADFun}}
 
 \item{gmrf_parameterization}{Parameterization to use for the Gaussian Markov
 random field, where the default \code{separable} constructs a precision matrix
