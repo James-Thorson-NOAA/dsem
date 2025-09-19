@@ -51,6 +51,8 @@ Suggests:
     vars,
     testthat,
     DHARMa
+Remotes: 
+    kaskr/adcomp/TMB@jim,
 Enhances:
     rstan,
     tmbstan
