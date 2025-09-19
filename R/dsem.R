@@ -38,7 +38,7 @@
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
 #'
-#' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
+#' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport config
 #' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom sem sem
@@ -326,7 +326,10 @@ function( sem,
     )
     return( out )
   }
-
+  
+  # Necessary for now
+  TMB::config(tmbad.atomic_sparse_log_determinant = FALSE, DLL = "dsem")
+  
   # Build object
   obj = TMB::MakeADFun( data=Data,
                    parameters=Params,
