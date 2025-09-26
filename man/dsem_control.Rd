@@ -14,7 +14,7 @@ dsem_control(
   quiet = FALSE,
   run_model = TRUE,
   build_model = TRUE,
-  gmrf_parameterization = c("separable", "projection"),
+  gmrf_parameterization = c("separable", "projection", "mvn_project"),
   constant_variance = c("conditional", "marginal", "diagonal"),
   use_REML = TRUE,
   profile = NULL,
@@ -54,10 +54,13 @@ instead to return the model inputs and compiled TMB object without running;}
 
 \item{gmrf_parameterization}{Parameterization to use for the Gaussian Markov
 random field, where the default \code{separable} constructs a precision matrix
-that must be full rank, and the alternative \code{projection} constructs
-a full-rank and IID precision for variables over time, and then projects
-this using the inverse-cholesky of the precision, where this projection
-can be rank-deficient.}
+that must be full rank, \code{projection} constructs
+a full-rank and IID precision for variables over time and then projects
+this using the inverse-cholesky of the precision (which allows a
+rank-deficient GMRF, but does not allow \code{family = "fixed"}),
+and \code{mvn_project} uses the dense variance for the
+full-rank component of the GMRF and then projects values to the rank-deficient
+component (which allows \code{family = "fixed"} but is much slower).}
 
 \item{constant_variance}{Whether to specify a constant conditional variance
 \eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"},

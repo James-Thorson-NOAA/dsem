@@ -36,47 +36,47 @@ Eigen::SparseMatrix<Type> get_submatrix( Eigen::SparseMatrix<Type> A,
 // Evaluate negative log-density from conditional-GMRF
 // see scratch/simulate_conditional_gmrf.R
 // modified from tinyVAST::conditional_gmrf
-template<class Type>
-Type GMRF_conditional( vector<Type> x,  // x[obs_idx] is the observed values
-                       Eigen::SparseMatrix<Type> Q,
-                       vector<int> obs_idx,
-                       vector<int> unobs_idx ){
-  using namespace density;
-  Type out;
-
-  // Only compute if some are conditional
-  if( obs_idx.size() > 0 ){
-    // Partition Q
-    Eigen::SparseMatrix<Type> Q_uo = get_submatrix( Q, unobs_idx, obs_idx );
-    Eigen::SparseMatrix<Type> Q_uu = get_submatrix( Q, unobs_idx, unobs_idx );
-
-    // Extract observed values
-    vector<Type> obs_x( obs_idx.size() );
-    for (int i = 0; i < obs_idx.size(); i++) {
-      obs_x(i) = x(obs_idx(i));
-    }
-    vector<Type> unobs_x( unobs_idx.size() );
-    for (int i = 0; i < unobs_idx.size(); i++) {
-      unobs_x(i) = x(unobs_idx(i));
-    }
-
-    // sparseLU
-    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseQ_uu;
-    inverseQ_uu.compute(Q_uu);
-
-    // Compute conditional mean and covariance
-    // mu_cond <- -Q_uu_inv %*% Q_uo %*% x_obs
-    matrix<Type> projx = Q_uo * obs_x;
-    matrix<Type> mu_cond = -1 * inverseQ_uu.solve(projx);
-
-    //
-    vector<Type> diff_x = unobs_x - mu_cond.array();
-    out = GMRF( Q_uu )( diff_x );
-  }else{
-    out = GMRF( Q )( x );
-  }
-  return out;
-}
+//template<class Type>
+//Type GMRF_conditional( vector<Type> x,  // x[obs_idx] is the observed values
+//                       Eigen::SparseMatrix<Type> Q,
+//                       vector<int> obs_idx,
+//                       vector<int> unobs_idx ){
+//  using namespace density;
+//  Type out;
+//
+//  // Only compute if some are conditional
+//  if( obs_idx.size() > 0 ){
+//    // Partition Q
+//    Eigen::SparseMatrix<Type> Q_uo = get_submatrix( Q, unobs_idx, obs_idx );
+//    Eigen::SparseMatrix<Type> Q_uu = get_submatrix( Q, unobs_idx, unobs_idx );
+//
+//    // Extract observed values
+//    vector<Type> obs_x( obs_idx.size() );
+//    for (int i = 0; i < obs_idx.size(); i++) {
+//      obs_x(i) = x(obs_idx(i));
+//    }
+//    vector<Type> unobs_x( unobs_idx.size() );
+//    for (int i = 0; i < unobs_idx.size(); i++) {
+//      unobs_x(i) = x(unobs_idx(i));
+//    }
+//
+//    // sparseLU
+//    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseQ_uu;
+//    inverseQ_uu.compute(Q_uu);
+//
+//    // Compute conditional mean and covariance
+//    // mu_cond <- -Q_uu_inv %*% Q_uo %*% x_obs
+//    matrix<Type> projx = Q_uo * obs_x;
+//    matrix<Type> mu_cond = -1 * inverseQ_uu.solve(projx);
+//
+//    //
+//    vector<Type> diff_x = unobs_x - mu_cond.array();
+//    out = GMRF( Q_uu )( diff_x );
+//  }else{
+//    out = GMRF( Q )( x );
+//  }
+//  return out;
+//}
 
 template<class Type>
 Type objective_function<Type>::operator() ()
@@ -256,12 +256,6 @@ Type objective_function<Type>::operator() ()
     jnll_gmrf = GMRF(I_kk)( x_tj );
 
     // Forward-format matrix
-    //matrix<Type> z_k1( n_t*n_j, int(1) );
-    //for(int j=0; j<n_j; j++){
-    //for(int t=0; t<n_t; t++){
-    //  k = j*n_t + t;
-    //  z_k1(k,0) = x_tj(t,j);
-    //}}
     matrix<Type> z_k1 = x_tj.reshaped( n_k, 1 );
 
     // (I-Rho)^{-1} * Gamma * Epsilon
@@ -269,56 +263,62 @@ Type objective_function<Type>::operator() ()
     matrix<Type> z3_k1 = inverseIminusRho_kk.solve(z2_k1);
 
     // Back-format vector
-    //for(int j=0; j<n_j; j++){
-    //for(int t=0; t<n_t; t++){
-    //  k = j*n_t + t;
-    //  z_tj(t,j) = z3_k1(k,0);
-    //}}
     z_tj = z3_k1.reshaped( n_t, n_j );
     
     // Add back mean and deviation
     z_tj += xhat_tj + delta_tj;
   }
-  // Option-3:  use conditional GMRF ... in-development
-  // Eliminates family = "fixed" from GMRF density and hence cannot estimate mean or exogenous SD
+  // Option-3:  use variance for full-rank component and projects to reduced-rank component
+  // ALlows family = "fixed" for some variables, and rank-deficiency for other variables (e.g., determinstic composite variables)
   if( options(0)==2 ){
-    DATA_IVECTOR( obs_idx );
-    DATA_IVECTOR( unobs_idx );
+    DATA_IVECTOR( obs_idx );    // Full-rank component
+    DATA_IVECTOR( unobs_idx );  // Reduced-rank component ... projecting from obs_idx to unobs_idx
     //error("not implemented yet");
 
-    // Only compute Vinv_kk if Gamma_kk is full rank
+    // Compute full covariance (potentially rank deficient)
     Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
     Eigen::SparseMatrix<Type> tmp_kk = inverseIminusRho_kk.solve(V_kk);
     Eigen::SparseMatrix<Type> tmp2_kk = tmp_kk.transpose();
-    //Eigen::SparseMatrix<Type> Sigma_kk = inverseIminusRho_kk.solve( tmp2_kk );
-    matrix<Type> Sigma_kk = inverseIminusRho_kk.solve( tmp2_kk );
-    REPORT( Sigma_kk );
-    jnll_gmrf = MVNORM(Sigma_kk)( x_tj - xhat_tj - delta_tj );
     
-//    //
-//    Eigen::SparseMatrix<Type> Sigma_oo = get_submatrix( Sigma_kk, obs_idx, obs_idx );
-//    matrix<Type> tmp_oo = invertSparseMatrix( Sigma_oo );
-//    Eigen::SparseMatrix<Type> Q_oo = asSparseMatrix( tmp_oo );
-//
-//    //
-//    vector<Type> dev_k = x_tj - xhat_tj - delta_tj;
-//    vector<Type> dev_u( unobs_idx.size() );
-//    for( int index = 0; index < unobs_idx.size(); index ++ ){
-//      dev_u = dev_k( unobs_idx(index) );
-//    }
-//    vector<Type> dev_o( obs_idx.size() );
-//    for( int index = 0; index < obs_idx.size(); index ++ ){
-//      dev_o = dev_k( obs_idx(index) );
-//    }
-//    //vector<Type> z_k1( n_t*n_j, int(1) );
-//    //for(int j=0; j<n_j; j++){
-//    //for(int t=0; t<n_t; t++){
-//    //  k = j*n_t + t;
-//    //  z_k1(k,0) = x_tj(t,j);
-//    //}}
-//
-//    //
-//    jnll_gmrf = GMRF(Q_oo)( dev_o );
+    // Get Sigma components
+    Eigen::SparseMatrix<Type> Sigma_kk = inverseIminusRho_kk.solve( tmp2_kk );
+    Eigen::SparseMatrix<Type> Sigma_oo = get_submatrix( Sigma_kk, obs_idx, obs_idx );
+    matrix<Type> V_oo = matrix<Type>(Sigma_oo);
+
+    // Extract sub-vectors for observed and unobserved components
+    vector<Type> x_k = x_tj;
+    vector<Type> dev_k = x_tj - xhat_tj - delta_tj;
+    vector<Type> dev_o( obs_idx.size() );
+    Eigen::SparseMatrix<Type> x_o1( obs_idx.size(), 1 );
+    for( int index = 0; index < obs_idx.size(); index ++ ){
+      dev_o(index) = dev_k( obs_idx(index) );
+      x_o1.coeffRef(index, 0) = x_k( obs_idx(index) );
+    }
+
+    // Evaluate MVN density for full-rank component
+    jnll_gmrf = MVNORM(V_oo)( dev_o );
+    
+    // Project
+    // mu_u = (V_uo %*% solve(V_oo) %*% x_o)[,1]
+    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseSigma_oo;
+    inverseSigma_oo.compute(Sigma_oo);
+    Eigen::SparseMatrix<Type> tmp_o1 = inverseSigma_oo.solve(x_o1);
+    Eigen::SparseMatrix<Type> Sigma_uo = get_submatrix( Sigma_kk, unobs_idx, obs_idx );
+    matrix<Type> mu_u1 = Sigma_uo * tmp_o1;
+    
+    // Add projected values into linear predictor
+    z_tj = x_tj;
+    int u = 0;
+    if( unobs_idx.size() > 0 ){
+      for(int j=0; j<n_j; j++){
+      for(int t=0; t<n_t; t++){
+        k = j*n_t + t;
+        if( unobs_idx(u) == k ){
+          z_tj(t,j) = mu_u1(u,0);
+          u++;
+        }
+      }}
+    }
   }
 
   //SIMULATE{

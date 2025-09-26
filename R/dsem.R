@@ -215,11 +215,13 @@ function( sem,
   }
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
-  out = make_dsem_ram( sem,
-                  times = as.numeric(time(tsdata)),
-                  variables = colnames(tsdata),
-                  covs = covs,
-                  quiet = control$quiet )
+  out = make_dsem_ram( 
+    sem,
+    times = as.numeric(time(tsdata)),
+    variables = colnames(tsdata),
+    covs = covs,
+    quiet = control$quiet 
+  )
   ram = out$ram
 
   # Error checks
@@ -240,7 +242,7 @@ function( sem,
 
   #
   options = c(
-    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "conditional_krig" = 2, NA),
+    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "mvn_project" = 2, NA),
     switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
   )
   
@@ -254,9 +256,21 @@ function( sem,
 
   #
   if( options[1] == 2 ){
-    familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tj) )
-    Data$obs_idx = which( familycode_z == 0 ) - 1                 # Convert to CPP indexing
-    Data$unobs_idx = which( familycode_z != 0 ) - 1               # Convert to CPP indexing
+    #familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tj) )
+    #Data$obs_idx = which( familycode_z == 0 ) - 1                 # Convert to CPP indexing
+    #Data$unobs_idx = which( familycode_z != 0 ) - 1               # Convert to CPP indexing
+
+    # Check vars with zero variance
+    zerovar_k = sapply( 
+      seq_len(prod(dim(tsdata))),
+      FUN = function(k){
+        tmp = subset( ram, (heads==2) & (to==k) & (from==k) )
+        has_zero_var = all( (tmp$parameter==0) & (tmp$start==0) )
+        return(has_zero_var)
+      } 
+    )
+    Data$obs_idx = which( !zerovar_k ) - 1   # Convert to CPP indexing
+    Data$unobs_idx = which( zerovar_k ) - 1  # Convert to CPP indexing
   }
 
   # Construct parameters
@@ -294,17 +308,23 @@ function( sem,
   if( is.null(control$map) ){
     Map = list()
     # Map off x_tj for fixed when data is available
-    Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
+    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA )
     # Map off sigma_j for fixed / bernoulli / Poisson
     Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
 
-    # Map off mean for family = "fixed" if using gmrf_parameterization = "conditional_krig"
+    # Map off mean for family = "fixed" if using gmrf_parameterization = "mvn_project"
+    #if( options[1] == 2 ){
+    #  Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
+    #}
     if( options[1] == 2 ){
-      Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
+      Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
     }
+    
+    #
+    Map$x_tj = factor(Map$x_tj)
   }else{
     Map = control$map
   }
@@ -485,10 +505,13 @@ function( sem,
 #' @param build_model Boolean indicating whether to return inputs to `MakeADFun`
 #' @param gmrf_parameterization Parameterization to use for the Gaussian Markov 
 #'        random field, where the default `separable` constructs a precision matrix
-#'        that must be full rank, and the alternative `projection` constructs
-#'        a full-rank and IID precision for variables over time, and then projects
-#'        this using the inverse-cholesky of the precision, where this projection
-#'        can be rank-deficient.
+#'        that must be full rank, `projection` constructs
+#'        a full-rank and IID precision for variables over time and then projects
+#'        this using the inverse-cholesky of the precision (which allows a
+#'        rank-deficient GMRF, but does not allow \code{family = "fixed"}), 
+#'        and `mvn_project` uses the dense variance for the 
+#'        full-rank component of the GMRF and then projects values to the rank-deficient
+#'        component (which allows \code{family = "fixed"} but is much slower).
 #' @param constant_variance Whether to specify a constant conditional variance 
 #'        \eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
 #'        which results in a changing marginal variance      
@@ -538,7 +561,7 @@ function( nlminb_loops = 1,
           quiet = FALSE,
           run_model = TRUE,
           build_model = TRUE,
-          gmrf_parameterization = c("separable", "projection"),       # "conditional_krig" is disabled from high-level user-interface
+          gmrf_parameterization = c("separable", "projection", "mvn_project"),       
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
@@ -1037,8 +1060,9 @@ function( object,
 
   #
   if( is.null(newdata) ){
-    if(type=="link") out = parfull$x_tj
+    if(type=="link") out = report$z_tj
     if(type=="response") out = report$mu_tj
+    #if(type=="x") out = parfull$x_tj
   }else{
     #newcall = object$call
     #newcall$tsdata = newdata
@@ -1065,8 +1089,9 @@ function( object,
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor
-    if(type=="link") out = newfit$obj$env$parList()$x_tj
+    if(type=="link") out = newfit$obj$report()$z_tj
     if(type=="response") out = newfit$obj$report()$mu_tj
+    #if(type=="x") out = newfit$obj$env$parList()$x_tj
   }
 
   return(out)
