@@ -24,6 +24,7 @@ dsem_control(
   extra_convergence_checks = TRUE,
   lower = -Inf,
   upper = Inf,
+  project_k = NULL,
   suppress_nlminb_warnings = TRUE
 )
 }
@@ -100,6 +101,14 @@ If unspecified, all parameters are assumed to be unconstrained.}
 
 \item{upper}{vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
 If unspecified, all parameters are assumed to be unconstrained.}
+
+\item{project_k}{logical-vector only used when \code{gmrf_parameterization=="mvn_project"},
+with length \code{dim(tsdata)} indicating which state-values should be projected determinstically
+while ignoring measurements.  This is useful e.g., for determinstic composite variables.
+If \code{project_k=NULL} (the default), then it projects any variable with zero
+exogenous variance.  However, this then ignores any measurements for those variables.
+Manual specification can be used to confidition upon measurements for determinstic
+variables, but identifiability conditions are then hard to determine automatically.}
 
 \item{suppress_nlminb_warnings}{whether to suppress uniformative warnings
 from \code{nlminb} arising when a function evaluation is NA, which

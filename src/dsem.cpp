@@ -284,6 +284,7 @@ Type objective_function<Type>::operator() ()
     Eigen::SparseMatrix<Type> Sigma_kk = inverseIminusRho_kk.solve( tmp2_kk );
     Eigen::SparseMatrix<Type> Sigma_oo = get_submatrix( Sigma_kk, obs_idx, obs_idx );
     matrix<Type> V_oo = matrix<Type>(Sigma_oo);
+    REPORT( Sigma_kk );
 
     // Extract sub-vectors for observed and unobserved components
     vector<Type> x_k = x_tj;
@@ -298,7 +299,7 @@ Type objective_function<Type>::operator() ()
     // Evaluate MVN density for full-rank component
     jnll_gmrf = MVNORM(V_oo)( dev_o );
     
-    // Project
+    // Project residuals
     // mu_u = (V_uo %*% solve(V_oo) %*% x_o)[,1]
     Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseSigma_oo;
     inverseSigma_oo.compute(Sigma_oo);
@@ -306,7 +307,7 @@ Type objective_function<Type>::operator() ()
     Eigen::SparseMatrix<Type> Sigma_uo = get_submatrix( Sigma_kk, unobs_idx, obs_idx );
     matrix<Type> mu_u1 = Sigma_uo * tmp_o1;
     
-    // Add projected values into linear predictor
+    // Add projected residuals + other comonents into linear predictor
     z_tj = x_tj;
     int u = 0;
     if( unobs_idx.size() > 0 ){
@@ -314,7 +315,7 @@ Type objective_function<Type>::operator() ()
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
         if( unobs_idx(u) == k ){
-          z_tj(t,j) = mu_u1(u,0);
+          z_tj(t,j) = mu_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j);
           u++;
         }
       }}

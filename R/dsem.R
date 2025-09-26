@@ -260,17 +260,21 @@ function( sem,
     #Data$obs_idx = which( familycode_z == 0 ) - 1                 # Convert to CPP indexing
     #Data$unobs_idx = which( familycode_z != 0 ) - 1               # Convert to CPP indexing
 
-    # Check vars with zero variance
-    zerovar_k = sapply( 
-      seq_len(prod(dim(tsdata))),
-      FUN = function(k){
-        tmp = subset( ram, (heads==2) & (to==k) & (from==k) )
-        has_zero_var = all( (tmp$parameter==0) & (tmp$start==0) )
-        return(has_zero_var)
-      } 
-    )
-    Data$obs_idx = which( !zerovar_k ) - 1   # Convert to CPP indexing
-    Data$unobs_idx = which( zerovar_k ) - 1  # Convert to CPP indexing
+    if( is.null(control$project_k) ){
+      # Check vars with zero variance
+      project_k = sapply( 
+        seq_len(prod(dim(tsdata))),
+        FUN = function(k){
+          tmp = subset( ram, (heads==2) & (to==k) & (from==k) )
+          has_zero_var = all( (tmp$parameter==0) & (tmp$start==0) )
+          return(has_zero_var)
+        } 
+      )
+    }else{
+      project_k = as.vector(control$project_k)
+    }
+    Data$obs_idx = which( !project_k ) - 1   # Convert to CPP indexing
+    Data$unobs_idx = which( project_k ) - 1  # Convert to CPP indexing
   }
 
   # Construct parameters
@@ -351,13 +355,15 @@ function( sem,
   TMB::config(tmbad.atomic_sparse_log_determinant = FALSE, DLL = "dsem")
   
   # Build object
-  obj = TMB::MakeADFun( data=Data,
-                   parameters=Params,
-                   random=Random,
-                   map=Map,
-                   profile = control$profile,
-                   DLL="dsem",
-                   silent = TRUE )
+  obj = TMB::MakeADFun( 
+    data = Data,
+    parameters = Params,
+    random = Random,
+    map = Map,
+    profile = control$profile,
+    DLL="dsem",
+    silent = TRUE 
+  )
   if(control$quiet==FALSE) list_parameters(obj)
   # bundle
   internal = list(
@@ -542,6 +548,13 @@ function( sem,
 #'        If unspecified, all parameters are assumed to be unconstrained.
 #' @param upper vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
 #'        If unspecified, all parameters are assumed to be unconstrained.
+#' @param project_k logical-vector only used when \code{gmrf_parameterization=="mvn_project"}, 
+#'        with length \code{dim(tsdata)} indicating which state-values should be projected determinstically
+#'        while ignoring measurements.  This is useful e.g., for determinstic composite variables.
+#'        If \code{project_k=NULL} (the default), then it projects any variable with zero
+#'        exogenous variance.  However, this then ignores any measurements for those variables.
+#'        Manual specification can be used to confidition upon measurements for determinstic
+#'        variables, but identifiability conditions are then hard to determine automatically.
 #' @param suppress_nlminb_warnings whether to suppress uniformative warnings
 #'        from \code{nlminb} arising when a function evaluation is NA, which
 #'        are then replaced with Inf and avoided during estimation
@@ -571,6 +584,7 @@ function( nlminb_loops = 1,
           extra_convergence_checks = TRUE,
           lower = -Inf,
           upper = Inf,
+          project_k = NULL,
           suppress_nlminb_warnings = TRUE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
@@ -597,6 +611,7 @@ function( nlminb_loops = 1,
     extra_convergence_checks = extra_convergence_checks,
     lower = lower,
     upper = upper,
+    project_k = project_k,
     suppress_nlminb_warnings = suppress_nlminb_warnings
   ), class = "dsem_control" )
 }
