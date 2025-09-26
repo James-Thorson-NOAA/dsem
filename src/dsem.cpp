@@ -88,7 +88,6 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR( options ); 
   // options(0) -> 0: full rank;  1: rank-reduced GMRF;  2: conditional krigging
   // options(1) -> 0: constant conditional variance;  1: constant marginal variance
-  //DATA_INTEGER( resimulate_gmrf );
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
   DATA_IVECTOR( familycode_j );
@@ -118,12 +117,9 @@ Type objective_function<Type>::operator() ()
   // Assemble precision
   // SEM
   Eigen::SparseMatrix<Type> Rho_kk(n_k, n_k);
-  //Eigen::SparseMatrix<Type> Gamma_jj(n_j, n_j);
   Eigen::SparseMatrix<Type> Gamma_kk(n_k, n_k);
-  //Eigen::SparseMatrix<Type> Gammainv_kk(n_k, n_k);
   Eigen::SparseMatrix<Type> I_kk( n_k, n_k );
   Rho_kk.setZero();
-  //Gammainv_kk.setZero();
   I_kk.setIdentity();
   Type tmp;
   for(int r=0; r<RAM.rows(); r++){
@@ -142,7 +138,6 @@ Type objective_function<Type>::operator() ()
     if(RAM(r,0)==2){
       Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp; // Cholesky of covariance, so -Inf to Inf;
     }
-    //if(RAM(r,0)==2) Gammainv_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = 1 / tmp;
   }
   Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
   
@@ -208,18 +203,13 @@ Type objective_function<Type>::operator() ()
   delta_k.setZero();
   if( delta0_j.size() > 0 ){
     // Compute delta_k
-    matrix<Type> delta0_k1( n_k, 1 );
-    delta0_k1.setZero();
-    int k;
-    for(int j=0; j<n_j; j++){
-      k = j * n_t;
-      delta0_k1(k,0) = delta0_j(j);
-    }
-
-    // DENSE version
-    //matrix<Type> Dense_kk = I_kk - Rho_kk;
-    //matrix<Type> invIminusRho_kk = atomic::matinv( Dense_kk );
-    //delta_k = (invIminusRho_kk * delta0_k1).array();
+    //matrix<Type> delta0_k1( n_k, 1 );
+    //delta0_k1.setZero();
+    //for(int j=0; j<n_j; j++){
+    //  k = j * n_t;
+    //  delta0_k1(k,0) = delta0_j(j);
+    //}
+    matrix<Type> delta0_k1 = delta0_j.reshaped( n_k, 1 );
 
     // SPARSE version
     // See C:\Users\James.Thorson\Desktop\Work files\AFSC\2023-06 -- Sparse inverse-product\Kasper example\lu.cpp
@@ -239,6 +229,13 @@ Type objective_function<Type>::operator() ()
     xhat_tj(t,j) = mu_j(j);
     delta_tj(t,j) = delta_k(k);
   }}
+  //matrix<Type> tmp_tj;
+  //vector<Type> ones_t( n_t );
+  //ones_t.setOnes();
+  //tmp_tj = (ones_t * mu_j.transpose());
+  //xhat_tj = tmp_tj.array();
+  //tmp_tj = delta_k.reshaped( n_t, n_j );
+  //delta_tj = tmp_tj.array();
 
   // Apply GMRF
   array<Type> z_tj( n_t, n_j );
@@ -260,23 +257,25 @@ Type objective_function<Type>::operator() ()
     jnll_gmrf = GMRF(I_kk)( x_tj );
 
     // Forward-format matrix
-    matrix<Type> z_k1( n_t*n_j, int(1) );
-    for(int j=0; j<n_j; j++){
-    for(int t=0; t<n_t; t++){
-      k = j*n_t + t;
-      z_k1(k,0) = x_tj(t,j);
-    }}
+    //matrix<Type> z_k1( n_t*n_j, int(1) );
+    //for(int j=0; j<n_j; j++){
+    //for(int t=0; t<n_t; t++){
+    //  k = j*n_t + t;
+    //  z_k1(k,0) = x_tj(t,j);
+    //}}
+    matrix<Type> z_k1 = x_tj.reshaped( n_k, 1 );
 
     // (I-Rho)^{-1} * Gamma * Epsilon
     matrix<Type> z2_k1 = Gamma_kk * z_k1;
     matrix<Type> z3_k1 = inverseIminusRho_kk.solve(z2_k1);
 
     // Back-format vector
-    for(int j=0; j<n_j; j++){
-    for(int t=0; t<n_t; t++){
-      k = j*n_t + t;
-      z_tj(t,j) = z3_k1(k,0);
-    }}
+    //for(int j=0; j<n_j; j++){
+    //for(int t=0; t<n_t; t++){
+    //  k = j*n_t + t;
+    //  z_tj(t,j) = z3_k1(k,0);
+    //}}
+    z_tj = z3_k1.reshaped( n_t, n_j );
     
     // Add back mean and deviation
     z_tj += xhat_tj + delta_tj;
@@ -284,27 +283,36 @@ Type objective_function<Type>::operator() ()
   // Option-3:  use conditional GMRF ... in-development
   // Eliminates family = "fixed" from GMRF density and hence cannot estimate mean or exogenous SD
   if( options(0)==2 ){
-    DATA_IVECTOR( obs_idx );
-    DATA_IVECTOR( unobs_idx );
-    //error("not implemented yet");
-
-    // Only compute Vinv_kk if Gamma_kk is full rank
-    Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
-    matrix<Type> Vinv_kk = invertSparseMatrix( V_kk );
-    Eigen::SparseMatrix<Type> Vinv2_kk = asSparseMatrix( Vinv_kk );
-    Eigen::SparseMatrix<Type> Q_kk = IminusRho_kk.transpose() * Vinv2_kk * IminusRho_kk;
-
-    // debugging
-    //Eigen::SparseMatrix<Type> Q_uo = get_submatrix( Q_kk, unobs_idx, obs_idx );
-    //Eigen::SparseMatrix<Type> Q_uu = get_submatrix( Q_kk, unobs_idx, unobs_idx );
-    //REPORT( Q_uo );
-    //REPORT( Q_uu );
-
-    // Centered GMRF
-    vector<Type> diff = x_tj - xhat_tj - delta_tj;
-    jnll_gmrf = GMRF_conditional( diff, Q_kk, obs_idx, unobs_idx );
-    z_tj = x_tj;
-    REPORT( Q_kk );
+//    DATA_IVECTOR( obs_idx );
+//    DATA_IVECTOR( unobs_idx );
+//    //error("not implemented yet");
+//
+//    // Only compute Vinv_kk if Gamma_kk is full rank
+//    Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
+//    Eigen::SparseMatrix<Type> tmp_kk = inverseIminusRho_kk.solve(V_kk)
+//    Eigen::SparseMatrix<Type> Sigma_kk = inverseIminusRho_kk.solve(tmp_kk)
+//
+//    //
+//    Eigen::SparseMatrix<Type> Sigma_oo = get_submatrix( Sigma_kk, obs_idx, obs_idx );
+//    matrix<Type> tmp_oo = invertSparseMatrix( Sigma_oo );
+//    Eigen::SparseMatrix<Type> Q_oo = asSparseMatrix( tmp_oo );
+//
+//    vector<Type> z_k1( n_t*n_j, int(1) );
+//    for(int j=0; j<n_j; j++){
+//    for(int t=0; t<n_t; t++){
+//      k = j*n_t + t;
+//      z_k1(k,0) = x_tj(t,j);
+//    }}
+//
+//    //
+//    jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_tj );
+//
+//
+//    // Centered GMRF
+//    vector<Type> diff = x_tj - xhat_tj - delta_tj;
+//    jnll_gmrf = GMRF_conditional( diff, Q_kk, obs_idx, unobs_idx );
+//    z_tj = x_tj;
+//    REPORT( Q_kk );
   }
 
   //SIMULATE{
@@ -387,7 +395,6 @@ Type objective_function<Type>::operator() ()
   REPORT( mu_tj );
   REPORT( devresid_tj );
   REPORT( IminusRho_kk );
-  //REPORT( Gammainv_kk );
   REPORT( jnll );
   REPORT( loglik_tj );
   REPORT( jnll_gmrf );
