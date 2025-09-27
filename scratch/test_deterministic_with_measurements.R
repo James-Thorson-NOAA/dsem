@@ -3,6 +3,11 @@
 
 library(dsem)
 
+make_ar = function(rho, X){
+  for(t in 2:length(X)) X[t] = rho * X[t-1] + sqrt(1-rho) * X[t]
+  return(X)
+}
+
 ################
 # 
 # USE-CASE
@@ -57,8 +62,8 @@ fit = dsem(
 #
 ################
 
-X = rnorm(100)                              
-for(t in 2:length(X)) X[t] = 0.8 * X[t-1] + sqrt(1-0.8) * X[t]
+X = rnorm(100)
+X = make_ar( rho = 0.8 )
 p = plogis(X)
 Y = rbinom( n = length(p), size = 1, prob = p )
 
@@ -94,3 +99,38 @@ Glm = glm(
 
 subset(summary(fit), path == "X -> Y")
 summary(Glm)$coef['X',]
+
+################
+# 
+# USE-CASE
+#  Determinstic composite variable with family = "fixed" and missing values
+#
+################
+
+L = lower.tri(diag(2), diag = TRUE)
+X = mvtnorm::rmvnorm( n = 100, sigma = L %*% t(L) )
+
+dat = data.frame(
+  X = make_ar( X[,1], rho = 0.8),
+  Y = make_ar( X[,2], rho = 0.8),
+  Z = NA
+)
+dat[seq(1,100,by=2),'X'] = NA
+dat[seq(2,100,by=2),'Y'] = NA
+
+sem = "
+  X -> X, 1, rho_X
+  Y -> Y, 1, rho_Y
+  X -> Z, 0, NA, 1
+  Y -> Z, 0, NA, 1
+  Z <-> Z, 0, NA, 0
+"
+
+fit = dsem(
+  tsdata = ts(dat),
+  sem = sem,
+  control = dsem_control(
+    gmrf = "mvn_project"
+  )
+)
+predict(fit)
