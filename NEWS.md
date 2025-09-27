@@ -6,6 +6,8 @@
 * Fixed bug where `predict` for `type="link"` was pulling `x_tj` rather than `z_tj`
   and therefore was missing the initial conditions, mean value, and only worked
   for `gmrf_parameterization = "separable"`
+* Add `stabilize_Q` option to `dsem_control`, adding a diagonal component to 
+  t(Gamma)*Gamma to ensure it's PD
 
 # dsem 1.7.0
 
