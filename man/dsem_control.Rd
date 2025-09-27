@@ -25,7 +25,8 @@ dsem_control(
   lower = -Inf,
   upper = Inf,
   project_k = NULL,
-  suppress_nlminb_warnings = TRUE
+  suppress_nlminb_warnings = TRUE,
+  stabilize_Q = FALSE
 )
 }
 \arguments{
@@ -113,6 +114,9 @@ variables, but identifiability conditions are then hard to determine automatical
 \item{suppress_nlminb_warnings}{whether to suppress uniformative warnings
 from \code{nlminb} arising when a function evaluation is NA, which
 are then replaced with Inf and avoided during estimation}
+
+\item{stabilize_Q}{add \code{stability_eps = 1e-10} to stabilize precision
+(experimental)}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

@@ -16,18 +16,20 @@ make_ar = function(rho, X){
 ################
 
 
-p_missing = 0.2
+p_missing = 0.4
 
 X = cumsum( rnorm(100) )
 Y = 2 * X
 Z = 0.5*Y + rnorm(100)
 X_missing = sample(seq_along(X), size=p_missing*length(X), replace=FALSE)
+Y_missing = sample(seq_along(X), size=p_missing*length(X), replace=FALSE)
+Y_missing = union( setdiff( seq_along(X), X_missing ), Y_missing )
 
 # Missing-ness
 Xobs = X
 Xobs[X_missing] = NA
 Yobs = Y
-Yobs[-X_missing] = NA
+Yobs[Y_missing] = NA
 
 # Bundle
 dat = data.frame( 
@@ -63,7 +65,7 @@ fit = dsem(
 ################
 
 X = rnorm(100)
-X = make_ar( rho = 0.8 )
+X = make_ar( rho = 0.8, X = X )
 p = plogis(X)
 Y = rbinom( n = length(p), size = 1, prob = p )
 
@@ -80,11 +82,46 @@ sem = "
   Y <-> Y, 0, NA, 0
 "
 
+# New option
 control = dsem_control(
   gmrf_parameterization = "mvn_project",
+  #build_model = FALSE,
   use_REML = FALSE
 )
 fit = dsem(
+  tsdata = ts(dat),
+  sem = sem,
+  control = control,
+  family = c("fixed", "bernoulli")
+)
+
+# Old option
+sem = "
+  X -> X, 1, rho
+  X -> Y, 0, b_XY
+  Y <-> Y, 0, NA, 0.0001
+"
+control = dsem_control(
+  use_REML = FALSE
+)
+fit0 = dsem(
+  tsdata = ts(dat),
+  sem = sem,
+  control = control,
+  family = c("fixed", "bernoulli")
+)
+
+# Other new option
+sem = "
+  X -> X, 1, rho
+  X -> Y, 0, b_XY
+  Y <-> Y, 0, NA, 0
+"
+control = dsem_control(
+  use_REML = FALSE,
+  stabilize_Q = TRUE
+)
+fit2 = dsem(
   tsdata = ts(dat),
   sem = sem,
   control = control,
@@ -98,6 +135,8 @@ Glm = glm(
 )
 
 subset(summary(fit), path == "X -> Y")
+subset(summary(fit0), path == "X -> Y")
+subset(summary(fit2), path == "X -> Y")
 summary(Glm)$coef['X',]
 
 ################
@@ -121,8 +160,8 @@ dat[seq(2,100,by=2),'Y'] = NA
 sem = "
   X -> X, 1, rho_X
   Y -> Y, 1, rho_Y
-  X -> Z, 0, NA, 1
-  Y -> Z, 0, NA, 1
+  X -> Z, 0, NA, 0.5
+  Y -> Z, 0, NA, 0.5
   Z <-> Z, 0, NA, 0
 "
 
@@ -133,4 +172,5 @@ fit = dsem(
     gmrf = "mvn_project"
   )
 )
-predict(fit)
+matplot(predict(fit), type="l", lty = "solid")
+matplot(dat, type = "p", add = TRUE)

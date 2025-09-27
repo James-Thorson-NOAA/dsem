@@ -243,7 +243,8 @@ function( sem,
   #
   options = c(
     switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "mvn_project" = 2, NA),
-    switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
+    switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2),
+    ifelse( isTRUE(control$stabilize_Q), 1, 0 )
   )
   
   #
@@ -320,11 +321,12 @@ function( sem,
     Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
 
     # Map off mean for family = "fixed" if using gmrf_parameterization = "mvn_project"
-    #if( options[1] == 2 ){
-    #  Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
-    #}
     if( options[1] == 2 ){
-      Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
+    #  Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
+    }
+    # Map off unobserved if using gmrf_parameterization = "mvn_project"
+    if( options[1] == 2 ){
+      #Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
     }
     
     #
@@ -558,6 +560,8 @@ function( sem,
 #' @param suppress_nlminb_warnings whether to suppress uniformative warnings
 #'        from \code{nlminb} arising when a function evaluation is NA, which
 #'        are then replaced with Inf and avoided during estimation
+#' @param stabilize_Q add \code{stability_eps = 1e-10} to stabilize precision
+#'        (experimental)
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -585,7 +589,8 @@ function( nlminb_loops = 1,
           lower = -Inf,
           upper = Inf,
           project_k = NULL,
-          suppress_nlminb_warnings = TRUE ){
+          suppress_nlminb_warnings = TRUE,
+          stabilize_Q = FALSE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -612,7 +617,8 @@ function( nlminb_loops = 1,
     lower = lower,
     upper = upper,
     project_k = project_k,
-    suppress_nlminb_warnings = suppress_nlminb_warnings
+    suppress_nlminb_warnings = suppress_nlminb_warnings,
+    stabilize_Q = stabilize_Q
   ), class = "dsem_control" )
 }
 

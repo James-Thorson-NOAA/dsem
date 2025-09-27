@@ -88,6 +88,7 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR( options ); 
   // options(0) -> 0: full rank;  1: rank-reduced GMRF;  2: conditional krigging
   // options(1) -> 0: constant conditional variance;  1: constant marginal variance
+  // options(2) -> 0: use GMRF(Q);  1: use GMRF(Q + 1e-14 \times I)
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
   DATA_IVECTOR( familycode_j );
@@ -242,9 +243,14 @@ Type objective_function<Type>::operator() ()
   if( options(0)==0 ){
     // Only compute Vinv_kk if Gamma_kk is full rank
     Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
+    // Add diagonal if isTRUE(control$stabilize_Q)
+    if( options(2) == 1 ){
+      V_kk += I_kk * 1e-10;
+    }
     matrix<Type> Vinv_kk = invertSparseMatrix( V_kk );
     Eigen::SparseMatrix<Type> Vinv2_kk = asSparseMatrix( Vinv_kk );
     Eigen::SparseMatrix<Type> Q_kk = IminusRho_kk.transpose() * Vinv2_kk * IminusRho_kk;
+    
     
     // Centered GMRF
     jnll_gmrf = GMRF(Q_kk)( x_tj - xhat_tj - delta_tj );
@@ -274,6 +280,8 @@ Type objective_function<Type>::operator() ()
     DATA_IVECTOR( obs_idx );    // Full-rank component
     DATA_IVECTOR( unobs_idx );  // Reduced-rank component ... projecting from obs_idx to unobs_idx
     //error("not implemented yet");
+    Eigen::SparseMatrix<Type> I_uu( unobs_idx.size(), unobs_idx.size() );
+    I_uu.setIdentity();
 
     // Compute full covariance (potentially rank deficient)
     Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
@@ -295,10 +303,13 @@ Type objective_function<Type>::operator() ()
       dev_o(index) = dev_k( obs_idx(index) );
       x_o1.coeffRef(index, 0) = x_k( obs_idx(index) );
     }
+    vector<Type> x_u( unobs_idx.size() );
+    Eigen::SparseMatrix<Type> x_u1( unobs_idx.size(), 1 );
+    for( int index = 0; index < unobs_idx.size(); index ++ ){
+      x_u(index) = x_k( unobs_idx(index) );
+      x_u1.coeffRef(index, 0) = x_k( unobs_idx(index) );
+    }
 
-    // Evaluate MVN density for full-rank component
-    jnll_gmrf = MVNORM(V_oo)( dev_o );
-    
     // Project residuals
     // mu_u = (V_uo %*% solve(V_oo) %*% x_o)[,1]
     Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseSigma_oo;
@@ -306,6 +317,28 @@ Type objective_function<Type>::operator() ()
     Eigen::SparseMatrix<Type> tmp_o1 = inverseSigma_oo.solve(x_o1);
     Eigen::SparseMatrix<Type> Sigma_uo = get_submatrix( Sigma_kk, unobs_idx, obs_idx );
     matrix<Type> mu_u1 = Sigma_uo * tmp_o1;
+    
+    // Get variance and Cholesky for remaining terms
+    matrix<Type> xprime_u1( unobs_idx.size(), 1 );
+    if( unobs_idx.size() > 0 ){
+      Eigen::SparseMatrix<Type> Vprime_uu( unobs_idx.size(), unobs_idx.size() );
+      Eigen::SparseMatrix<Type> Sigma_ou = Sigma_uo.transpose();
+      Eigen::SparseMatrix<Type> tmp_ou = inverseSigma_oo.solve(Sigma_ou);
+      Eigen::SparseMatrix<Type> Sigma_uu = get_submatrix( Sigma_kk, unobs_idx, unobs_idx );
+      
+      // CRASHING
+      //Vprime_uu = Sigma_uu - (Sigma_uo * tmp_ou);   // CRASHES
+      Vprime_uu = Sigma_uu;                // FINE
+      //Vprime_uu = Sigma_uo * tmp_ou;     // FINE
+      Vprime_uu -= (Sigma_uo * tmp_ou); 
+      Vprime_uu += 1e-12 * I_uu;      // 1e-16 crashes
+      
+      // CONTINUE
+      Eigen::SimplicialLLT< SparseMatrix<Type> > chol(Vprime_uu);
+      SparseMatrix<Type> Lprime_uu = chol.matrixL();
+      xprime_u1 = Lprime_uu * x_u1;
+      REPORT( Lprime_uu );
+    }
     
     // Add projected residuals + other comonents into linear predictor
     z_tj = x_tj;
@@ -315,20 +348,16 @@ Type objective_function<Type>::operator() ()
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
         if( unobs_idx(u) == k ){
-          z_tj(t,j) = mu_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j);
+          z_tj(t,j) = mu_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j) + xprime_u1(u,0);
           u++;
         }
       }}
     }
+    
+    // Evaluate MVN density for full-rank component
+    jnll_gmrf = MVNORM(V_oo)( dev_o );
+    jnll_gmrf += GMRF(I_uu)( x_u );
   }
-
-  //SIMULATE{
-  //  if( resimulate_gmrf >= 1 ){
-  //    //x_tj = GMRF(Q_kk).simulate(x_tj);
-  //    //x_tj += xhat_tj + delta_k;
-  //  }
-  //  REPORT( x_tj );
-  //}
 
   // Distribution for data
   // Simulates new data even for NA values, which can then be excluded during simulate.dsem
