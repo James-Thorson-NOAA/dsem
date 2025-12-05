@@ -9,6 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
+  estimate_mu = NULL,
   prior_negloglike = NULL,
   control = dsem_control(),
   covs = colnames(tsdata)
@@ -34,6 +35,11 @@ Other options correspond to different specifications of measurement error.}
 \item{estimate_delta0}{Boolean indicating whether to estimate deviations from equilibrium in initial year
 as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 the stationary distribution}
+
+\item{estimate_mu}{character-vector listing columns of \code{tsdata} for which to estimate the mean,
+which is subtracted off of \code{tsdata} prior to evaluating interactions among parameters.
+The default \code{estimate_mu = NULL} estimates the mean for every column with at least one value
+that is not \code{NA} (i.e., does \emph{not} estimate the mean for latent variables).}
 
 \item{prior_negloglike}{A user-provided function that takes as input the vector of fixed effects out$obj$par
 returns the negative log-prior probability. For example

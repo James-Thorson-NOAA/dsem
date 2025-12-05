@@ -18,6 +18,11 @@
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
+#' @param estimate_mu character-vector listing columns of \code{tsdata} for which to estimate the mean,
+#'        which is subtracted off of \code{tsdata} prior to evaluating interactions among parameters.
+#'        The default \code{estimate_mu = NULL} estimates the mean for every column with at least one value
+#'        that is not \code{NA} (i.e., does *not* estimate the mean for latent variables).
+#'        If you want to have no \code{mu} parameters, use \code{estimate_mu = vector()}.
 #' @param covs optional: a character vector of one or more elements, with each element giving a string of variable 
 #'        names, separated by commas. Variances and covariances among all variables in each such string are 
 #'        added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent: 
@@ -192,6 +197,7 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
+          estimate_mu = "",
           prior_negloglike = NULL,
           control = dsem_control(),
           covs = colnames(tsdata) ){
@@ -309,6 +315,17 @@ function( sem,
     Params = control$parameters
   }
 
+  # Process `estimate_mu`
+  if( is.null(estimate_mu) ){ # is FALSE for estimate_mu = c()
+    estimate_mu = na.omit( ifelse(colSums(!is.na(tsdata))==0, NA, colnames(tsdata)) )
+  }else{
+    if( isFALSE(control$quiet) ){
+      if( !all(estimate_mu %in% colnames(tsdata)) ){
+        warning("Some `estimate_mu` is not in the column names of `tsdata`")
+      }
+    }
+  }
+
   # Construct map
   if( is.null(control$map) ){
     Map = list()
@@ -318,7 +335,7 @@ function( sem,
     Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
-    Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
+    Map$mu_j = factor( ifelse(colnames(tsdata) %in% estimate_mu, seq_len(ncol(tsdata)), NA) )
 
     # Map off mean for family = "fixed" if using gmrf_parameterization = "mvn_project"
     if( options[1] == 2 ){
