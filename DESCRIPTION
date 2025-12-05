@@ -25,7 +25,7 @@ Authors@R:
 	     comment = c("creator of ggm, from which functions are copied to avoid dependency on package graph not on CRAN"))
     )
 Imports:
-    TMB,
+    TMB (>= 1.9.18),
     Matrix,
     sem,
     igraph,
@@ -51,13 +51,11 @@ Suggests:
     vars,
     testthat,
     DHARMa
-Remotes: 
-    kaskr/adcomp/TMB@jim,
 Enhances:
     rstan,
     tmbstan
 LinkingTo:
-    TMB, 
+    TMB (>= 1.9.18), 
     RcppEigen
 Description: Applies dynamic structural equation models to time-series data
 	with generic and simplified specification for simultaneous and lagged
