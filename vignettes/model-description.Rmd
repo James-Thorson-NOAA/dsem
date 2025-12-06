@@ -78,18 +78,43 @@ The user also specifies a distribution for measurement errors for each variable 
 
 ### Viewpoint 2:  Mathematical details
 
-The DSEM defines a generalized linear mixed model (GLMM) for a $T \times J$ matrix $\mathbf{Y}$, where $y_{tj}$ is the measurement in time $t$ for variable $j$.  This measurement matrix can include missing values $y_{tj} = \PL{NA}$, and it will estimate a $T \times J$ matrix of latent states $\mathbf{X}$ for all modeled times and variables.  
+The DSEM defines a generalized linear mixed model (GLMM) for a $T \times J$ matrix $\mathbf{Y}$, where $y_{tj}$ is the measurement in time $t$ for variable $j$.  This measurement matrix can include missing values $y_{tj} = \PL{NA}$, and it will estimate a $T \times J$ matrix of latent states $\mathbf{X}$ for all modeled times and variables, where $\mathbf{x}_t$ is the vector of states in time $t$ and $\text{vec}(\mathbf{X})$ is a $TJ$ length vector constructed by stacking columns
 
-DSEM includes multiple distribution for measurement errors.  For example, if the user specifies `family[j] = "fixed"` then:
+DSEM defines this GLMM by specifying a vector autoregressive model of arbitrary lag, from lag-0 upwards:
 
 $$
-y_{tj} = x_{tj} + d_{tj}
+\mathbf{x}_t = \underbrace{\mathbf{P}_0 \mathbf{x}_t}_{\text{Simultaneous effects}} + 
+\underbrace{\mathbf{P}_1 \mathbf{x}_{t-1}}_{\text{Lag-1 effects}} + 
+\underbrace{\mathbf{P}_2 \mathbf{x}_{t-2}}_{\text{Lag-2 effects}} + 
+\underbrace{...}_{\text{Higher-order lags}} + 
+\mathbf{\epsilon}_t
 $$
-for all years.  Alternatively, if the user specifies `family[j] = "normal"` then:
+where $\mathbf{B}_0$ is the $J \times J$ matrix of simultaneous interactions, $\mathbf{B}_1$ and $\mathbf{B}_2$ are interactions occurring at lag-1 and lag-2, respectively, and $\mathbf{\epsilon}_t$ is exogenous covariation:
+
 $$
-y_{tj} \sim \PL{Normal}( x_{tj} + d_{tj}, {\sigma_j}^2)
+\mathbf{\epsilon}_t \sim \text{MVN}(\mathbf{0,GG}^T)
 $$
-and ${\sigma_j}^2$ is then included as an estimated parameter.  These expressions include the $T \times J$ matrix $\B D$ representing the ongoing impact of initial conditions $d_{tj}$ for each variable and year, as explained in detail below.
+and $\mathbf{G}$ is the square-root of exogenous covariance $\mathbf{GG}^T$.  With three times and a maximum lag of 2, this can be rewritten as a joint simultaneous equation:
+
+$$
+\text{vec}(\mathbf{X}) = \mathbf{P}_{\text{joint}} \text{vec}(\mathbf{X}) + \text{vec}(\mathbf{E}) \\
+$$
+
+where:
+$$
+\text{vec}(\mathbf{E}) \sim \text{MVN}(\mathbf{0},\mathbf{G}_{\text{joint}} \mathbf{G}_{\text{joint}}^T)
+$$
+For illustration, when $T=4$ and given a maximum lag of 2, we can write $\mathbf{P}_{\text{joint}}$ as:
+
+$$
+\mathbf{P}_{\text{joint}} = 
+\begin{pmatrix}
+  \mathbf{P}_0 & 0 & 0 & 0\\
+  \mathbf{P}_1 & \mathbf{P}_0 & 0 & 0\\
+  \mathbf{P}_2 & \mathbf{P}_1 & \mathbf{P}_0 & 0\\
+  0 & \mathbf{P}_2 & \mathbf{P}_1 & \mathbf{P}_0 \\
+\end{pmatrix}
+$$
 
 The specified DSEM then results in Gaussian Markov random field for latent states:
 
@@ -102,8 +127,6 @@ where $\B Q_{\PL{joint}}$ is a $TJ \times TJ$ precision matrix such that $\B {Q_
 $$
 \B Q_{\PL{joint}} = ({\mathbf{I - P}_{\PL{joint}}}^T) \B G_{\PL{joint}}^{-1} \B G_{\PL{joint}}^{-T} (\mathbf{I - P_{\PL{joint}}})
 $$
-
-### Constructing the joint path matrix
 
 The joint path matrix is itself constructed by summing across lagged and simultaneous effects.  Say we specify a model with $K=2$ one-headed arrows.  For each one-headed arrow, we define a $J \times J$ path matrix $\B P_k$ and a lag matrix $\B L_k$.  For example, in a model with $J=3$ variables $(A,B,C)$ and $T=4$ times, and specifying $K=2$ one-headed arrows:
 
@@ -163,13 +186,18 @@ $$
 \B G_{\PL{joint}} = \B I \otimes \B G
 $$
 
-These matrices are define a simultaneous equation model:
+## Measurement errors
+
+DSEM includes multiple distribution for measurement errors.  For example, if the user specifies `family[j] = "fixed"` then:
 
 $$
-\PL{vec}(\B X) = \B P_{\PL{joint}} \PL{vec}(\B X) + \B \epsilon \\
-\B \epsilon \sim \mathrm{MVN}( \B 0, \B {G_{\PL{joint}}}^T \B G_{\PL{joint}} )
+y_{tj} = x_{tj} + d_{tj}
 $$
-and the precision matrix can be derived from this simultaneous equation. 
+for all years.  Alternatively, if the user specifies `family[j] = "normal"` then:
+$$
+y_{tj} \sim \PL{Normal}( x_{tj} + d_{tj}, {\sigma_j}^2)
+$$
+and ${\sigma_j}^2$ is then included as an estimated parameter.  These expressions include the $T \times J$ matrix $\B D$ representing the ongoing impact of initial conditions $d_{tj}$ for each variable and year, as explained in detail below.
 
 ### Initial conditions and total effects
 
