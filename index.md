@@ -1,0 +1,70 @@
+# NOAA Enterprise GitHub disclaimer
+
+## Dynamic structural equation models [![](reference/figures/logo.png)](https://github.com/James-Thorson-NOAA/dsem)
+
+[![](https://www.r-pkg.org/badges/version/dsem)](https://cran.r-project.org/package=dsem)
+[![](https://cranlogs.r-pkg.org/badges/dsem)](https://cran.r-project.org/package=dsem)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/dsem)](https://cran.r-project.org/package=dsem)
+[![Codecov test
+coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
+[![Documentation](https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
+
+Package *dsem* fits dynamic structural equation models, which includes
+as nested submodels:
+
+1.  structural equation models
+2.  vector autoregressive models
+3.  dynamic factor analysis
+4.  state-space autoregressive integrated moving average (ARIMA) models
+
+The model has several advantages:
+
+- It estimates direct, indirect, and total effects among system
+  variables, including simultaneous and lagged effects and recursive
+  (cyclic) dependencies
+- It can estimate the cumulative outcome from press or pulse experiments
+  or initial conditions that differ from the stationary distribution of
+  system dynamics
+- It estimates structural linkages as regression slopes while jointly
+  imputing missing values and/or measurement errors
+- It is rapidly fitted as a Gaussian Markov random field (GMRF) in a
+  Generalized Linear Mixed Model (GLMM), with speed and asymptotics
+  associated with each
+- It allows granular control over the number of parameters (and
+  restrictions on parameters) used to structure the covariance among
+  variables and over time,
+
+*dsem* is specifically intended as a minimal implementation, and uses
+standard packages to simplify input/output formatting:
+
+- Input: time-series defined using class *ts*, with `NA` for missing
+  values
+- Input: structural trade-offs specified using syntax defined by package
+  *sem*
+- Output: visualizing estimated trade-offs using *igraph*
+- Output: access model output using standard S3-generic functions
+  including `summary`, `predict`, `residuals`, `simulate`, and `AIC`
+
+Please see package vignettes for more details regarding syntax and
+features.
+
+### Citation
+
+Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024).
+Dynamic structural equation models synthesize ecosystem dynamics
+constrained by ecological mechanisms. Methods in Ecology and Evolution
+15(4): 744-755. <https://doi.org/10.1111/2041-210X.14289>
+
+This repository is a scientific product and is not official
+communication of the National Oceanic and Atmospheric Administration, or
+the United States Department of Commerce. All NOAA GitHub project code
+is provided on an ‘as is’ basis and the user assumes responsibility for
+its use. Any claims against the Department of Commerce or Department of
+Commerce bureaus stemming from the use of this GitHub project will be
+governed by all applicable Federal law. Any reference to specific
+commercial products, processes, or services by service mark, trademark,
+manufacturer, or otherwise, does not constitute or imply their
+endorsement, recommendation or favoring by the Department of Commerce.
+The Department of Commerce seal and logo, or the seal and logo of a DOC
+bureau, shall not be used in any manner to imply endorsement of any
+commercial product or activity by DOC or the United States Government.

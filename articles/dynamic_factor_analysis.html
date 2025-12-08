@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Dynamic factor analysis • dsem</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -63,7 +68,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.7.0/vignettes/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/dynamic_factor_analysis.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/vignettes/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/dynamic_factor_analysis.Rmd</code></a></small>
       <div class="d-none name"><code>dynamic_factor_analysis.Rmd</code></div>
     </div>
 
@@ -78,12 +83,13 @@ specification of simultaneous and lagged effects in a potentially
 recursive structure. Here, we highlight how DSEM can be used to
 implement dynamic factor analysis (DFA). We specifically replicate
 analysis using the Multivariate Autoregressive State-Space (MARSS)
-package, using data that are provided as an example in the MARSS
-package.</p>
+package <span class="citation">(Holmes, Ward, and Wills 2012)</span>,
+using data that are provided as an example in the MARSS package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://atsa-es.github.io/MARSS/" class="external-link">MARSS</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: package 'ggplot2' was built under R version 4.5.2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span> <span class="va">harborSealWA</span>, package<span class="op">=</span><span class="st">"MARSS"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define helper function</span></span>
@@ -91,7 +97,10 @@ package.</p>
 <span></span>
 <span><span class="co"># Define number of factors</span></span>
 <span><span class="co"># n_factors &gt;= 3 doesn't seem to converge using DSEM or MARSS without penalties</span></span>
-<span><span class="va">n_factors</span> <span class="op">=</span> <span class="fl">2</span> </span></code></pre></div>
+<span><span class="va">n_factors</span> <span class="op">=</span> <span class="fl">2</span> </span>
+<span></span>
+<span><span class="co"># set seed for vignette stability (factor models are a bit unstable)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="using-marss">Using MARSS<a class="anchor" aria-label="anchor" href="#using-marss"></a>
@@ -112,59 +121,17 @@ MARSS:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plots states using all data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_MARSS</span>, plot.type<span class="op">=</span><span class="st">"xtT"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-3-1.png" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" width="672"></p>
 <pre><code><span><span class="co">#&gt; plot type = xtT Estimated states</span></span></code></pre>
 <p>And the estimated predictor for measurements (manifest
 variables):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot expectation for data using all data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_MARSS</span>, plot.type<span class="op">=</span><span class="st">"fitted.ytT"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-4-1.png" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" width="672"></p>
 <pre><code><span><span class="co">#&gt; plot type =  fitted.ytT  Observations with fitted values</span></span></code></pre>
-</div>
-<div class="section level2">
-<h2 id="full-rank-covariance-using-dsem">Full-rank covariance using DSEM<a class="anchor" aria-label="anchor" href="#full-rank-covariance-using-dsem"></a>
-</h2>
-<p>In DSEM syntax, we can first fit a saturated (full-covariance) model
-using the argument <code>covs</code>:</p>
+<p>We also define a custom function to plot states:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Add factors to data</span></span>
-<span><span class="va">tsdata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">harborSealWA</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJI"</span>,<span class="st">"EBays"</span>,<span class="st">"SJF"</span>,<span class="st">"PSnd"</span>,<span class="st">"HC"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, start<span class="op">=</span><span class="fl">1978</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Scale and center (matches with MARSS does when fitting a DFA)</span></span>
-<span><span class="va">tsdata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span> <span class="va">tsdata</span>, center<span class="op">=</span><span class="cn">TRUE</span>, scale<span class="op">=</span><span class="cn">TRUE</span> <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Define SEM</span></span>
-<span><span class="va">sem</span> <span class="op">=</span> <span class="st">"</span></span>
-<span><span class="st">  # Random-walk process for variables </span></span>
-<span><span class="st">  SJF -&gt; SJF, 1, NA, 1</span></span>
-<span><span class="st">  SJI -&gt; SJI, 1, NA, 1</span></span>
-<span><span class="st">  EBays -&gt; EBays, 1, NA, 1</span></span>
-<span><span class="st">  PSnd -&gt; PSnd, 1, NA, 1</span></span>
-<span><span class="st">  HC -&gt; HC, 1, NA, 1</span></span>
-<span><span class="st">"</span></span>
-<span></span>
-<span><span class="co"># Initial fit</span></span>
-<span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
-<span>               covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJF, SJI, EBays, PSnd, HC"</span><span class="op">)</span>,</span>
-<span>               sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>               family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>               control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                                       run_model <span class="op">=</span> <span class="cn">FALSE</span> <span class="op">)</span> <span class="op">)</span>   </span>
-<span></span>
-<span><span class="co"># fix all measurement errors at diagonal and equal</span></span>
-<span><span class="va">map</span> <span class="op">=</span> <span class="va">mydsem0</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">map</span></span>
-<span><span class="va">map</span><span class="op">$</span><span class="va">lnsigma_j</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
-<span></span>
-<span><span class="co">#</span></span>
-<span><span class="va">mydsem_full</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
-<span>               covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJF, SJI, EBays, PSnd, HC"</span><span class="op">)</span>,</span>
-<span>               sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>               family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>               control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                                       map <span class="op">=</span> <span class="va">map</span> <span class="op">)</span> <span class="op">)</span></span></code></pre></div>
-<p>We can then define a custom function to plot states:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plot_states</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span> <span class="va">out</span>,</span>
 <span>                        <span class="va">vars</span><span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">y_tj</span><span class="op">)</span> <span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="co"># </span></span>
@@ -185,12 +152,61 @@ using the argument <code>covs</code>:</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Year</span>,y<span class="op">=</span><span class="va">data</span><span class="op">)</span>, color<span class="op">=</span><span class="st">"blue"</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span> <span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymax<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">upper</span><span class="op">)</span>,ymin<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">lower</span><span class="op">)</span>, x<span class="op">=</span><span class="va">Year</span><span class="op">)</span>, color<span class="op">=</span><span class="st">"grey"</span>, alpha<span class="op">=</span><span class="fl">0.2</span> <span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span> facets<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">Var</span><span class="op">)</span>, scales<span class="op">=</span><span class="st">"free"</span>, ncol<span class="op">=</span><span class="fl">2</span> <span class="op">)</span></span>
-<span><span class="op">}</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="full-rank-covariance-using-dsem">Full-rank covariance using DSEM<a class="anchor" aria-label="anchor" href="#full-rank-covariance-using-dsem"></a>
+</h2>
+<p>In DSEM syntax, we can first fit a saturated (full-covariance) model
+using the argument <code>covs</code>. However, we do not do so here to
+avoid bloat in the vignettes:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Add factors to data</span></span>
+<span><span class="va">tsdata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">harborSealWA</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJI"</span>,<span class="st">"EBays"</span>,<span class="st">"SJF"</span>,<span class="st">"PSnd"</span>,<span class="st">"HC"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, start<span class="op">=</span><span class="fl">1978</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Scale and center (matches with MARSS does when fitting a DFA)</span></span>
+<span><span class="va">tsdata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span> <span class="va">tsdata</span>, center<span class="op">=</span><span class="cn">TRUE</span>, scale<span class="op">=</span><span class="cn">TRUE</span> <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Define SEM</span></span>
+<span><span class="va">sem</span> <span class="op">=</span> <span class="st">"</span></span>
+<span><span class="st">  # Random-walk process for variables </span></span>
+<span><span class="st">  SJF -&gt; SJF, 1, NA, 1</span></span>
+<span><span class="st">  SJI -&gt; SJI, 1, NA, 1</span></span>
+<span><span class="st">  EBays -&gt; EBays, 1, NA, 1</span></span>
+<span><span class="st">  PSnd -&gt; PSnd, 1, NA, 1</span></span>
+<span><span class="st">  HC -&gt; HC, 1, NA, 1</span></span>
+<span><span class="st">"</span></span>
+<span></span>
+<span><span class="co"># Initial fit</span></span>
+<span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
+<span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
+<span>  covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJF, SJI, EBays, PSnd, HC"</span><span class="op">)</span>,</span>
+<span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
+<span>    run_model <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>    quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span> </span>
+<span><span class="op">)</span>   </span>
+<span></span>
+<span><span class="co"># fix all measurement errors at diagonal and equal</span></span>
+<span><span class="va">map</span> <span class="op">=</span> <span class="va">mydsem0</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">map</span></span>
+<span><span class="va">map</span><span class="op">$</span><span class="va">lnsigma_j</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
+<span></span>
+<span><span class="co">#</span></span>
+<span><span class="va">mydsem_full</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
+<span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
+<span>  covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SJF, SJI, EBays, PSnd, HC"</span><span class="op">)</span>,</span>
+<span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
+<span>    quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    map <span class="op">=</span> <span class="va">map</span>  </span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#</span></span>
 <span><span class="fu">plot_states</span><span class="op">(</span> <span class="va">mydsem_full</span> <span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
-<p>These estimated states follow the data more closely and have smaller
-estimated confidence intervals. Presumably this occurs because we are
-using a full-rank covariance so far.</p>
 </div>
 <div class="section level2">
 <h2 id="reduced-rank-factor-model-with-measurement-errors">Reduced-rank factor model with measurement errors<a class="anchor" aria-label="anchor" href="#reduced-rank-factor-model-with-measurement-errors"></a>
@@ -272,12 +288,12 @@ can fit a rank-deficient Gaussian Markov random field:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot estimated factors</span></span>
 <span><span class="fu">plot_states</span><span class="op">(</span> <span class="va">mydfa</span>, vars<span class="op">=</span><span class="fl">5</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="672"></p>
 <p>and the estimated predictor for manifest variables</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot estimated variables</span></span>
 <span><span class="fu">plot_states</span><span class="op">(</span> <span class="va">mydfa</span>, vars<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span> <span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" width="672"></p>
 <p>This results in similar (but not identical) factor values using MARSS
 and DSEM. In particular, DSEM has higher variance in early years. This
 likely arises because the default MARSS implementation of DFA includes a
@@ -314,7 +330,7 @@ DSEM</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plots states using all data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_MARSS2</span>, plot.type<span class="op">=</span><span class="st">"xtT"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" width="672"></p>
 <pre><code><span><span class="co">#&gt; plot type = xtT Estimated states</span></span></code></pre>
 <p>We can now compare the three options in terms of the fitted
 log-likelihood:</p>
@@ -369,7 +385,7 @@ compare the three options in terms of estimated loadings:</p>
 </tr>
 <tr class="even">
 <td align="left">Z.21</td>
-<td align="right">-0.439</td>
+<td align="right">-0.440</td>
 <td align="right">0.320</td>
 <td align="right">0.332</td>
 </tr>
@@ -405,7 +421,7 @@ compare the three options in terms of estimated loadings:</p>
 </tr>
 <tr class="even">
 <td align="left">Z.42</td>
-<td align="right">-0.078</td>
+<td align="right">-0.079</td>
 <td align="right">-0.128</td>
 <td align="right">-0.095</td>
 </tr>
@@ -420,6 +436,14 @@ compare the three options in terms of estimated loadings:</p>
 <p>The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):</p>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-holmes_marss:_2012" class="csl-entry">
+Holmes, Elizabeth E., Eric J. Ward, and Kellie Wills. 2012.
+<span>“Marss: <span>Multivariate</span> Autoregressive State-Space
+Models for Analyzing Time-Series Data.”</span> <em>The R Journal</em> 4:
+11–19. <a href="http://journal.r-project.org/archive/2012-1/RJournal_2012-1.pdf#page=11" class="external-link">http://journal.r-project.org/archive/2012-1/RJournal_2012-1.pdf#page=11</a>.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -432,7 +456,7 @@ and loadings can be multiplied by -1 with no change in the model):</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>dsem model description • dsem</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -63,7 +68,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/1.7.0/vignettes/model-description.Rmd" class="external-link"><code>vignettes/model-description.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/vignettes/model-description.Rmd" class="external-link"><code>vignettes/model-description.Rmd</code></a></small>
       <div class="d-none name"><code>model-description.Rmd</code></div>
     </div>
 
@@ -74,8 +79,9 @@ Thorson</h4>
 <div class="section level2">
 <h2 id="dynamic-structural-equation-models">Dynamic structural equation models<a class="anchor" aria-label="anchor" href="#dynamic-structural-equation-models"></a>
 </h2>
-<p>dsem involves specifying a dynamic structural equation model (DSEM).
-This DSEM be viewed either:</p>
+<p>Package <em>dsem</em> <span class="citation">(Thorson et al.
+2024)</span> involves specifying a dynamic structural equation model
+(DSEM). This DSEM be viewed either:</p>
 <ol style="list-style-type: decimal">
 <li>
 <em>Weak interpretation</em>: as an expressive interface to
@@ -93,9 +99,9 @@ the system.</li>
 <h4 id="viewpoint-1-software-interface">Viewpoint 1: Software interface<a class="anchor" aria-label="anchor" href="#viewpoint-1-software-interface"></a>
 </h4>
 <p>To specify a DSEM, the user uses <em>arrow-and-lag notation</em>,
-based on <em>arrow notation</em> derived from package <code>sem</code>.
-For example, to specify a first-order autoregressive process with
-variable
+based on <em>arrow notation</em> derived from package <code>sem</code>
+<span class="citation">(Fox 2006)</span>. For example, to specify a
+first-order autoregressive process with variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 this involves:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>x <span class="ot">-&gt;</span> x, <span class="dv">1</span>, ar1</span>
@@ -158,26 +164,63 @@ and it will estimate a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>×</mo><mi>J</mi></mrow><annotation encoding="application/x-tex">T \times J</annotation></semantics></math>
 matrix of latent states
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>
-for all modeled times and variables.</p>
-<p>DSEM includes multiple distribution for measurement errors. For
-example, if the user specifies <code>family[j] = "fixed"</code>
-then:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>x</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>d</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
-y_{tj} = x_{tj} + d_{tj}
-</annotation></semantics></math> for all years. Alternatively, if the
-user specifies <code>family[j] = "normal"</code> then:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>d</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>,</mo><msup><msub><mi>σ</mi><mi>j</mi></msub><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
-y_{tj} \sim \mathrm{Normal}( x_{tj} + d_{tj}, {\sigma_j}^2)
+for all modeled times and variables, where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐱</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{x}_t</annotation></semantics></math>
+is the vector of states in time
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">vec</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{vec}(\mathbf{X})</annotation></semantics></math>
+is a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">TJ</annotation></semantics></math>
+length vector constructed by stacking columns</p>
+<p>DSEM defines this GLMM by specifying a vector autoregressive model of
+arbitrary lag, from lag-0 upwards:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐱</mi><mi>t</mi></msub><mo>=</mo><munder><munder><mrow><msub><mi>𝐏</mi><mn>0</mn></msub><msub><mi>𝐱</mi><mi>t</mi></msub></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">Simultaneous effects</mtext></munder><mo>+</mo><munder><munder><mrow><msub><mi>𝐏</mi><mn>1</mn></msub><msub><mi>𝐱</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">Lag-1 effects</mtext></munder><mo>+</mo><munder><munder><mrow><msub><mi>𝐏</mi><mn>2</mn></msub><msub><mi>𝐱</mi><mrow><mi>t</mi><mo>−</mo><mn>2</mn></mrow></msub></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">Lag-2 effects</mtext></munder><mo>+</mo><munder><munder><mrow><mi>.</mi><mi>.</mi><mi>.</mi></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">Higher-order lags</mtext></munder><mo>+</mo><msub><mi>𝛜</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">
+\mathbf{x}_t = \underbrace{\mathbf{P}_0 \mathbf{x}_t}_{\text{Simultaneous effects}} + 
+\underbrace{\mathbf{P}_1 \mathbf{x}_{t-1}}_{\text{Lag-1 effects}} + 
+\underbrace{\mathbf{P}_2 \mathbf{x}_{t-2}}_{\text{Lag-2 effects}} + 
+\underbrace{...}_{\text{Higher-order lags}} + 
+\mathbf{\epsilon}_t
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐁</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\mathbf{B}_0</annotation></semantics></math>
+is the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo>×</mo><mi>J</mi></mrow><annotation encoding="application/x-tex">J \times J</annotation></semantics></math>
+matrix of simultaneous interactions,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐁</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\mathbf{B}_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐁</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\mathbf{B}_2</annotation></semantics></math>
+are interactions occurring at lag-1 and lag-2, respectively, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛜</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{\epsilon}_t</annotation></semantics></math>
+is exogenous covariation:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝛜</mi><mi>t</mi></msub><mo>∼</mo><mtext mathvariant="normal">MVN</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msup><mrow><mn>𝟎</mn><mo mathvariant="bold">,</mo><mi>𝐆</mi><mi>𝐆</mi></mrow><mi>T</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\mathbf{\epsilon}_t \sim \text{MVN}(\mathbf{0,GG}^T)
 </annotation></semantics></math> and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><msub><mi>σ</mi><mi>j</mi></msub><mn>2</mn></msup><annotation encoding="application/x-tex">{\sigma_j}^2</annotation></semantics></math>
-is then included as an estimated parameter. These expressions include
-the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>×</mo><mi>J</mi></mrow><annotation encoding="application/x-tex">T \times J</annotation></semantics></math>
-matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐃</mi><annotation encoding="application/x-tex">\mathbf D</annotation></semantics></math>
-representing the ongoing impact of initial conditions
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">d_{tj}</annotation></semantics></math>
-for each variable and year, as explained in detail below.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐆</mi><annotation encoding="application/x-tex">\mathbf{G}</annotation></semantics></math>
+is the square-root of exogenous covariance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mi>𝐆</mi><mi>𝐆</mi></mrow><mi>T</mi></msup><annotation encoding="application/x-tex">\mathbf{GG}^T</annotation></semantics></math>.
+With three times and a maximum lag of 2, this can be rewritten as a
+joint simultaneous equation:</p>
+<p><span class="math display">$$
+\text{vec}(\mathbf{X}) = \mathbf{P}_{\text{joint}}
+\text{vec}(\mathbf{X}) + \text{vec}(\mathbf{E}) \\
+$$</span></p>
+<p>where:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">vec</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐄</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∼</mo><mtext mathvariant="normal">MVN</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>𝟎</mn><mo>,</mo><msub><mi>𝐆</mi><mtext mathvariant="normal">joint</mtext></msub><msubsup><mi>𝐆</mi><mtext mathvariant="normal">joint</mtext><mi>T</mi></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\text{vec}(\mathbf{E}) \sim \text{MVN}(\mathbf{0},\mathbf{G}_{\text{joint}} \mathbf{G}_{\text{joint}}^T)
+</annotation></semantics></math> For illustration, when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">T=4</annotation></semantics></math>
+and given a maximum lag of 2, we can write
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐏</mi><mtext mathvariant="normal">joint</mtext></msub><annotation encoding="application/x-tex">\mathbf{P}_{\text{joint}}</annotation></semantics></math>
+as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐏</mi><mtext mathvariant="normal">joint</mtext></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>0</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>0</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>2</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>0</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>2</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>𝐏</mi><mn>0</mn></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\mathbf{P}_{\text{joint}} = 
+\begin{pmatrix}
+  \mathbf{P}_0 &amp; 0 &amp; 0 &amp; 0\\
+  \mathbf{P}_1 &amp; \mathbf{P}_0 &amp; 0 &amp; 0\\
+  \mathbf{P}_2 &amp; \mathbf{P}_1 &amp; \mathbf{P}_0 &amp; 0\\
+  0 &amp; \mathbf{P}_2 &amp; \mathbf{P}_1 &amp; \mathbf{P}_0 \\
+\end{pmatrix}
+</annotation></semantics></math></p>
 <p>The specified DSEM then results in Gaussian Markov random field for
 latent states:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∼</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi><mi mathvariant="normal">F</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mn>𝟎</mn><mo mathvariant="bold">,</mo><mi>𝐐</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
@@ -187,19 +230,15 @@ latent states:</p>
 is a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>J</mi><mo>×</mo><mi>T</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">TJ \times TJ</annotation></semantics></math>
 precision matrix such that
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><msub><mi>𝐐</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\mathbf{Q_{\mathrm{joint}}}^{-1}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><msub><mi>𝐐</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mrow><mi>−</mi><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\mathbf{Q_{\mathrm{joint}}}^{-1}</annotation></semantics></math>
 is the estimated covariance among latent states. This joint precision is
 itself constructed from a joint path matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\mathbf P_{\mathrm{joint}}</annotation></semantics></math>
 and a joint matrix of exogenous covariance
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\mathbf G_{\mathrm{joint}}</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐐</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mi>T</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><msubsup><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msubsup><msubsup><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow><mrow><mo>−</mo><mi>T</mi></mrow></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐐</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mi>T</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><msubsup><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msubsup><msubsup><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow><mrow><mi>−</mi><mi>T</mi></mrow></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 \mathbf Q_{\mathrm{joint}} = ({\mathbf{I - P}_{\mathrm{joint}}}^T) \mathbf G_{\mathrm{joint}}^{-1} \mathbf G_{\mathrm{joint}}^{-T} (\mathbf{I - P_{\mathrm{joint}}})
 </annotation></semantics></math></p>
-</div>
-<div class="section level4">
-<h4 id="constructing-the-joint-path-matrix">Constructing the joint path matrix<a class="anchor" aria-label="anchor" href="#constructing-the-joint-path-matrix"></a>
-</h4>
 <p>The joint path matrix is itself constructed by summing across lagged
 and simultaneous effects. Say we specify a model with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">K=2</annotation></semantics></math>
@@ -259,7 +298,7 @@ product of these components to obtain the joint path matrix:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝐋</mi><mi>k</mi></msub><mo>⊗</mo><msub><mi>𝐏</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 \mathbf P_{\mathrm{joint}} = \sum_{k=1}^{K}(\mathbf L_k \otimes \mathbf P_k)
 </annotation></semantics></math> where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>⊗</mo><annotation encoding="application/x-tex">\otimes</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>⊗</mi><annotation encoding="application/x-tex">\otimes</annotation></semantics></math>
 is the Kronecker product. Similarly, the exogenous covariance is similar
 constructed from a Kronecker product, although we assume that all
 covariance is simultaneous (i.e., no lags are allowed for two-headed
@@ -267,26 +306,50 @@ arrows):</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi>𝐈</mi><mo>⊗</mo><mi>𝐆</mi></mrow><annotation encoding="application/x-tex">
 \mathbf G_{\mathrm{joint}} = \mathbf I \otimes \mathbf G
 </annotation></semantics></math></p>
-<p>These matrices are define a simultaneous equation model:</p>
-<p><span class="math display">$$
-\mathrm{vec}(\mathbf X) = \mathbf P_{\mathrm{joint}}
-\mathrm{vec}(\mathbf X) + \mathbf\epsilon \\
-\mathbf\epsilon \sim \mathrm{MVN}( \mathbf 0,
-\mathbf{G_{\mathrm{joint}}}^T \mathbf G_{\mathrm{joint}} )
-$$</span> and the precision matrix can be derived from this simultaneous
-equation.</p>
 </div>
-<div class="section level4">
-<h4 id="initial-conditions-and-total-effects">Initial conditions and total effects<a class="anchor" aria-label="anchor" href="#initial-conditions-and-total-effects"></a>
-</h4>
+<div class="section level3">
+<h3 id="measurement-errors">Measurement errors<a class="anchor" aria-label="anchor" href="#measurement-errors"></a>
+</h3>
+<p>DSEM includes multiple distribution for measurement errors. For
+example, if the user specifies <code>family[j] = "fixed"</code>
+then:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>x</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>d</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+y_{tj} = x_{tj} + d_{tj}
+</annotation></semantics></math> for all years. Alternatively, if the
+user specifies <code>family[j] = "normal"</code> then:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>d</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><mo>,</mo><msup><msub><mi>σ</mi><mi>j</mi></msub><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+y_{tj} \sim \mathrm{Normal}( x_{tj} + d_{tj}, {\sigma_j}^2)
+</annotation></semantics></math> and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><msub><mi>σ</mi><mi>j</mi></msub><mn>2</mn></msup><annotation encoding="application/x-tex">{\sigma_j}^2</annotation></semantics></math>
+is then included as an estimated parameter. When estimating missing
+values or masurement errors in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐘</mi><annotation encoding="application/x-tex">\mathbf{Y}</annotation></semantics></math>,
+<em>dsem</em> must then marginalize across the latent value of states
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>.
+It does this using the Laplace approximation <span class="citation">(Skaug and Fournier 2006)</span>, as implemented using
+the R-package TMB <span class="citation">(Kristensen et al.
+2016)</span>. Computations involving sparse matrices are efficient using
+the Matrix package <span class="citation">(Bates, Maechler, and Jagan
+2023)</span> to interface with the Eigen library <span class="citation">(Guennebaud, Jacob, et al. 2010)</span>.</p>
+<p>These expressions include the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>×</mo><mi>J</mi></mrow><annotation encoding="application/x-tex">T \times J</annotation></semantics></math>
+matrix
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐃</mi><annotation encoding="application/x-tex">\mathbf D</annotation></semantics></math>
+representing the ongoing impact of initial conditions
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>t</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">d_{tj}</annotation></semantics></math>
+for each variable and year, as explained in detail next.</p>
+</div>
+<div class="section level3">
+<h3 id="initial-conditions-and-total-effects">Initial conditions and total effects<a class="anchor" aria-label="anchor" href="#initial-conditions-and-total-effects"></a>
+</h3>
 <p>Imagine we have some exogenous intervention that caused a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>×</mo><mi>J</mi></mrow><annotation encoding="application/x-tex">T \times J</annotation></semantics></math>
 matrix of changes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐂</mi><annotation encoding="application/x-tex">\mathbf C</annotation></semantics></math>.
 The total effect of this exogenous intervention would then be
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐂</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(\mathbf{I - P}_{\mathrm{joint}})^{-1} \mathrm{vec}(\mathbf C)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐂</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(\mathbf{I - P}_{\mathrm{joint}})^{-1} \mathrm{vec}(\mathbf C)</annotation></semantics></math>,
 and we can calculate any total effect using this matrix inverse
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">(\mathbf{I - P}_{\mathrm{joint}})^{-1}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">(\mathbf{I - P}_{\mathrm{joint}})^{-1}</annotation></semantics></math>
 (called the “Leontief matrix”). To see this, consider that the
 first-order effect of change
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐂</mi><annotation encoding="application/x-tex">\mathbf C</annotation></semantics></math>
@@ -295,8 +358,8 @@ is
 but this response then in turn causes a second-order effect
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mn>2</mn></msup><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐂</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbf{P_{\mathrm{joint}}}^2 \mathrm{vec}(\mathbf C)</annotation></semantics></math>,
 and so on. The total effect is therefore:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>1</mn></mrow><mo accent="false">∞</mo></munderover><msup><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mi>l</mi></msup><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">
-\sum_{l=1}^{\infty} \mathbf{P_{\mathrm{joint}}}^l = (\mathbf{I - P}_{\mathrm{joint}})^{-1}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>0</mn></mrow><mo accent="false">∞</mo></munderover><msup><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mi>l</mi></msup><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">
+\sum_{l=0}^{\infty} \mathbf{P_{\mathrm{joint}}}^l = (\mathbf{I - P}_{\mathrm{joint}})^{-1}
 </annotation></semantics></math> where this power-series of direct and
 indirect effects then results in the Leontief matrix (as long as the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><annotation encoding="application/x-tex">\mathbf{I - P}</annotation></semantics></math>
@@ -321,7 +384,7 @@ is
 and all other elements are
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>.
 The ongoing effect of initial conditions can then be calculated as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐃</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝚫</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐃</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝚫</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 \mathrm{vec}(\mathbf D) = (\mathbf{I - P}_{\mathrm{joint}})^{-1} \mathrm{vec}(\mathbf\Delta)
 </annotation></semantics></math> Calculating the effect of initial
 conditions is in a sense the total effect of
@@ -335,9 +398,9 @@ of initial conditions involves inverting
 but this is computationally efficient using a sparse LU
 decomposition.</p>
 </div>
-<div class="section level4">
-<h4 id="constant-conditional-vs--marginal-variance">Constant conditional vs. marginal variance<a class="anchor" aria-label="anchor" href="#constant-conditional-vs--marginal-variance"></a>
-</h4>
+<div class="section level3">
+<h3 id="constant-conditional-vs--marginal-variance">Constant conditional vs. marginal variance<a class="anchor" aria-label="anchor" href="#constant-conditional-vs--marginal-variance"></a>
+</h3>
 <p>We have defined the joint precision for a GMRF based on a path matrix
 and matrix of exogenous covariances. The exogenous (or conditional)
 variances are stationary for each variable over time, and some path
@@ -369,7 +432,7 @@ functions:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span> x<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">Sigma1</span><span class="op">)</span>, xlab<span class="op">=</span><span class="st">"time"</span>, </span>
 <span>      ylab<span class="op">=</span><span class="st">"Marginal variance"</span>, type<span class="op">=</span><span class="st">"l"</span>, </span>
 <span>      ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">Sigma1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="model-description_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<p><img src="model-description_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" width="700"></p>
 <p>where we can see that the diagonal of this covariance matrix is
 non-constant.</p>
 <p>We therefore derive an alternative specification that preserves a
@@ -391,7 +454,7 @@ for the constant marginal variance
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐯</mi><annotation encoding="application/x-tex">\mathbf v</annotation></semantics></math>.
 We can solve for the exogenous covariance that would result in that
 marginal variance:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐮</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix" mathvariant="bold">(</mo><mi>𝐋</mi><mo mathvariant="bold">∘</mo><mi>𝐋</mi><mo stretchy="true" form="postfix" mathvariant="bold">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>𝐯</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐮</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix" mathvariant="bold">(</mo><mi>𝐋</mi><mo mathvariant="bold">∘</mo><mi>𝐋</mi><mo stretchy="true" form="postfix" mathvariant="bold">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>𝐯</mi></mrow><annotation encoding="application/x-tex">
 \mathbf u = \mathbf{(L \circ L)}^{-1} \mathbf v
 </annotation></semantics></math></p>
 <p>and we can then rescale the exogenous covariance:</p>
@@ -417,7 +480,7 @@ again using our first-order autoregressive example</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span> x<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">Sigma2</span><span class="op">)</span>, xlab<span class="op">=</span><span class="st">"time"</span>, </span>
 <span>      ylab<span class="op">=</span><span class="st">"Marginal variance"</span>, type<span class="op">=</span><span class="st">"l"</span>, </span>
 <span>      ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">Sigma1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="model-description_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p><img src="model-description_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" width="700"></p>
 <p>This shows that the corrected (nonstationary) exogenous variance
 results in a stationary marginal variance for the AR1 process. This
 correction can be done in two different ways that are identical when the
@@ -429,9 +492,9 @@ values of Leontief matrix (which is itself a matrix inverse). It
 therefore is computationally expensive for large models containing
 complicated dependencies.</p>
 </div>
-<div class="section level4">
-<h4 id="reduced-rank-models">Reduced rank models<a class="anchor" aria-label="anchor" href="#reduced-rank-models"></a>
-</h4>
+<div class="section level3">
+<h3 id="reduced-rank-models">Reduced rank models<a class="anchor" aria-label="anchor" href="#reduced-rank-models"></a>
+</h3>
 <p>We note that some DSEM specifications will be reduced rank. This
 arises for example when specifying a dynamic factor analysis, where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
@@ -499,11 +562,48 @@ that follow a unit variance:</p>
 \mathrm{vec}(\mathbf X)^* \sim \mathrm{GMRF}(\mathbf{0, I})
 </annotation></semantics></math> and then projects these full-rank
 innovations to the reduced rank states:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>*</mo></msup></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn></mrow></msup><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mrow><mi mathvariant="normal">v</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">c</mi></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>*</mo></msup></mrow><annotation encoding="application/x-tex">
 \mathrm{vec}(\mathbf X) = (\mathbf{I - P}_{\mathrm{joint}})^{-1} \mathbf G_{\mathrm{joint}} \mathrm{vec}(\mathbf X)^*
 </annotation></semantics></math></p>
 <p>This parameterization allows us to fit DSEM using a rank-deficient
 structural model.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 class="unnumbered" id="works-cited">Works cited<a class="anchor" aria-label="anchor" href="#works-cited"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-bates_matrix_2023" class="csl-entry">
+Bates, Douglas, Martin Maechler, and Mikael Jagan. 2023. <em>Matrix:
+Sparse and Dense Matrix Classes and Methods</em>. <a href="https://CRAN.R-project.org/package=Matrix" class="external-link">https://CRAN.R-project.org/package=Matrix</a>.
+</div>
+<div id="ref-fox_structural_2006" class="csl-entry">
+Fox, John. 2006. <span>“Structural Equation Modeling with the Sem
+Package in <span>R</span>.”</span> <em>Structural Equation Modeling-a
+Multidisciplinary Journal</em> 13: 465–86.
+</div>
+<div id="ref-guennebaud_eigen_2010" class="csl-entry">
+Guennebaud, G., B. Jacob, et al. 2010. <span>“Eigen V3.”</span> <a href="http://eigen.tuxfamily.org" class="external-link">http://eigen.tuxfamily.org</a>.
+</div>
+<div id="ref-kristensen_tmb:_2016" class="csl-entry">
+Kristensen, Kasper, Anders Nielsen, Casper W. Berg, Hans Skaug, and
+Bradley M. Bell. 2016. <span>“<span>TMB</span>: <span>Automatic</span>
+Differentiation and <span>Laplace</span> Approximation.”</span>
+<em>Journal of Statistical Software</em> 70 (5): 1–21. <a href="https://doi.org/10.18637/jss.v070.i05" class="external-link">https://doi.org/10.18637/jss.v070.i05</a>.
+</div>
+<div id="ref-skaug_automatic_2006" class="csl-entry">
+Skaug, Hans, and Dave Fournier. 2006. <span>“Automatic Approximation of
+the Marginal Likelihood in Non-<span>Gaussian</span> Hierarchical
+Models.”</span> <em>Computational Statistics &amp; Data Analysis</em> 51
+(2): 699–709.
+</div>
+<div id="ref-thorson_dynamic_2024" class="csl-entry">
+Thorson, James T., Alexander G. Andrews III, Timothy E. Essington, and
+Scott I. Large. 2024. <span>“Dynamic Structural Equation Models
+Synthesize Ecosystem Dynamics Constrained by Ecological
+Mechanisms.”</span> <em>Methods in Ecology and Evolution</em> 15 (4):
+744–55. <a href="https://doi.org/10.1111/2041-210X.14289" class="external-link">https://doi.org/10.1111/2041-210X.14289</a>.
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -517,7 +617,7 @@ structural model.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
