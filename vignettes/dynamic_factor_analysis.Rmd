@@ -7,6 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Dynamic factor analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: 'dsem_vignettes.bib'
 ---
 
 ```{r, include = FALSE, warning=FALSE, message=FALSE}
@@ -22,7 +23,7 @@ knitr::opts_chunk$set(
 
 ## Dynamic factor analysis
 
-`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a potentially recursive structure. Here, we highlight how DSEM can be used to implement dynamic factor analysis (DFA).  We specifically replicate analysis using the Multivariate Autoregressive State-Space (MARSS) package, using data that are provided as an example in the MARSS package.
+`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a potentially recursive structure. Here, we highlight how DSEM can be used to implement dynamic factor analysis (DFA).  We specifically replicate analysis using the Multivariate Autoregressive State-Space (MARSS) package [@holmes_marss:_2012], using data that are provided as an example in the MARSS package.
 
 ```{r setup, echo=TRUE, message=FALSE}
 library(dsem)
@@ -36,6 +37,9 @@ grab = \(x,name) x[which(names(x)==name)]
 # Define number of factors
 # n_factors >= 3 doesn't seem to converge using DSEM or MARSS without penalties
 n_factors = 2 
+
+# set seed for vignette stability (factor models are a bit unstable)
+set.seed(123)
 ```
 
 
@@ -66,50 +70,7 @@ And the estimated predictor for measurements (manifest variables):
 # Plot expectation for data using all data
 plot(fit_MARSS, plot.type="fitted.ytT")
 ```
-
-## Full-rank covariance using DSEM 
-
-In DSEM syntax, we can first fit a saturated (full-covariance) model using the argument `covs`:
-
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7, warning=FALSE}
-# Add factors to data
-tsdata = ts( cbind(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]), start=1978)
-
-# Scale and center (matches with MARSS does when fitting a DFA)
-tsdata = scale( tsdata, center=TRUE, scale=TRUE )
-
-# Define SEM
-sem = "
-  # Random-walk process for variables 
-  SJF -> SJF, 1, NA, 1
-  SJI -> SJI, 1, NA, 1
-  EBays -> EBays, 1, NA, 1
-  PSnd -> PSnd, 1, NA, 1
-  HC -> HC, 1, NA, 1
-"
-
-# Initial fit
-mydsem0 = dsem( tsdata = tsdata,
-               covs = c("SJF, SJI, EBays, PSnd, HC"),
-               sem = sem,
-               family = rep("normal", 5),
-               control = dsem_control( quiet = TRUE,
-                                       run_model = FALSE ) )   
-
-# fix all measurement errors at diagonal and equal
-map = mydsem0$tmb_inputs$map
-map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
-
-#
-mydsem_full = dsem( tsdata = tsdata,
-               covs = c("SJF, SJI, EBays, PSnd, HC"),
-               sem = sem,
-               family = rep("normal", 5),
-               control = dsem_control( quiet = TRUE,
-                                       map = map ) )
-```
-
-We can then define a custom function to plot states:
+We also define a custom function to plot states:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 plot_states = function( out,
@@ -133,10 +94,62 @@ plot_states = function( out,
     geom_ribbon( aes(ymax=as.numeric(upper),ymin=as.numeric(lower), x=Year), color="grey", alpha=0.2 ) + 
     facet_wrap( facets=vars(Var), scales="free", ncol=2 )
 }
+```
+
+
+## Full-rank covariance using DSEM 
+
+In DSEM syntax, we can first fit a saturated (full-covariance) model using the argument `covs`.  However, we do not do so here to avoid bloat in the vignettes:
+
+```{r, eval=FALSE, echo=TRUE, message=FALSE, fig.width=7, fig.height=7, warning=FALSE}
+# Add factors to data
+tsdata = ts( cbind(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]), start=1978)
+
+# Scale and center (matches with MARSS does when fitting a DFA)
+tsdata = scale( tsdata, center=TRUE, scale=TRUE )
+
+# Define SEM
+sem = "
+  # Random-walk process for variables 
+  SJF -> SJF, 1, NA, 1
+  SJI -> SJI, 1, NA, 1
+  EBays -> EBays, 1, NA, 1
+  PSnd -> PSnd, 1, NA, 1
+  HC -> HC, 1, NA, 1
+"
+
+# Initial fit
+mydsem0 = dsem( 
+  tsdata = tsdata,
+  covs = c("SJF, SJI, EBays, PSnd, HC"),
+  sem = sem,
+  family = rep("normal", 5),
+  control = dsem_control( 
+    run_model = FALSE, 
+    quiet = TRUE
+  ) 
+)   
+
+# fix all measurement errors at diagonal and equal
+map = mydsem0$tmb_inputs$map
+map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
+
+#
+mydsem_full = dsem( 
+  tsdata = tsdata,
+  covs = c("SJF, SJI, EBays, PSnd, HC"),
+  sem = sem,
+  family = rep("normal", 5),
+  control = dsem_control( 
+    quiet = TRUE,
+    map = map  
+  )
+)
+
+#
 plot_states( mydsem_full )
 ```
 
-These estimated states follow the data more closely and have smaller estimated confidence intervals. Presumably this occurs because we are using a full-rank covariance so far.
 
 ## Reduced-rank factor model with measurement errors
 

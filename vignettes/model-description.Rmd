@@ -8,6 +8,7 @@ vignette: >
   %\VignetteIndexEntry{dsem model description}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+bibliography: 'dsem_vignettes.bib'
 editor_options: 
   markdown: 
     wrap: sentence
@@ -37,7 +38,7 @@ knitr::opts_chunk$set(
 
 # Dynamic structural equation models
 
-dsem involves specifying a dynamic structural equation model (DSEM).  This DSEM be viewed either:
+Package _dsem_ [@thorson_dynamic_2024] involves specifying a dynamic structural equation model (DSEM).  This DSEM be viewed either:
 
 1. *Weak interpretation*: as an expressive interface to parameterize the correlation among variables, using as many or few parameters as might be appropriate; or
 2. *Strong interpretation*: as a structural causal model, allowing predictions about the consequence of counterfactual changes to the system.
@@ -46,7 +47,7 @@ We introduce DSEM first from the perspective of a software user (i.e., the inter
 
 ### Viewpoint 1:  Software interface
 
-To specify a DSEM, the user uses *arrow-and-lag notation*, based on *arrow notation* derived from package `sem`.  For example, to specify a first-order autoregressive process with variable $x$ this involves:
+To specify a DSEM, the user uses *arrow-and-lag notation*, based on *arrow notation* derived from package `sem` [@fox_structural_2006].  For example, to specify a first-order autoregressive process with variable $x$ this involves:
 
 ```{r echo=TRUE, eval=FALSE}
 x -> x, 1, ar1
@@ -197,14 +198,16 @@ for all years.  Alternatively, if the user specifies `family[j] = "normal"` then
 $$
 y_{tj} \sim \PL{Normal}( x_{tj} + d_{tj}, {\sigma_j}^2)
 $$
-and ${\sigma_j}^2$ is then included as an estimated parameter.  These expressions include the $T \times J$ matrix $\B D$ representing the ongoing impact of initial conditions $d_{tj}$ for each variable and year, as explained in detail below.
+and ${\sigma_j}^2$ is then included as an estimated parameter.  When estimating missing values or masurement errors in $\mathbf{Y}$, _dsem_ must then marginalize across the latent value of states $\mathbf{X}$.  It does this using the Laplace approximation [@skaug_automatic_2006], as implemented using the R-package TMB [@kristensen_tmb:_2016].  Computations involving sparse matrices are efficient using the Matrix package [@bates_matrix_2023] to interface with the Eigen library [@guennebaud_eigen_2010]. 
 
-### Initial conditions and total effects
+These expressions include the $T \times J$ matrix $\B D$ representing the ongoing impact of initial conditions $d_{tj}$ for each variable and year, as explained in detail next.
+
+## Initial conditions and total effects
 
 Imagine we have some exogenous intervention that caused a $T \times J$ matrix of changes $\B C$.  The total effect of this exogenous intervention would then be $(\mathbf{I - P}_{\PL{joint}})^{-1} \PL{vec}(\B C)$, and we can calculate any total effect using this matrix inverse $(\mathbf{I - P}_{\PL{joint}})^{-1}$ (called the "Leontief matrix").  To see this, consider that the first-order effect of change $\B C$ is $\B P_{\PL{joint}} \PL{vec}(\B C)$, but this response then in turn causes a second-order effect $\B {P_{\PL{joint}}}^2 \PL{vec}(\B C)$, and so on.  The total effect is therefore:
 
 $$
-\sum_{l=1}^{\infty} \B {P_{\PL{joint}}}^l = (\mathbf{I - P}_{\PL{joint}})^{-1}
+\sum_{l=0}^{\infty} \B {P_{\PL{joint}}}^l = (\mathbf{I - P}_{\PL{joint}})^{-1}
 $$
 where this power-series of direct and indirect effects then results in the Leontief matrix (as long as the $\mathbf{I - P}$ is invertible).  
 
@@ -215,7 +218,7 @@ $$
 $$
 Calculating the effect of initial conditions is in a sense the total effect of $\B \delta_1$ in year $t=1$ on subsequent years.  Calculating the effect $\B D$ of initial conditions involves  inverting $\mathbf{I - P}_{\PL{joint}}$, but this is computationally efficient using a sparse LU decomposition.    
 
-### Constant conditional vs. marginal variance
+## Constant conditional vs. marginal variance
 
 We have defined the joint precision for a GMRF based on a path matrix and matrix of exogenous covariances.  The exogenous (or conditional) variances are stationary for each variable over time, and some path matrices will result in a nonstationary marginal variance.  To see this, consider a first-order autoregressive process
 
@@ -299,7 +302,7 @@ plot( x=1:10, y = diag(Sigma2), xlab="time",
 
 This shows that the corrected (nonstationary) exogenous variance results in a stationary marginal variance for the AR1 process.  This correction can be done in two different ways that are identical when the exogenous covariance is diagonal (as it is in this simple example), but differ when specifying some exogenous covariance.  However, we do not discuss this in detail here.  Note that this calculating this correction for a constant marginal variance requires the inverse of the squared values of Leontief matrix (which is itself a matrix inverse).  It therefore is computationally expensive for large models containing complicated dependencies. 
 
-### Reduced rank models
+## Reduced rank models
 
 We note that some DSEM specifications will be reduced rank.  This arises for example when specifying a dynamic factor analysis, where $J$ variables are explained by $F < J$ factors that each follow a random walk:
 
@@ -363,3 +366,4 @@ $$
 
 This parameterization allows us to fit DSEM using a rank-deficient structural model.  
 
+# Works cited
