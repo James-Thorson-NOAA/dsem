@@ -11,7 +11,6 @@ adjacent to B and D):
 
 ``` r
 library(igraph)
-#> Warning: package 'igraph' was built under R version 4.5.2
 library(Matrix)
 
 # Simulation
