@@ -4,7 +4,8 @@
 # Last Modified: 5/17/2021
 # Notes: Based on instructions found here: https://pkgdown.r-lib.org/index.html
 
-setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)')
+#setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)')
+setwd( R'(C:\Users\james\OneDrive\Desktop\Git\dsem)' )
 
 #-----------------------------------------------------------------
 # load needed libraries
