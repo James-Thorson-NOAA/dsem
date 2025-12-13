@@ -1,4 +1,4 @@
-pandoc: 3.1.11
+pandoc: 3.6.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
@@ -6,7 +6,7 @@ articles:
   features: features.html
   model-description: model-description.html
   spatial_diffusion: spatial_diffusion.html
-last_built: 2025-12-08T10:21Z
+last_built: 2025-12-13T07:34Z
 urls:
   reference: https://james-thorson-NOAA.github.io/dsem/reference
   article: https://james-thorson-NOAA.github.io/dsem/articles

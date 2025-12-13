@@ -11,6 +11,7 @@ adjacent to B and D):
 
 ``` r
 library(igraph)
+#> Warning: package 'igraph' was built under R version 4.5.2
 library(Matrix)
 
 # Simulation
@@ -45,6 +46,7 @@ using a diffusion-enhanced spatio-temporal process:
 
 ``` r
 library(dsem)
+#> Warning: package 'dsem' was built under R version 4.5.2
 
 # Specify SEM
 sem = "
