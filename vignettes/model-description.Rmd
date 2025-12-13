@@ -157,7 +157,7 @@ Finally, it is convenient to write the joint path matrix by summing across path 
 $$
 \B P_{\PL{joint}} = \sum_{k=1}^{K}(\B L_{g[k]} \otimes \B P_k)
 $$
-where $g[k]$ is the lag associated with path coefficient $k$, and $mathbf{P}_k$ is a $J \times J$ matrix with only a single non-zero value (with non-zero value equal to path coefficient $k$).  
+where $g[k]$ is the lag associated with path coefficient $k$, and $\mathbf{P}_k$ is a $J \times J$ matrix with only a single non-zero value (with non-zero value equal to path coefficient $k$).  
 
 Say we specify a model with $K=2$ two interactions (one-headed arrows).  For each one-headed arrow, we define a $J \times J$ path matrix $\B P_k$ and a lag matrix $\B L_{g[k]}$.  For example, in a model with $J=3$ variables $\mathbf{X = (A,B,C)}$ and $T=4$ times, and specifying $K=2$ one-headed arrows:
 
