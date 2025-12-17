@@ -10,6 +10,9 @@ articles:
   - features
   - dynamic_factor_analysis
   - spatial_diffusion
+  - random_slopes
+  - nonlinear
+  - web_only/statistical_interactions
 
 reference:
 - title: internal
@@ -70,5 +73,9 @@ reference:
   - bering_sea
   - isle_royale
   - sea_otter
+  - lake_washington
+  - paramesium_didinium
+  - hare_lynx
+  - pdo_departure_bay
 
 
