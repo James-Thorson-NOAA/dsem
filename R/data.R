@@ -39,3 +39,94 @@ NULL
 #' @keywords data
 NULL
 
+#' @title Lake washington plankton
+#'
+#' @description
+#' Data used to demonstrate and test statistical interactions
+#'
+#' @details
+#' measurements of Temperature (W_t in Celcius), Cryptomonas (resource, C_t in log-abundance), 
+#' Daphnia (consumer, D_t in log-abundance), and Leptodora (predator, L_t in log-abundance) 
+#' in Lake Washington from 1962-1994, T=396 .
+#'
+#' @references
+#' Hampton, S. E., Scheuerell, M. D., & Schindler, D. E. (2006). Coalescence in the Lake Washington story: 
+#' Interaction strengths in a planktonic food web. Limnology and Oceanography, 51(5), 
+#' 2042-2051. \doi{10.4319/lo.2006.51.5.2042}
+#'
+#' @name lake_washington
+#' @docType data
+#' @usage data(lake_washington)
+#' @keywords data
+NULL
+
+#' @title Paramesium-Didinium dynamics
+#'
+#' @description
+#' Data used to demonstrate and test nonlinear dynamics
+#'
+#' @details
+#' records of Paramesium aurelia and Didinium nasutum in a microcosm experiment 
+#' at 0.5 Cerophyll concentration measured every 12 hours over 35 days, i.e., T=71 
+#' (Veilleux, 1976 Fig. 11a), as previously digitized (Jost & Ellner, 2000 Fig. 1).
+#'
+#' @references
+#' Veilleux, B. G. (1979). An Analysis of the Predatory Interaction Between Paramecium 
+#' and Didinium. Journal of Animal Ecology, 48(3), 787-803. \doi{10.2307/4195}
+#'
+#' Jost, C., & Ellner, S. P. (2000). Testing for predator dependence in predator-prey 
+#' dynamics: A non-parametric approach. Proceedings of the Royal Society of London. 
+#' Series B: Biological Sciences. \doi{10.1098/rspb.2000.1186}
+#'
+#' @name paramesium_didinium
+#' @docType data
+#' @usage data(paramesium_didinium)
+#' @keywords data
+NULL
+
+#' @title Lynx-Hare dynamics
+#'
+#' @description
+#' Data used to demonstrate and test nonlinear dynamics
+#'
+#' @details
+#' records of pelts for Canada Lynx and their prey snowshoe hare from 
+#' Hudson Bay 1900-1920, extracted from Gotelli (2008 Fig. 6.16) and 
+#' originating elsewhere (Elton & Nicholson, 1942; MacLulich, 1937)
+#'
+#' @references
+#' Gotelli, N. J. (2008). A Primer of Ecology, Fourth Edition by Nicholas J. Gotelli. Sinauer Associates, 2008.
+#'
+#' Elton, C., & Nicholson, M. (1942). The Ten-Year Cycle in Numbers of the 
+#' Lynx in Canada. Journal of Animal Ecology, 11(2), 215-244. \doi{10.2307/1358}
+#'
+#' MacLulich, D. A. (1937). Fluctuations in the Numbers of the Varying Hare 
+#' (Lepus Americanus). University of Toronto Press. \doi{10.3138/9781487583064}
+#'
+#' @name hare_lynx
+#' @docType data
+#' @usage data(hare_lynx)
+#' @keywords data
+NULL
+
+#' @title Pacific Decadal Oscillation and Departure Bay temperatures
+#'
+#' @description
+#' Data used to demonstrate and test nonstationary dynamics
+#'
+#' @details
+#' records of the Pacific Decadal Oscillation by year (row) and month 
+#' (Jan-Dec, columns), downloaded from JISAO \url{http://research.jisao.washington.edu/pdo/PDO.latest.txt} 
+#' on Nov. 6, 2018, as analyzed previously by Thorson et al. (2020)
+#'
+#' @references
+#' Thorson, J. T., Ciannelli, L., & Litzow, M. A. (2020). Defining indices of 
+#' ecosystem variability using biological samples of fish communities: 
+#' A generalization of empirical orthogonal functions. Progress in Oceanography, 
+#' 181, 102244. \doi{10.1016/j.pocean.2019.102244}
+#'
+#' @name pdo_departure_bay
+#' @docType data
+#' @usage data(pdo_departure_bay)
+#' @keywords data
+NULL

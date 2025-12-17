@@ -9,7 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
-  estimate_mu = NULL,
+  estimate_mu = "",
   prior_negloglike = NULL,
   control = dsem_control(),
   covs = colnames(tsdata)
@@ -39,7 +39,8 @@ the stationary distribution}
 \item{estimate_mu}{character-vector listing columns of \code{tsdata} for which to estimate the mean,
 which is subtracted off of \code{tsdata} prior to evaluating interactions among parameters.
 The default \code{estimate_mu = NULL} estimates the mean for every column with at least one value
-that is not \code{NA} (i.e., does \emph{not} estimate the mean for latent variables).}
+that is not \code{NA} (i.e., does \emph{not} estimate the mean for latent variables).
+If you want to have no \code{mu} parameters, use \code{estimate_mu = vector()}.}
 
 \item{prior_negloglike}{A user-provided function that takes as input the vector of fixed effects out$obj$par
 returns the negative log-prior probability. For example
