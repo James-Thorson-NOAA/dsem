@@ -197,7 +197,7 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
-          estimate_mu = "",
+          estimate_mu = NULL,
           prior_negloglike = NULL,
           control = dsem_control(),
           covs = colnames(tsdata) ){
@@ -316,7 +316,7 @@ function( sem,
   }
 
   # Process `estimate_mu`
-  if( is.null(estimate_mu) ){ # is FALSE for estimate_mu = c()
+  if( is.null(estimate_mu) ){ # is TRUE for estimate_mu = c()
     estimate_mu = na.omit( ifelse(colSums(!is.na(tsdata))==0, NA, colnames(tsdata)) )
   }else{
     if( isFALSE(control$quiet) ){

@@ -9,7 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
-  estimate_mu = "",
+  estimate_mu = NULL,
   prior_negloglike = NULL,
   control = dsem_control(),
   covs = colnames(tsdata)
