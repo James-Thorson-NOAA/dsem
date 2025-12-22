@@ -32,18 +32,18 @@ library(dsem)
 
 # Load data
 data(lake_washington)
-lake_washington$Temp = lake_washington$Temp - 10
 
 # Format
 Z = ts(cbind(
-  lake_washington[,c("Temp","Daphnia","Leptodora","Cryptomonas")],    
+  Temp = lake_washington[,"Temp"] - 10,
+  log(lake_washington[,c("Daphnia","Leptodora","Cryptomonas")]),    
   "alpha" = NA, "Temp2" = NA, "beta" = NA                  
 ), start = 1962, freq = 12)
 ```
 
 We first define a model with multiple dome-shaped responses to Temp, specifically constructing temperature-squared as a latent variable:
 
-```{r fit_constant, echo=TRUE, message=FALSE}
+```{r make_sem, echo=TRUE, message=FALSE}
 #
 sem = "
   # Quadratic temperature effect on resource density
@@ -82,18 +82,15 @@ sem = "
 
 We then fit this model
 
-```{r fit_varying, echo=TRUE, message=FALSE}
+```{r fit_dsem, echo=TRUE, message=FALSE}
 fit = dsem(
   tsdata = Z,
   sem = sem,
-  estimate_mu = c("Daphnia","Leptodora","Cryptomonas","alpha","beta"),  # "TP", "Year",
+  estimate_mu = c("Daphnia","Leptodora","Cryptomonas","alpha","beta"),
   control = dsem_control(
-    trace = 1,
-    use_REML = TRUE,  # Easier to get intercepts from sdrep$cov.fixed, but also slower
-    eval.max = 10000,
-    iter.max = 10000,
+    use_REML = TRUE,  
     getsd = TRUE,
-    getJointPrecision = TRUE, # Alternative to get SEs
+    getJointPrecision = TRUE, 
     newton_loops = 0,
     quiet = TRUE
   )
@@ -101,9 +98,15 @@ fit = dsem(
 ```
 
 We then plot the temperatures responses
-```{r plot_states, echo=TRUE, message=FALSE}
+```{r plot_response, echo=TRUE, message=FALSE}
 T_j = seq( 5, 19, by = 0.1 )
 X_j = T_j - 10
+
+mu_df = data.frame(
+  Par = colnames(Z),
+  Est = as.list(fit$sdrep,"Estimate")$mu_j,
+  SE = as.list(fit$sdrep,"Std. Error")$mu_j
+)
 
 plot_interval = function( fit, var, name1, name2, n = 1000, prob = c(0.025,0.975), f_y = identity, ... ){
   # fit$sdrep$jointPrecision
@@ -117,7 +120,7 @@ plot_interval = function( fit, var, name1, name2, n = 1000, prob = c(0.025,0.975
   p1 = subset(mu_df, Par==var)$Est
   p2 = subset(summary(fit),name==name1)$Estimate
   p3 = subset(summary(fit),name==name2)$Estimate
-  beta = rmvnorm_prec( prec = fit$sdrep$jointPrecision, n = n )[index,]
+  beta = RTMB:::rgmrf0( Q = fit$sdrep$jointPrecision, n = n )[index,]
   beta = beta + outer( c(p1,p2,p3), rep(1,n) )
   #return(beta)
   response = apply( beta, MARGIN = 2, FUN = \(x) x[1] + x[2]*X_j + x[3]*X_j^2 )
@@ -232,7 +235,7 @@ ggraph(layout) +
     arrow = arrow(length = unit(2, "mm")),
     end_cap = ggraph::circle(7, 'mm'),
     start_cap = ggraph::circle(0, 'mm'),
-    aes( label = label, linetype = type, col = ifelse(is.na(p)|p<0.05,"black","grey"), filter = straight ),  # , edge_width = ifelse(type == "dotted", 0.8, 0.8)
+    aes( label = label, linetype = type, col = ifelse(is.na(p)|p<0.05,"black","grey"), filter = straight ),  
     vjust = -0.2,
     hjust = 0.4,
   ) +
@@ -241,7 +244,7 @@ ggraph(layout) +
     end_cap = ggraph::circle(7, 'mm'),
     start_cap = ggraph::circle(0, 'mm'),
     strength = -1,
-    aes( label = label, linetype = type, col = col, filter = !straight ),  # , edge_width = ifelse(type == "dotted", 0.8, 0.8)
+    aes( label = label, linetype = type, col = col, filter = !straight ),  
     vjust = -0.2,
     hjust = 0.4,
   ) +
