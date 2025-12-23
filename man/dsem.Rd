@@ -48,9 +48,7 @@ returns the negative log-prior probability. For example
 specifies a normal prior probability
 for the for the first fixed effect with mean of zero and logsd of 0.1.
 NOTE:  this implementation does not work well with \code{tmbstan} and
-is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
-instead.  The option in \code{dsem} is mainly intended to validate its
-use in \code{dsemRTMB}.  Note that the user must load RTMB using
+is highly experimental.  Note that the user must load RTMB using
 \code{library(RTMB)} prior to running the model.}
 
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
