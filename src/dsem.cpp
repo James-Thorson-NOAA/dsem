@@ -312,7 +312,9 @@ Type objective_function<Type>::operator() ()
 
     // Project residuals
     // mu_u = (V_uo %*% solve(V_oo) %*% x_o)[,1]
-    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseSigma_oo;
+    // Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseSigma_oo;
+    // Using Eigen::SimplicialLDLT instead of Eigen::SparseLU because it's symmetric
+    Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type> > inverseSigma_oo;
     inverseSigma_oo.compute(Sigma_oo);
     Eigen::SparseMatrix<Type> tmp_o1 = inverseSigma_oo.solve(x_o1);
     Eigen::SparseMatrix<Type> Sigma_uo = get_submatrix( Sigma_kk, unobs_idx, obs_idx );
@@ -357,6 +359,104 @@ Type objective_function<Type>::operator() ()
     // Evaluate MVN density for full-rank component
     jnll_gmrf = MVNORM(V_oo)( dev_o );
     jnll_gmrf += GMRF(I_uu)( x_u );
+  }
+
+  // Option-4:  use full rank (some of which are fixed), 
+  //            and project to zero-rank component (none of which are fixed and measured)
+  // 
+  // Given
+  // x = (x_A, x_B)^T
+  // where
+  // x_A has V_A that is full rank, and some are fixed
+  // x_B has V_B that has no rank (V_B = 0), and none are fixed
+  //
+  // Define
+  // P = | P_A,  P_AB |
+  //     | P_BA, P_B  |
+  //
+  // V = | V_A,  V_AB |
+  //     | V_BA, V_B  |
+  //
+  // M = | I-P_A,  P_AB  |  =  | M_A,  M_AB |
+  //     | P_B_A,  I-P_B |     | M_BA, M_B  |
+  //
+  // Calculate
+  // C = M_AB M_B^-1
+  // so
+  // C^T = (M_B^T)^-1 M_AB^T
+  // and
+  // Mtilda_A = M_A - M_AB M_BB^-1 M_BA
+  // Vtilda_A = V_A + C V_B C^T + C V_BA + V_AB C^T 
+  //          = V_A + C V_BA + V_AB C^T   (because V_B = 0)
+  // Q_A = Mtilda_A^T Vtilda_A^-1 Mtilda_A
+  //
+  // Then:
+  // x_A ~ GMRF( Q_A )
+  // mu_B = -M_BB^-1 M_BA x_A (conditional krigging)
+  //
+  // And 
+  // x_B = mu_B
+  // Because 
+  // x_B ~ MVN( mu_B, Q_B^-1 )
+  // And:
+  // Q_B = M_BB^T V_B^-1 M_BB 
+  // so 
+  // Q_B^-1 = 0 (because V_B = 0)
+  if( options(0)==3 ){
+    DATA_IVECTOR( obs_idx );    // Full-rank component
+    DATA_IVECTOR( unobs_idx );  // Zero-rank component ... projecting from obs_idx to unobs_idx
+    // Extract sub-vectors for observed and unobserved components
+    vector<Type> dev_k = x_tj - xhat_tj - delta_tj;
+    vector<Type> dev_o( obs_idx.size() );
+    for( int index = 0; index < obs_idx.size(); index ++ ){
+      dev_o(index) = dev_k( obs_idx(index) );
+    }
+    // Extract V components
+    Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
+    Eigen::SparseMatrix<Type> V_A = get_submatrix( V_kk, obs_idx, obs_idx );
+    Eigen::SparseMatrix<Type> V_BA = get_submatrix( V_kk, unobs_idx, obs_idx );
+    Eigen::SparseMatrix<Type> V_AB = get_submatrix( V_kk, obs_idx, unobs_idx );
+    // Extract M components
+    Eigen::SparseMatrix<Type> M_A = get_submatrix( IminusRho_kk, obs_idx, obs_idx );
+    Eigen::SparseMatrix<Type> M_BA = get_submatrix( IminusRho_kk, unobs_idx, obs_idx );
+    Eigen::SparseMatrix<Type> M_AB = get_submatrix( IminusRho_kk, obs_idx, unobs_idx );
+    Eigen::SparseMatrix<Type> M_B = get_submatrix( IminusRho_kk, unobs_idx, unobs_idx );
+    // Compute C
+    Eigen::SparseMatrix<Type> Mt_AB = M_AB.transpose();
+    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseMt_B;
+    inverseMt_B.compute( M_B.transpose().eval() );
+    Eigen::SparseMatrix<Type> Ct = inverseMt_B.solve(Mt_AB);
+    // Mtilda_A
+    Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseM_B;
+    inverseM_B.compute(M_B);
+    Eigen::SparseMatrix<Type> Mtilda_A = M_A - M_AB * inverseM_B.solve(M_BA);
+    // Vtilda_A
+    Eigen::SparseMatrix<Type> Vtilda_A = V_A + Ct.transpose()*V_BA + V_AB*Ct;
+    // Q_A:  Eigen::SimplicialLDLT instead of Eigen::SparseLU because it's symmetric
+    //Eigen::SparseLU< Eigen::SparseMatrix<Type>, Eigen::COLAMDOrdering<int> > inverseVtilda_A;
+    Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type> > inverseVtilda_A;
+    inverseVtilda_A.compute(Vtilda_A);
+    Eigen::SparseMatrix<Type> Q_A = Mtilda_A.transpose() * inverseVtilda_A.solve(Mtilda_A);
+    // Get GMRF for data
+    REPORT( Q_A );
+    //REPORT( dev_o );
+    jnll_gmrf = GMRF( Q_A )( dev_o );   
+    //
+    matrix<Type> dev_u1 = -(inverseM_B.solve(M_BA) * dev_o.matrix());
+    REPORT( dev_u1 );
+    // Add projected residuals + other comonents into linear predictor
+    z_tj = x_tj;
+    int u = 0;
+    if( unobs_idx.size() > 0 ){
+      for(int j=0; j<n_j; j++){
+      for(int t=0; t<n_t; t++){
+        k = j*n_t + t;
+        if( unobs_idx(u) == k ){
+          z_tj(t,j) = dev_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j);
+          u++;
+        }
+      }}
+    }
   }
 
   // Distribution for data

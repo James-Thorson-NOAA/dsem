@@ -14,7 +14,7 @@ dsem_control(
   quiet = FALSE,
   run_model = TRUE,
   build_model = TRUE,
-  gmrf_parameterization = c("separable", "projection", "mvn_project"),
+  gmrf_parameterization = c("gmrf_project", "separable", "projection", "mvn_project"),
   constant_variance = c("conditional", "marginal", "diagonal"),
   use_REML = TRUE,
   profile = NULL,
@@ -60,9 +60,15 @@ that must be full rank, \code{projection} constructs
 a full-rank and IID precision for variables over time and then projects
 this using the inverse-cholesky of the precision (which allows a
 rank-deficient GMRF, but does not allow \code{family = "fixed"}),
-and \code{mvn_project} uses the dense variance for the
+\code{mvn_project} uses the dense variance for the
 full-rank component of the GMRF and then projects values to the rank-deficient
-component (which allows \code{family = "fixed"} but is much slower).}
+component (which allows \code{family = "fixed"} in any set of
+set of variables that is estimable, but is much slower), and \code{gmrf_project}
+uses a full-rank precision for all variables that have non-zero exogenous
+variance, and then projects to the remaining variables that have zero
+exogenous variance (where this is fast but cannot allow \code{family = "fixed"}
+combined with measurements for those variables that have zero exogenous
+variance)}
 
 \item{constant_variance}{Whether to specify a constant conditional variance
 \eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"},

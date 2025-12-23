@@ -8,6 +8,17 @@
   for `gmrf_parameterization = "separable"`
 * Add `stabilize_Q` option to `dsem_control`, adding a diagonal component to 
   t(Gamma)*Gamma to ensure it's PD
+* Added `gmrf_parameterization = "gmrf_project"` (which maintains sparsity
+  while allowing latent variables with zero exogenous variance, or manifest
+  variables with measurement error and zero exogenous variance), and which automatically
+  switches to `separable` if no variables have zero variance
+* Added an integrated test confirming that `gmrf_project`, `mvn_project` and `separable`
+  (with a small extra non-zero variance inflation) are all identical in a logistic
+  regression that involves loops (i.e., zero-variance for intermediate latent variable)
+* Switching `Eigen::SparseLU` to `Eigen::SimplicialLDLT` when applied to symmetric
+  matrices
+* Switching `dsem_control` to use `gmrf_parameterization = "gmrf_project"` 
+  as default
 
 # dsem 1.7.0
 

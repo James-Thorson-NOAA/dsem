@@ -149,3 +149,74 @@ test_that("dsem constant-variance options ", {
 #  library(Matrix)
 #  image(Matrix(solve(Report$IminusRho_kk)))
 #})
+
+test_that("dsem `gmrf_project` and `mvn_project` are working ", {
+
+  make_ar = function(rho, X){
+    for(t in 2:length(X)) X[t] = rho * X[t-1] + sqrt(1-rho) * X[t]
+    return(X)
+  }
+  
+  set.seed(123)
+  X = rnorm(100)
+  X = make_ar( rho = 0.8, X = X )
+  p = plogis(X)
+  Y = rbinom( n = length(p), size = 1, prob = p )
+  
+  # Bundle
+  dat = data.frame( 
+    X = X, 
+    Y = Y 
+  )
+  
+  sem = "
+    X -> X, 1, rho
+    X -> Y, 0, b_XY
+    Y <-> Y, 0, NA, 0
+    Y -> X, 2, gamma     # Not included but forces loops for testing
+  "
+  # New option
+  control = dsem_control(
+    gmrf_parameterization = "gmrf_project",
+    use_REML = FALSE,
+    newton_loops = 0
+  )
+  fit1 = dsem(
+    tsdata = ts(dat),
+    sem = sem,
+    control = control,
+    family = c("fixed", "bernoulli")
+  )
+  
+  # New option
+  control = dsem_control(
+    gmrf_parameterization = "mvn_project",
+    use_REML = FALSE
+  )
+  fit2 = dsem(
+    tsdata = ts(dat),
+    sem = sem,
+    control = control,
+    family = c("fixed", "bernoulli")
+  )
+
+  # Old option
+  sem = "
+    X -> X, 1, rho
+    X -> Y, 0, b_XY
+    Y <-> Y, 0, NA, 0.0001
+    Y -> X, 2, gamma
+  "
+  control = dsem_control(
+    use_REML = FALSE
+  )
+  fit0 = dsem(
+    tsdata = ts(dat),
+    sem = sem,
+    control = control,
+    family = c("fixed", "bernoulli")
+  )
+
+  expect_equal( summary(fit1), summary(fit2), tolerance=0.0001 )
+  expect_equal( summary(fit1), summary(fit0), tolerance=0.0001 )
+})

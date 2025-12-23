@@ -248,11 +248,31 @@ function( sem,
 
   #
   options = c(
-    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "mvn_project" = 2, NA),
+    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "mvn_project" = 2, "gmrf_project" = 3, NA),
     switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2),
     ifelse( isTRUE(control$stabilize_Q), 1, 0 )
   )
   
+  # define variables to project to `project_k` unless provided by user
+  if( is.null(control$project_k) ){
+    # Check vars with zero variance
+    project_k = sapply( 
+      seq_len(prod(dim(tsdata))),
+      FUN = function(k){
+        tmp = subset( ram, (heads==2) & (to==k) & (from==k) )
+        has_zero_var = all( (tmp$parameter==0) & (tmp$start==0) )
+        return(has_zero_var)
+      } 
+    )
+  }else{
+    project_k = as.vector(control$project_k)
+  }
+
+  # Switch `gmrf_project` to `separable` if no variables in `project_k`
+  if( (options[1] == 3) & (sum(project_k)==0) ){
+    options[1] = 0
+  }
+
   #
   Data = list( "options" = options,
                #"RAM" = as.matrix(na.omit(ram[,1:4])),
@@ -261,25 +281,8 @@ function( sem,
                "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
                "y_tj" = tsdata )
 
-  #
-  if( options[1] == 2 ){
-    #familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tj) )
-    #Data$obs_idx = which( familycode_z == 0 ) - 1                 # Convert to CPP indexing
-    #Data$unobs_idx = which( familycode_z != 0 ) - 1               # Convert to CPP indexing
-
-    if( is.null(control$project_k) ){
-      # Check vars with zero variance
-      project_k = sapply( 
-        seq_len(prod(dim(tsdata))),
-        FUN = function(k){
-          tmp = subset( ram, (heads==2) & (to==k) & (from==k) )
-          has_zero_var = all( (tmp$parameter==0) & (tmp$start==0) )
-          return(has_zero_var)
-        } 
-      )
-    }else{
-      project_k = as.vector(control$project_k)
-    }
+  # Default ... unobs_idx for fixed variables with zero variance
+  if( options[1] %in% c(2,3) ){
     Data$obs_idx = which( !project_k ) - 1   # Convert to CPP indexing
     Data$unobs_idx = which( project_k ) - 1  # Convert to CPP indexing
   }
@@ -345,6 +348,10 @@ function( sem,
     if( options[1] == 2 ){
       #Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
     }
+    # Map off unobserved if using gmrf_parameterization = "gmrf_project"
+    if( options[1] == 3 ){
+      Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
+    }
     
     #
     Map$x_tj = factor(Map$x_tj)
@@ -370,7 +377,7 @@ function( sem,
     return( out )
   }
   
-  # Necessary for now
+  # Necessary when using variables as paths
   TMB::config(tmbad.atomic_sparse_log_determinant = FALSE, DLL = "dsem")
   
   # Build object
@@ -534,9 +541,15 @@ function( sem,
 #'        a full-rank and IID precision for variables over time and then projects
 #'        this using the inverse-cholesky of the precision (which allows a
 #'        rank-deficient GMRF, but does not allow \code{family = "fixed"}), 
-#'        and `mvn_project` uses the dense variance for the 
+#'        `mvn_project` uses the dense variance for the 
 #'        full-rank component of the GMRF and then projects values to the rank-deficient
-#'        component (which allows \code{family = "fixed"} but is much slower).
+#'        component (which allows \code{family = "fixed"} in any set of 
+#'        set of variables that is estimable, but is much slower), and `gmrf_project`
+#'        uses a full-rank precision for all variables that have non-zero exogenous
+#'        variance, and then projects to the remaining variables that have zero
+#'        exogenous variance (where this is fast but cannot allow \code{family = "fixed"}
+#'        combined with measurements for those variables that have zero exogenous 
+#'        variance)
 #' @param constant_variance Whether to specify a constant conditional variance 
 #'        \eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
 #'        which results in a changing marginal variance      
@@ -595,7 +608,7 @@ function( nlminb_loops = 1,
           quiet = FALSE,
           run_model = TRUE,
           build_model = TRUE,
-          gmrf_parameterization = c("separable", "projection", "mvn_project"),       
+          gmrf_parameterization = c("gmrf_project", "separable", "projection", "mvn_project"),       
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
