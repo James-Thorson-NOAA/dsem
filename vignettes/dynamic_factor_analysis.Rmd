@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+start_time = Sys.time()
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
@@ -52,11 +53,13 @@ We first illustrate a DFA model using two factors, fitted using MARSS:
 dat <- t(scale(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]))
 
 # DFA with 3 states; used BFGS because it fits much faster for this model
-fit_MARSS <- MARSS( dat, 
-                    model = list(m=n_factors),
-                    form="dfa",
-                    method="BFGS",
-                    silent = TRUE )
+fit_MARSS <- MARSS( 
+  dat, 
+  model = list(m=n_factors),
+  form = "dfa",
+  method = "BFGS",
+  silent = TRUE 
+)
 ```
 
 We can then plot the estimated factors (latent variables):
@@ -153,7 +156,7 @@ plot_states( mydsem_full )
 
 ## Reduced-rank factor model with measurement errors
 
-Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires us to switch to `gmrf_parameterization = "projection"`, so that we can fit a rank-deficient Gaussian Markov random field:
+Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires us to switch to `gmrf_parameterization = "project"`, so that we can fit a rank-deficient Gaussian Markov random field:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
@@ -196,13 +199,17 @@ equations = "
 sem = convert_equations(equations)
 
 # Initial fit
-mydsem0 = dsem( tsdata = tsdata,
-               sem = sem,
-               family = c( rep("normal",5), rep("fixed",n_factors) ),
-               estimate_delta0 = TRUE,
-               control = dsem_control( quiet = TRUE,
-                                       run_model = FALSE,
-                                       gmrf_parameterization = "projection" ) )
+mydsem0 = dsem( 
+  tsdata = tsdata,
+  sem = sem,
+  family = c( rep("normal",5), rep("fixed",n_factors) ),
+  estimate_delta0 = TRUE,
+  control = dsem_control( 
+    quiet = TRUE,
+    run_model = FALSE,
+    gmrf_parameterization = "project" 
+  ) 
+)
 
 # fix all measurement errors at diagonal and equal
 map = mydsem0$tmb_inputs$map
@@ -215,15 +222,19 @@ map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
 map$mu_j = factor( rep(NA,ncol(tsdata)) )
 
 # profile "delta0_j" to match MARSS (which treats initial condition as unpenalized random effect)
-mydfa = dsem( tsdata = tsdata,
-               sem = sem,
-               family = c( rep("normal",5), rep("fixed",n_factors) ),
-               estimate_delta0 = TRUE,
-               control = dsem_control( quiet = TRUE,
-                                       map = map,
-                                       use_REML = TRUE,
-                                       #profile = "delta0_j",
-                                       gmrf_parameterization = "projection" ) )
+mydfa = dsem( 
+  tsdata = tsdata,
+  sem = sem,
+  family = c( rep("normal",5), rep("fixed",n_factors) ),
+  estimate_delta0 = TRUE,
+  control = dsem_control( 
+    quiet = TRUE,
+    map = map,
+    gmrf_parameterization = "project",
+    use_REML = TRUE,
+    #profile = "delta0_j",
+  ) 
+)
 ```
 
 We again plot the estimated latent variables
@@ -251,12 +262,16 @@ modmats$V0 <- matrix(0, n_factors, n_factors )
 modmats$x0 <- "unequal" 
 
 # Refit
-fit_MARSS2 = MARSS( dat, 
-                    model = modmats,
-                    silent = TRUE,
-                    control = list( abstol = 0.001,
-                                    conv.test.slope.tol = 0.01, 
-                                    maxit = 1000 ))
+fit_MARSS2 = MARSS( 
+  dat, 
+  model = modmats,
+  silent = TRUE,
+  control = list( 
+    abstol = 0.001,
+    conv.test.slope.tol = 0.01, 
+    maxit = 1000 
+  )
+)
 ```
 
 These have estimated time-series that are more similar to those from DSEM
@@ -285,4 +300,11 @@ knitr::kable( Table, digits=3)
 ```
 
 The estimating loadings are similar using DSEM and the MARSS model without initial penalty, except with label switching (where some factors and loadings can be multiplied by -1 with no change in the model):
+
+```{r, include = FALSE, warning=FALSE, message=FALSE}
+run_time = Sys.time() - start_time
+```
+Runtime for this vignette: `r paste( round(unclass(run_time),2), attr(run_time, "units") )`
+
+# Works cited
 

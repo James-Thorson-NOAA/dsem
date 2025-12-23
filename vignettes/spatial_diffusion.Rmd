@@ -3,6 +3,7 @@ title: "Spatial diffusion"
 author: "James Thorson"
 output: rmarkdown::html_vignette
 #output: rmarkdown::pdf_document
+bibliography: 'dsem_vignettes.bib'
 vignette: >
   %\VignetteIndexEntry{Spatial diffusion}
   %\VignetteEngine{knitr::rmarkdown}

@@ -205,7 +205,7 @@ function( sem,
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
-  if( isTRUE(control$gmrf_parameterization=="projection") ){
+  if( isTRUE(control$gmrf_parameterization=="project") ){
     if( isTRUE(any(family=="fixed" & colSums(!is.na(tsdata))>0)) ){
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
@@ -248,7 +248,7 @@ function( sem,
 
   #
   options = c(
-    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "mvn_project" = 2, "gmrf_project" = 3, NA),
+    switch(control$gmrf_parameterization, "full" = 0, "project" = 1, "mvn_project" = 2, "gmrf_project" = 3, NA),
     switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2),
     ifelse( isTRUE(control$stabilize_Q), 1, 0 )
   )
@@ -268,18 +268,21 @@ function( sem,
     project_k = as.vector(control$project_k)
   }
 
-  # Switch `gmrf_project` to `separable` if no variables in `project_k`
-  if( (options[1] == 3) & (sum(project_k)==0) ){
-    options[1] = 0
-  }
+  # Switch `gmrf_project` to `full` if no variables in `project_k`
+  # Now added simplified code to CPP instead
+  #if( (options[1] == 3) & (sum(project_k)==0) ){
+  #  options[1] = 0
+  #}
 
   #
-  Data = list( "options" = options,
-               #"RAM" = as.matrix(na.omit(ram[,1:4])),
-               "RAM" = as.matrix(ram[,-5]),
-               "RAMstart" = as.numeric(ram[,5]),
-               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
-               "y_tj" = tsdata )
+  Data = list( 
+    "options" = options,
+    #"RAM" = as.matrix(na.omit(ram[,1:4])),
+    "RAM" = as.matrix(ram[,-5]),
+    "RAMstart" = as.numeric(ram[,5]),
+    "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
+    "y_tj" = tsdata 
+  )
 
   # Default ... unobs_idx for fixed variables with zero variance
   if( options[1] %in% c(2,3) ){
@@ -294,7 +297,7 @@ function( sem,
                    "mu_j" = rep(0,ncol(tsdata)),
                    "delta0_j" = rep(0,ncol(tsdata)),
                    "x_tj" = ifelse( is.na(tsdata), 0, tsdata ) )
-    #if( control$gmrf_parameterization=="separable" ){
+    #if( control$gmrf_parameterization=="full" ){
     #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
     #}else{
     #  Params$eps_tj = ifelse( is.na(tsdata), 0, tsdata )
@@ -349,7 +352,7 @@ function( sem,
       #Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
     }
     # Map off unobserved if using gmrf_parameterization = "gmrf_project"
-    if( options[1] == 3 ){
+    if( (options[1] == 3) & (sum(project_k)>0) ){
       Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
     }
     
@@ -397,6 +400,7 @@ function( sem,
     tsdata = tsdata,
     family = family,
     estimate_delta0 = estimate_delta0,
+    estimate_mu = estimate_mu,
     control = control,
     covs = covs,
     prior_negloglike = prior_negloglike
@@ -536,13 +540,13 @@ function( sem,
 #'        instead to return the model inputs and compiled TMB object without running;
 #' @param build_model Boolean indicating whether to return inputs to `MakeADFun`
 #' @param gmrf_parameterization Parameterization to use for the Gaussian Markov 
-#'        random field, where the default `separable` constructs a precision matrix
-#'        that must be full rank, `projection` constructs
+#'        random field, where the default `full` constructs a precision matrix
+#'        that must be full rank, `project` constructs
 #'        a full-rank and IID precision for variables over time and then projects
 #'        this using the inverse-cholesky of the precision (which allows a
 #'        rank-deficient GMRF, but does not allow \code{family = "fixed"}), 
 #'        `mvn_project` uses the dense variance for the 
-#'        full-rank component of the GMRF and then projects values to the rank-deficient
+#'        full-rank component of the distribution and then projects values to the rank-deficient
 #'        component (which allows \code{family = "fixed"} in any set of 
 #'        set of variables that is estimable, but is much slower), and `gmrf_project`
 #'        uses a full-rank precision for all variables that have non-zero exogenous
@@ -608,7 +612,7 @@ function( nlminb_loops = 1,
           quiet = FALSE,
           run_model = TRUE,
           build_model = TRUE,
-          gmrf_parameterization = c("gmrf_project", "separable", "projection", "mvn_project"),       
+          gmrf_parameterization = c("gmrf_project", "full", "project", "mvn_project"),       
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
@@ -889,7 +893,13 @@ function( object,
       # Simulate new fields
       newrep = obj$report( par=par_zr[,r] )
       newparfull = obj$env$parList()
-      Q_kk = newrep$Q_kk
+      if( "Q_kk" %in% names(newrep) ){
+        # gmrf_parameterization = "full"
+        Q_kk = newrep$Q_kk
+      }else{
+        # gmrf_parameterization = "gmrf_project"
+        Q_kk = newrep$Q_oo
+      }
       tmp = rmvnorm_prec( as.vector(newrep$delta_tj + newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
       #newcall = object$call
@@ -904,11 +914,14 @@ function( object,
       control$parameters = newparfull
       control$parameters$x_tj[] = tmp
       control$run_model = FALSE
-      newfit = dsem( sem = object$internal$sem,
-                     tsdata = object$internal$tsdata,
-                     family = object$internal$family,
-                     estimate_delta0 = object$internal$estimate_delta0,
-                     control = control )
+      newfit = dsem( 
+        sem = object$internal$sem,
+        tsdata = object$internal$tsdata,
+        family = object$internal$family,
+        estimate_delta0 = object$internal$estimate_delta0,
+        estimate_mu = object$internal$estimate_mu,
+        control = control 
+      )
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
       out[[r]] = obj$simulate( par_zr[,r] )$y_tj

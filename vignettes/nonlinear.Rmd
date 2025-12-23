@@ -3,6 +3,7 @@ title: "Nonlinear dynamics"
 author: "James Thorson"
 output: rmarkdown::html_vignette
 #output: rmarkdown::pdf_document
+bibliography: 'dsem_vignettes.bib'
 vignette: >
   %\VignetteIndexEntry{Nonlinear dynamics}
   %\VignetteEngine{knitr::rmarkdown}
@@ -78,11 +79,11 @@ sem = "
   logX3 -> X, 0, NA, 0.166
 
   # Variances
-  X <-> X, 0, NA, 0.001
+  X <-> X, 0, NA, 0
   logX <-> logX, 0, sd_logX
-  logX1 <-> logX1, 0, NA, 0.001
-  logX2 <-> logX2, 0, NA, 0.001
-  logX3 <-> logX3, 0, NA, 0.001
+  logX1 <-> logX1, 0, NA, 0
+  logX2 <-> logX2, 0, NA, 0
+  logX3 <-> logX3, 0, NA, 0
 
   # Main interactions
   logY -> logY, 1, NA, 1
@@ -99,11 +100,11 @@ sem = "
   logY3 -> Y, 0, NA, 0.166
 
   # Variances
-  Y <-> Y, 0, NA, 0.001
+  Y <-> Y, 0, NA, 0
   logY <-> logY, 0, sd_logY
-  logY1 <-> logY1, 0, NA, 0.001
-  logY2 <-> logY2, 0, NA, 0.001
-  logY3 <-> logY3, 0, NA, 0.001
+  logY1 <-> logY1, 0, NA, 0
+  logY2 <-> logY2, 0, NA, 0
+  logY3 <-> logY3, 0, NA, 0
 
   # Dummy constant
   ones <-> ones, 0, NA, 0.001

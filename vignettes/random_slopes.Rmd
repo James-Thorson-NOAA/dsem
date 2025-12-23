@@ -3,6 +3,7 @@ title: "Random slopes"
 author: "James Thorson"
 output: rmarkdown::html_vignette
 #output: rmarkdown::pdf_document
+bibliography: 'dsem_vignettes.bib'
 vignette: >
   %\VignetteIndexEntry{Random slopes}
   %\VignetteEngine{knitr::rmarkdown}
@@ -83,7 +84,8 @@ fit = dsem(
   estimate_delta0 = FALSE,
   control = dsem_control(
     quiet = TRUE,
-    use_REML = FALSE
+    use_REML = FALSE,
+    gmrf_parameterization = "full"
   )
 )
 ```

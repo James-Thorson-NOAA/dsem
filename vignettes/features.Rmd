@@ -3,6 +3,7 @@ title: "Demonstration of selected features"
 author: "James Thorson"
 output: rmarkdown::html_vignette
 #output: rmarkdown::pdf_document
+bibliography: 'dsem_vignettes.bib'
 vignette: >
   %\VignetteIndexEntry{Demonstration of selected features}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,6 +16,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 set.seed(101)
+start_time = Sys.time()
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
@@ -30,7 +32,7 @@ library(gridExtra)
 library(phylopath)
 ```
 
-`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure.   We here highlight a few features in particular.
+`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure [@thorson_dynamic_2024].   We here highlight a few features in particular.
 
 ## Comparison with linear models
 
@@ -71,9 +73,9 @@ simResp = apply(samples, MARGIN=3, FUN=as.vector)[which_use,]
 
 # Build and display DHARMa object
 res = DHARMa::createDHARMa(
-        simulatedResponse = simResp,
-        observedResponse = unlist(data)[which_use],
-        fittedPredictedResponse = fitResp )
+  simulatedResponse = simResp,
+  observedResponse = unlist(data)[which_use],
+  fittedPredictedResponse = fitResp )
 plot(res)
 ```
 
@@ -116,12 +118,15 @@ sem = "
 "
 tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
                "gwage","invest","capital")]
-fit = dsem( sem=sem,
-            tsdata = tsdata,
-            estimate_delta0 = TRUE,
-            control = dsem_control(
-              quiet = TRUE,
-              newton_loops = 0) )
+fit = dsem( 
+  sem = sem,
+  tsdata = tsdata,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    quiet = TRUE,
+    newton_loops = 0
+  ) 
+)
 ```
 
 This model could instead be specified using equation-and-lag notation, which makes the model structure more clear:
@@ -136,12 +141,15 @@ equations = "
 
 # Convert and run
 sem_equations = convert_equations(equations)
-fit = dsem( sem = sem_equations,
-            tsdata = tsdata,
-            estimate_delta0 = TRUE,
-            control = dsem_control(
-              quiet = TRUE,
-              newton_loops = 0) )
+fit = dsem( 
+  sem = sem_equations,
+  tsdata = tsdata,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    quiet = TRUE,
+    newton_loops = 0
+  ) 
+)
 ```
 
 We first demonstrate that `dsem` gives identical results to `dynlm`:
@@ -223,10 +231,9 @@ ggplot(data=m, aes(x=par, y=mean, col=method)) +
 
 ## Comparison with vector autoregressive models
 
-We next demonstrate that `dsem` gives similar results to a vector autoregressive (VAR) model.  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website (Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. URL: www.isleroyalewolf.org).
+We next demonstrate that `dsem` gives similar results to a vector autoregressive (VAR) model.  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website [@vucetich_population_2012] (URL: www.isleroyalewolf.org).
 
-This dataset was previously analyzed by in Chapter 14 of the User Manual for the R-package MARSS (Holmes, E. E., M. D. Scheuerell, and E. J. Ward (2023) Analysis of multivariate time-series using the MARSS package. Version 3.11.8. NOAA Fisheries,
-  Northwest Fisheries Science Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI: 10.5281/zenodo.5781847).
+This dataset was previously analyzed by in Chapter 14 of the User Manual for the R-package MARSS [@holmes_marss:_2012].
 
 Here, we compare fits using `dsem` with `dynlm`, as well as a vector autoregressive model package `vars`, and finally with `MARSS`.
 
@@ -242,23 +249,30 @@ sem = "
   moose -> moose, 1, arM
 "
 # initial first without delta0 (to improve starting values)
-fit0 = dsem( sem = sem,
-             tsdata = data,
-             estimate_delta0 = FALSE,
-             control = dsem_control(
-               quiet = FALSE,
-               getsd = FALSE) )
+fit0 = dsem( 
+  sem = sem,
+  tsdata = data,
+  estimate_delta0 = FALSE,
+  control = dsem_control(
+    quiet = FALSE,
+    getsd = FALSE
+  ) 
+)
 
 #
 parameters = fit0$obj$env$parList()
   parameters$delta0_j = rep( 0, ncol(data) )
 
 # Refit with delta0
-fit = dsem( sem = sem,
-            tsdata = data,
-            estimate_delta0 = TRUE,
-            control = dsem_control( quiet=TRUE,
-                                    parameters = parameters ) )
+fit = dsem( 
+  sem = sem,
+  tsdata = data,
+  estimate_delta0 = TRUE,
+  control = dsem_control( 
+    quiet=TRUE,
+    parameters = parameters 
+  ) 
+)
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #
@@ -370,10 +384,15 @@ sem = "
 "
 
 # Fit
-fit = dsem( sem = sem,
-            tsdata = Z,
-            family = family,
-            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
+fit = dsem( 
+  sem = sem,
+  tsdata = Z,
+  family = family,
+  control = dsem_control(
+    use_REML=FALSE, 
+    quiet=TRUE
+  ) 
+)
 ParHat = fit$obj$env$parList()
 # summary( fit )
 ```
@@ -551,10 +570,14 @@ sem = "
 "
 
 # Fit model
-fit = dsem( sem = sem,
-            tsdata = Z,
-            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
-# summary( fit )
+fit = dsem( 
+  sem = sem,
+  tsdata = Z,
+  control = dsem_control(
+    use_REML=FALSE, 
+    quiet=TRUE
+  ) 
+)
 
 #
 library(phylopath)
@@ -592,4 +615,10 @@ ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
 
 Again, these results are further discussed in the paper describing dsem.
 
+```{r, include = FALSE, warning=FALSE, message=FALSE}
+run_time = Sys.time() - start_time
+```
+Runtime for this vignette: `r paste( round(unclass(run_time),2), attr(run_time, "units") )`
+
+# Works cited
 

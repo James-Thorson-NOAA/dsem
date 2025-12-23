@@ -267,7 +267,7 @@ out = dsem(
 )
 
 # Extract covariance
-Sigma1 = solve(as.matrix(out$obj$report()$Q_kk))
+Sigma1 = solve(as.matrix(out$obj$report()$Q_oo))
 plot( x=1:10, y = diag(Sigma1), xlab="time", 
       ylab="Marginal variance", type="l", 
       ylim = c(0,max(diag(Sigma1))))
@@ -314,7 +314,7 @@ out = dsem(
 )
 
 # Extract covariance
-Sigma2 = solve(as.matrix(out$obj$report()$Q_kk))
+Sigma2 = solve(as.matrix(out$obj$report()$Q_oo))
 plot( x=1:10, y = diag(Sigma2), xlab="time", 
       ylab="Marginal variance", type="l", 
       ylim = c(0,max(diag(Sigma1))))
@@ -353,7 +353,7 @@ out = dsem(
   control = dsem_control(
     run_model = FALSE, 
     quiet = TRUE,
-    gmrf_parameterization = "projection"
+    gmrf_parameterization = "project"
   )
 )
 ```
@@ -373,7 +373,7 @@ eigen(Q_kk)$values
 
 where this shows that the precision has a rank of 10 while being a $30 \times 30$ matrix.  We therefore cannot evaluate the probability density of state matrix $\B X$ using this precision matrix (i.e., the log-determinant is not defined).
 
-To address this circumstance, we can switch to using `gmrf_parameterization = "projection"`.  This evaluates the probability density of a set of innovations $\B X^*$ that follow a unit variance:
+To address this circumstance, we can switch to using `gmrf_parameterization = "project"`.  This evaluates the probability density of a set of innovations $\B X^*$ that follow a unit variance:
 
 $$
 \PL{vec}(\B X)^* \sim \PL{GMRF}(\B{0, I})

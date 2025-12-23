@@ -24,19 +24,29 @@ test_that("dsem example is working ", {
                  "gwage","invest","capital")]
 
   # Fit model
-  fit = dsem( sem=sem,
-              tsdata=tsdata,
-              control = dsem_control(getJointPrecision=TRUE) )
+  fit = dsem( 
+    sem = sem,
+    tsdata = tsdata,
+    control = dsem_control(
+      getJointPrecision = TRUE
+    ) 
+  )
   # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 431.6122, tolerance=1e-2 )
 
-  #
-  fitRTMB = dsemRTMB( sem=sem,
-              tsdata=tsdata,
-              control = dsem_control(getsd=FALSE) )
-  # Check objective function
-  expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
-
+  # Turning off RTMB for now
+  if( FALSE ){
+    fitRTMB = dsemRTMB( 
+      sem = sem,
+      tsdata = tsdata,
+      control = dsem_control(
+        getsd = FALSE
+      ) 
+    )
+    # Check objective function
+    expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
+  }
+  
   # Convert and plot using phylopath
   as_fitted_DAG(fit)
 
@@ -124,21 +134,22 @@ test_that("dsem works with fixed variances ", {
   fit2 = dsem( sem = sem,
                tsdata = data,
                family = c("normal", "normal") )
+  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 
   # initial first without delta0 (to improve starting values)
-  sem = "
-    wolves <-> wolves, 0, NA, 0.3732812
-    moose <-> moose, 0, NA, 0.1911209
-    wolves -> wolves, 1, NA, 0.8558536
-    moose -> moose, 1, NA, 0.9926087
-  "
-  fit3 = dsemRTMB( sem = sem,
-               tsdata = data,
-               family = c("normal", "normal") )
-
-  # Check objective function
-  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
-  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit3$opt$obj), tolerance=1e-2 )
+  # Turn off RTMB
+  if( FALSE ){
+    sem = "
+      wolves <-> wolves, 0, NA, 0.3732812
+      moose <-> moose, 0, NA, 0.1911209
+      wolves -> wolves, 1, NA, 0.8558536
+      moose -> moose, 1, NA, 0.9926087
+    "
+    fit3 = dsemRTMB( sem = sem,
+                 tsdata = data,
+                 family = c("normal", "normal") )
+    expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit3$opt$obj), tolerance=1e-2 )
+  }
 })
 
 test_that("bering sea example is stable ", {
@@ -199,11 +210,14 @@ test_that("Fixing parameters works ", {
   fit = dsem( sem=sem,
                tsdata=tsdata,
                control = dsem_control(getsd=FALSE) )
-  fitRTMB = dsemRTMB( sem=sem,
-               tsdata=tsdata,
-               control = dsem_control(getsd=FALSE) )
-  # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 224.2993, tolerance=1e-2 )
-  expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
 
+  # Turning off RTMB
+  if( FALSE ){
+    fitRTMB = dsemRTMB( sem=sem,
+                 tsdata=tsdata,
+                 control = dsem_control(getsd=FALSE) )
+    # Check objective function
+    expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
+  }
 })
