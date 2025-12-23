@@ -23,35 +23,6 @@
 #' @return
 #' An object (list) of class `dsem`, fitted using RTMB
 #'
-#' @examples
-#' # Define model
-#' sem = "
-#'   # Link, lag, param_name
-#'   cprofits -> consumption, 0, a1
-#'   cprofits -> consumption, 1, a2
-#'   pwage -> consumption, 0, a3
-#'   gwage -> consumption, 0, a3
-#'   cprofits -> invest, 0, b1
-#'   cprofits -> invest, 1, b2
-#'   capital -> invest, 0, b3
-#'   gnp -> pwage, 0, c2
-#'   gnp -> pwage, 1, c3
-#'   time -> pwage, 0, c1
-#' "
-#'
-#' # Load data
-#' data(KleinI, package="AER")
-#' TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
-#' tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
-#'                "gwage","invest","capital")]
-#'
-#' # Fit model
-#' fit = dsemRTMB( sem=sem,
-#'             tsdata = tsdata,
-#'             estimate_delta0 = TRUE,
-#'             control = dsem_control(quiet=TRUE) )
-#'
-#' @export
 dsemRTMB <-
 function( sem,
           tsdata,
@@ -62,6 +33,35 @@ function( sem,
           covs = colnames(tsdata) ){
   start_time = Sys.time()
 
+  #'
+  #' @examples
+  #' # Define model
+  #' sem = "
+  #'   # Link, lag, param_name
+  #'   cprofits -> consumption, 0, a1
+  #'   cprofits -> consumption, 1, a2
+  #'   pwage -> consumption, 0, a3
+  #'   gwage -> consumption, 0, a3
+  #'   cprofits -> invest, 0, b1
+  #'   cprofits -> invest, 1, b2
+  #'   capital -> invest, 0, b3
+  #'   gnp -> pwage, 0, c2
+  #'   gnp -> pwage, 1, c3
+  #'   time -> pwage, 0, c1
+  #' "
+  #'
+  #' # Load data
+  #' data(KleinI, package="AER")
+  #' TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
+  #' tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
+  #'                "gwage","invest","capital")]
+  #'
+  #' # Fit model
+  #' fit = dsemRTMB( sem=sem,
+  #'             tsdata = tsdata,
+  #'             estimate_delta0 = TRUE,
+  #'             control = dsem_control(quiet=TRUE) )
+  
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
   if( control$gmrf_parameterization=="projection" ){

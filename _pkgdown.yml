@@ -28,7 +28,6 @@ reference:
     Core tools for model fitting and diagnostics.
   contents:
   - dsem
-  - dsemRTMB
   - dsem_control
   - stepwise_selection
 

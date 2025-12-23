@@ -92,5 +92,4 @@ fit = dsemRTMB( sem=sem,
             tsdata = tsdata,
             estimate_delta0 = TRUE,
             control = dsem_control(quiet=TRUE) )
-
 }
