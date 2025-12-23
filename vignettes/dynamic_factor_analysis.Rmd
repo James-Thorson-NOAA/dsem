@@ -102,9 +102,9 @@ plot_states = function( out,
 
 ## Full-rank covariance using DSEM 
 
-In DSEM syntax, we can first fit a saturated (full-covariance) model using the argument `covs`.  However, we do not do so here to avoid bloat in the vignettes:
+In DSEM syntax, we can first fit a saturated (full-covariance) model, while setting low starting values for off-diagonal covariances (for numerical stability):
 
-```{r, eval=FALSE, echo=TRUE, message=FALSE, fig.width=7, fig.height=7, warning=FALSE}
+```{r, eval=TRUE, echo=TRUE, message=FALSE, fig.width=7, fig.height=7, warning=FALSE}
 # Add factors to data
 tsdata = ts( cbind(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]), start=1978)
 
@@ -119,16 +119,35 @@ sem = "
   EBays -> EBays, 1, NA, 1
   PSnd -> PSnd, 1, NA, 1
   HC -> HC, 1, NA, 1
+
+  # Variances
+  SJF <-> SJF, 0, g11, 1
+  SJI <-> SJI, 0, g22, 1
+  EBays <-> EBays, 0, g33, 1
+  PSnd <-> PSnd, 0, g44, 1
+  HC <-> HC, 0, g55, 1
+  
+  # Covariances
+  SJF <-> SJI, 0, g12, 0.01
+  SJF <-> EBays, 0, g13, 0.01
+  SJF <-> PSnd, 0, g14, 0.01
+  SJF <-> HC, 0, g15, 0.01
+  SJI <-> EBays, 0, g23, 0.01
+  SJI <-> PSnd, 0, g24, 0.01
+  SJI <-> HC, 0, g25, 0.01
+  EBays <-> PSnd, 0, g34, 0.01
+  EBays <-> HC, 0, g35, 0.01
+  PSnd <-> HC, 0, g45, 0.01
 "
 
 # Initial fit
 mydsem0 = dsem( 
   tsdata = tsdata,
-  covs = c("SJF, SJI, EBays, PSnd, HC"),
   sem = sem,
   family = rep("normal", 5),
   control = dsem_control( 
-    run_model = FALSE, 
+    run_model = FALSE,
+    gmrf_parameterization = "full", 
     quiet = TRUE
   ) 
 )   
@@ -140,12 +159,16 @@ map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
 #
 mydsem_full = dsem( 
   tsdata = tsdata,
-  covs = c("SJF, SJI, EBays, PSnd, HC"),
   sem = sem,
   family = rep("normal", 5),
   control = dsem_control( 
     quiet = TRUE,
-    map = map  
+    map = map,
+    #getsd = TRUE,
+    #newton_loops = 0,
+    #nlminb_loops = 1,
+    #extra = FALSE,
+    gmrf_parameterization = "full"
   )
 )
 
@@ -156,7 +179,7 @@ plot_states( mydsem_full )
 
 ## Reduced-rank factor model with measurement errors
 
-Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires us to switch to `gmrf_parameterization = "project"`, so that we can fit a rank-deficient Gaussian Markov random field:
+Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires fitting a rank-deficient Gaussian Markov random field, which we do using the default `gmrf_parameterization = "gmrf_project"`, which fits a full-rank GMRF to variables with non-zero exogenous variance (i.e., factors), and then projects determinstically to the variables with zero exogenous variance (i.e., species-specific indices):
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
@@ -206,8 +229,7 @@ mydsem0 = dsem(
   estimate_delta0 = TRUE,
   control = dsem_control( 
     quiet = TRUE,
-    run_model = FALSE,
-    gmrf_parameterization = "project" 
+    run_model = FALSE
   ) 
 )
 
@@ -230,9 +252,7 @@ mydfa = dsem(
   control = dsem_control( 
     quiet = TRUE,
     map = map,
-    gmrf_parameterization = "project",
-    use_REML = TRUE,
-    #profile = "delta0_j",
+    use_REML = TRUE
   ) 
 )
 ```
