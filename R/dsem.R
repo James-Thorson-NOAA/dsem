@@ -273,7 +273,7 @@ function( sem,
   #}
 
   # Error check
-  if( any(subset(ram, ram$heads==2)$start==0) & (options[1]==0) ){
+  if( any(subset(ram, ram$heads==2 & !is.na(ram$start))$start==0) & (options[1]==0) ){
     stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
   }
 
