@@ -80,7 +80,7 @@ sem = "
 "
 ```
 
-We then fit this model
+We then fit this model using `gmrf_parameterization = "full"`
 
 ```{r fit_dsem, echo=TRUE, message=FALSE}
 fit = dsem(
@@ -89,11 +89,10 @@ fit = dsem(
   estimate_mu = c("Daphnia","Leptodora","Cryptomonas","alpha","beta"),
   control = dsem_control(
     use_REML = TRUE,  
-    getsd = TRUE,
-    getJointPrecision = TRUE, 
     newton_loops = 0,
-    gmrf_parameterization = "full",
-    quiet = TRUE
+    gmrf_parameterization = "full", 
+    quiet = TRUE,
+    extra = FALSE
   )
 )
 ```

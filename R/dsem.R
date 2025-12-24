@@ -272,6 +272,11 @@ function( sem,
   #  options[1] = 0
   #}
 
+  # Error check
+  if( any(subset(ram, ram$heads==2)$start==0) & (options[1]==0) ){
+    stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
+  }
+
   #
   Data = list( 
     "options" = options,
@@ -388,7 +393,7 @@ function( sem,
     random = Random,
     map = Map,
     profile = control$profile,
-    DLL="dsem",
+    DLL = "dsem",
     silent = TRUE 
   )
   if(control$quiet==FALSE) list_parameters(obj)
