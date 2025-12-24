@@ -8,11 +8,11 @@ articles:
   contents:
   - model-description
   - features
-  - dynamic_factor_analysis
   - spatial_diffusion
   - random_slopes
   - nonlinear
   - web_only/statistical_interactions
+  - web_only/dynamic_factor_analysis
 
 reference:
 - title: internal
@@ -22,6 +22,7 @@ reference:
   - list_parameters
   - parse_path
   - read_model
+  - dsemRTMB
 
 - title: 'Specification and fitting'
   desc: |

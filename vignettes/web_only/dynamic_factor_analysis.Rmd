@@ -7,7 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Dynamic factor analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-bibliography: 'dsem_vignettes.bib'
+bibliography: '../dsem_vignettes.bib'
 ---
 
 ```{r, include = FALSE, warning=FALSE, message=FALSE}
@@ -48,7 +48,7 @@ set.seed(123)
 
 We first illustrate a DFA model using two factors, fitted using MARSS:
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r fit_MARSS, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Load data
 dat <- t(scale(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]))
 
@@ -63,19 +63,19 @@ fit_MARSS <- MARSS(
 ```
 
 We can then plot the estimated factors (latent variables):
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
+```{r plot_MARSS, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
 # Plots states using all data
 plot(fit_MARSS, plot.type="xtT")
 ```
 
 And the estimated predictor for measurements (manifest variables):
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r plot_states_MARSS, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Plot expectation for data using all data
 plot(fit_MARSS, plot.type="fitted.ytT")
 ```
 We also define a custom function to plot states:
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r define_plot_states, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 plot_states = function( out,
                         vars=1:ncol(out$tmb_inputs$data$y_tj) ){
   # 
@@ -102,10 +102,10 @@ plot_states = function( out,
 
 ## Full-rank covariance using DSEM 
 
-In DSEM syntax, we can first fit a saturated (full-covariance) model, while setting low starting values for off-diagonal covariances (for numerical stability):
+In DSEM syntax, we can first fit a saturated (full-covariance) model.  However, we turn this off for vignette stability:
 
-```{r, eval=TRUE, echo=TRUE, message=FALSE, fig.width=7, fig.height=7, warning=FALSE}
-# Add factors to data
+```{r fit_dsem_fullrank, eval=FALSE, echo=TRUE, message=FALSE, fig.width=7, fig.height=7, warning=FALSE}
+# Make data into ts object
 tsdata = ts( cbind(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]), start=1978)
 
 # Scale and center (matches with MARSS does when fitting a DFA)
@@ -164,10 +164,6 @@ mydsem_full = dsem(
   control = dsem_control( 
     quiet = TRUE,
     map = map,
-    #getsd = TRUE,
-    #newton_loops = 0,
-    #nlminb_loops = 1,
-    #extra = FALSE,
     gmrf_parameterization = "full"
   )
 )
@@ -181,7 +177,7 @@ plot_states( mydsem_full )
 
 Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires fitting a rank-deficient Gaussian Markov random field, which we do using the default `gmrf_parameterization = "gmrf_project"`, which fits a full-rank GMRF to variables with non-zero exogenous variance (i.e., factors), and then projects determinstically to the variables with zero exogenous variance (i.e., species-specific indices):
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r fit_dsem_lowrank, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
 tsdata = harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]
 newcols = array( NA,
@@ -227,8 +223,10 @@ mydsem0 = dsem(
   sem = sem,
   family = c( rep("normal",5), rep("fixed",n_factors) ),
   estimate_delta0 = TRUE,
+  estimate_mu = vector(),
   control = dsem_control( 
     quiet = TRUE,
+    #gmrf_parameterization = "full",
     run_model = FALSE
   ) 
 )
@@ -240,31 +238,30 @@ map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
 # Fix factors to have initial value, and variables to not
 map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
 
-# Fix variables to have no stationary mean except what's predicted by initial value
-map$mu_j = factor( rep(NA,ncol(tsdata)) )
-
 # profile "delta0_j" to match MARSS (which treats initial condition as unpenalized random effect)
 mydfa = dsem( 
   tsdata = tsdata,
   sem = sem,
   family = c( rep("normal",5), rep("fixed",n_factors) ),
   estimate_delta0 = TRUE,
+  estimate_mu = vector(),
   control = dsem_control( 
     quiet = TRUE,
     map = map,
+    #gmrf_parameterization = "full",
     use_REML = TRUE
   ) 
 )
 ```
 
 We again plot the estimated latent variables
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
+```{r plot_dsem_lowrank, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
 # Plot estimated factors
 plot_states( mydfa, vars=5+seq_len(n_factors) )
 ```
 
 and the estimated predictor for manifest variables
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r plot_states_lowrank, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Plot estimated variables
 plot_states( mydfa, vars=1:5 )
 ```
@@ -273,7 +270,7 @@ This results in similar (but not identical) factor values using MARSS and DSEM. 
 
 To further explore, we can modify the MARSS DFA to eliminate the prior on initial conditions, based on help from Dr. Eli Holmes.  This involves specifying:
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r fit_MARSS_nopen, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Extract internal settings
 modmats <-  summary(fit_MARSS$model, silent=TRUE)
 
@@ -295,14 +292,14 @@ fit_MARSS2 = MARSS(
 ```
 
 These have estimated time-series that are more similar to those from DSEM
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
+```{r plot_MARSS_nopen, echo=TRUE, message=FALSE, fig.width=7, fig.height=3.5}
 # Plots states using all data
 plot(fit_MARSS2, plot.type="xtT")
 ```
 
 We can now compare the three options in terms of the fitted log-likelihood:
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r compare_likelihood, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Compare likelihood for MARSS and DSEM
 Table = c( "MARSS" = logLik(fit_MARSS), 
            "DSEM" = logLik(mydfa), 
@@ -311,7 +308,7 @@ knitr::kable( Table, digits=3)
 ```
 which confirms that the MARSS model without a penalty on initial conditions results in the same likelihood as DSEM.  Finally, we can also compare the three options in terms of estimated loadings:
 
-```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
+```{r compare_loadings, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 Table = cbind( "MARSS" = as.vector(fit_MARSS$par$Z),
        "DSEM" = grab(mydfa$opt$par,"beta_z"),
        "MARSS_no_pen" = as.vector(fit_MARSS2$par$Z) )
@@ -321,7 +318,7 @@ knitr::kable( Table, digits=3)
 
 The estimating loadings are similar using DSEM and the MARSS model without initial penalty, except with label switching (where some factors and loadings can be multiplied by -1 with no change in the model):
 
-```{r, include = FALSE, warning=FALSE, message=FALSE}
+```{r run_time, include = FALSE, warning=FALSE, message=FALSE}
 run_time = Sys.time() - start_time
 ```
 Runtime for this vignette: `r paste( round(unclass(run_time),2), attr(run_time, "units") )`

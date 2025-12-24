@@ -257,7 +257,7 @@ function( sem,
     project_k = sapply( 
       seq_len(prod(dim(tsdata))),
       FUN = function(k){
-        tmp = subset( ram, (heads==2) & (to==k) & (from==k) )
+        tmp = subset( ram, (ram$heads==2) & (ram$to==k) & (ram$from==k) )
         has_zero_var = all( (tmp$parameter==0) & (tmp$start==0) )
         return(has_zero_var)
       } 

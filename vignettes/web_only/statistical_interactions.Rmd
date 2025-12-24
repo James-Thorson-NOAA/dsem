@@ -92,6 +92,7 @@ fit = dsem(
     getsd = TRUE,
     getJointPrecision = TRUE, 
     newton_loops = 0,
+    gmrf_parameterization = "full",
     quiet = TRUE
   )
 )
