@@ -21,7 +21,7 @@ start_time = Sys.time()
 #  setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem)'); devtools::build_rmd("vignettes/spatial_diffusion.Rmd")
 ```
 
-## Random slopes models
+## Statistical interactions
 
 `dsem` can be specified to estimate statistical interactions, where the product of two variables then as an additive impact on a response.  
 

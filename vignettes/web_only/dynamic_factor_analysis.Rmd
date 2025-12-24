@@ -175,7 +175,7 @@ plot_states( mydsem_full )
 
 ## Reduced-rank factor model with measurement errors
 
-Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires fitting a rank-deficient Gaussian Markov random field, which we do using the default `gmrf_parameterization = "gmrf_project"`, which fits a full-rank GMRF to variables with non-zero exogenous variance (i.e., factors), and then projects determinstically to the variables with zero exogenous variance (i.e., species-specific indices):
+Next, we can specify two factors factors while eliminating additional process error and estimating measurement errors.  This requires fitting a rank-deficient Gaussian Markov random field, which we do using `gmrf_parameterization = "project"`:
 
 ```{r fit_dsem_lowrank, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # Add factors to data
