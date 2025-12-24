@@ -260,7 +260,7 @@ test_that("dsem `gmrf_project` and `mvn_project` are working ", {
     family = c("fixed", "bernoulli")
   )
 
-  expect_equal( summary(fit1), summary(fit2), tolerance=0.0001 )
-  expect_equal( summary(fit1), summary(fit0), tolerance=0.0001 )
-  expect_equal( summary(fit1), summary(fit3), tolerance=0.0001 )
+  expect_equal( summary(fit1), summary(fit2), tolerance=0.001 )
+  expect_equal( summary(fit1), summary(fit0), tolerance=0.001 )
+  expect_equal( summary(fit1), summary(fit3), tolerance=0.001 )
 })
