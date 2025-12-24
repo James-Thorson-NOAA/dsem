@@ -226,7 +226,7 @@ mydsem0 = dsem(
   estimate_mu = vector(),
   control = dsem_control( 
     quiet = TRUE,
-    #gmrf_parameterization = "full",
+    gmrf_parameterization = "project",
     run_model = FALSE
   ) 
 )
@@ -248,7 +248,7 @@ mydfa = dsem(
   control = dsem_control( 
     quiet = TRUE,
     map = map,
-    #gmrf_parameterization = "full",
+    gmrf_parameterization = "project",
     use_REML = TRUE
   ) 
 )
