@@ -116,7 +116,7 @@ NULL
 #'
 #' @details
 #' records of the Pacific Decadal Oscillation by year (row) and month 
-#' (Jan-Dec, columns), downloaded from JISAO \url{http://research.jisao.washington.edu/pdo/PDO.latest.txt} 
+#' (Jan-Dec, columns), downloaded from JISAO 
 #' on Nov. 6, 2018, as analyzed previously by Thorson et al. (2020)
 #'
 #' @references
