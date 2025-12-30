@@ -81,7 +81,7 @@ The user also specifies a distribution for measurement errors for each variable 
 
 The DSEM defines a generalized linear mixed model (GLMM) for a $T \times J$ matrix $\mathbf{Y}$, where $y_{tj}$ is the measurement in time $t$ for variable $j$.  This measurement matrix can include missing values $y_{tj} = \PL{NA}$, and it will estimate a $T \times J$ matrix of latent states $\mathbf{X}$ for all modeled times and variables, where $\mathbf{x}_t$ is the vector of states in time $t$ and $\text{vec}(\mathbf{X})$ is a $TJ$ length vector constructed by stacking columns.  DSEM also estimates a $T \times J$ matrix of process errors $\mathbf{E}$ where $\mathbf{\epsilon}_t$ is the vector of process errors in time $t$, and $\text{vec}(\mathbf{E})$ is the $TJ$ vector of stacked columns. 
 
-DSEM can be written in vector-autoregression (VAR) notation as a VAR model of arbitrary lag, from lag-0 upwards:
+DSEM can be written in structural vector-autoregressive (SVAR) notation as a SVAR model of arbitrary lag, from lag-0 upwards:
 
 $$
 \mathbf{x}_t = \underbrace{\mathbf{P}_0 \mathbf{x}_t}_{\text{Simultaneous effects}} + 
@@ -90,7 +90,7 @@ $$
 \underbrace{...}_{\text{Higher-order lags}} + 
 \mathbf{\epsilon}_t
 $$
-where $\mathbf{P}_0$ is the $J \times J$ matrix of simultaneous interactions, $\mathbf{P}_1$ and $\mathbf{P}_2$ are interactions occurring at lag-1 and lag-2, respectively, and it can also include higher-order lags (not shown here).  Additionally, $\mathbf{\epsilon}_t$ is exogenous covariation in time $t$:
+where $\mathbf{P}_0$ is the $J \times J$ matrix of simultaneous interactions (the inclusion of which distinguishes an SVAR from a VAR), $\mathbf{P}_1$ and $\mathbf{P}_2$ are interactions occurring at lag-1 and lag-2, respectively, and it can also include higher-order lags (not shown here).  Additionally, $\mathbf{\epsilon}_t$ is exogenous covariation in time $t$:
 
 $$
 \mathbf{\epsilon}_t \sim \text{MVN}(\mathbf{0,GG}^T)
