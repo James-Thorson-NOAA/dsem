@@ -36,7 +36,7 @@ library(phylopath)
 
 ## Comparison with linear models
 
-We first show that `dsem` is identical to a linear model.  To do so, we simulate data with a single response and single predictor:
+We first show that `dsem` can be specified such that it collapses to a standard linear model.  To do so, we simulate data with a single response and single predictor:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # simulate normal distribution
@@ -48,9 +48,11 @@ data = data.frame(x=x, y=y)
 Lm = lm( y ~ x, data=data )
 
 # Fit as DSEM
-fit = dsem( sem = "x -> y, 0, beta",
-            tsdata = ts(data),
-            control = dsem_control(quiet=TRUE) )
+fit = dsem( 
+  sem = "x -> y, 0, beta",
+  tsdata = ts(data),
+  control = dsem_control(quiet=TRUE) 
+)
 
 # Display output
 m1 = rbind(
@@ -91,6 +93,61 @@ plot( x=res0, y=qnorm(res[,2]),
       xlab="linear model residuals", ylab="dsem residuals" )
 abline(a=0,b=1)
 ```
+
+## Comparison with generalized linear models
+
+Next, we show that DSEM can be specified to collapse to a standard generalized linear model.  However, this requires first understanding a bit more about how DSEM treats both measurement and process errors.
+
+In particular, DSEM is capable of fitting a state-space model that incorporates two types of errors:
+
+1.  Process errors, i.e., exogenous variation in a variable, beyond was is explained by covariates (paths from other variables);
+2.  Measurement errors, i.e., variation in a measurement that follows a specified distribution (e.g., Gaussian, Poisson, etc.), where the variance of measurement errors is then typically estimated;
+
+However, DSEM can then collapse this state-space model to:
+
+- Measurement error model, by turning off process errors.  This is done by fixing the exogenous variation for a given variable at zero (e.g., `X <-> X, 0, NA, 0` fixes the exogenous variation for variable X at zero);
+- Process-error model, by turning off measurement errors by using `family = "fixed"`).  
+
+A generalized linear mixed model is then equivalent to a state-space model where:
+
+- covariates have no measurement errors;
+- the response has no process errors, such that residuals are attributed purely to measurement errors.
+
+We show this equivalence by simulating counts from a log-linked Poisson GLM, and fitting it using `dsem` and `glm`
+
+```{r}
+# Simulate a log-linked Poisson GLM
+x = rnorm(100)
+p = 1 + 0.8 * x
+y = rpois( length(x), lambda = exp(p) )
+data = data.frame(x=x, y=y)
+
+# Fit as generalized linear model
+Glm = glm( y ~ x, data=data, family = poisson() )
+
+# Define zero process errors (only process errors) in response y
+sem = "
+  x -> y, 0, beta
+  y <-> y, 0, NA, 0
+"
+
+# Fit as DSEM
+fit = dsem( 
+  sem = sem,
+  tsdata = ts(data),
+  family = c("fixed","poisson"),
+  control = dsem_control(quiet=TRUE) 
+)
+
+# Display output
+m1 = rbind(
+  "glm" = summary(Glm)$coef[2,1:2],
+  "dsem" = summary(fit)[1,9:10]
+)
+knitr::kable( m1, digits=3)
+```
+
+We note that this model combines zero-measurement errors for predictor `x` with zero-process errors for response `y`. This combination requires `dsem` version 2.0.0 or later, using the new default option `dsem_control( gmrf_parameterization = "gmrf_project")`.  In this GLM example, `gmrf_parameterization = "gmrf_project"` first calculates a full-rank GMRF for covariate `x` and then projects it to response `y` using a conditional prediction that has reduced rank.  Detecting full-rank vs. reduced-rank then occurs "behind the scenes"; this option should be fast while allowing many combinations of turned-off process and measurement errors, but remains somewhat experimental.  
 
 ## Comparison with dynamic linear models
 
