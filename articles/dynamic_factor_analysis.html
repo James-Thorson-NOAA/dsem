@@ -6,11 +6,6 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Dynamic factor analysis • dsem</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
-<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
-<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="icon" sizes="any" href="../favicon.ico">
-<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -25,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +63,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/HEAD/vignettes/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/dynamic_factor_analysis.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/vignettes/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/dynamic_factor_analysis.Rmd</code></a></small>
       <div class="d-none name"><code>dynamic_factor_analysis.Rmd</code></div>
     </div>
 
@@ -87,10 +82,8 @@ package <span class="citation">(Holmes, Ward, and Wills 2012)</span>,
 using data that are provided as an example in the MARSS package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'dsem' was built under R version 4.5.2</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://atsa-es.github.io/MARSS/" class="external-link">MARSS</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'ggplot2' was built under R version 4.5.2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span> <span class="va">harborSealWA</span>, package<span class="op">=</span><span class="st">"MARSS"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define helper function</span></span>
@@ -122,14 +115,14 @@ MARSS:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plots states using all data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_MARSS</span>, plot.type<span class="op">=</span><span class="st">"xtT"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="672"></p>
 <pre><code><span><span class="co">#&gt; plot type = xtT Estimated states</span></span></code></pre>
 <p>And the estimated predictor for measurements (manifest
 variables):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot expectation for data using all data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_MARSS</span>, plot.type<span class="op">=</span><span class="st">"fitted.ytT"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="672"></p>
 <pre><code><span><span class="co">#&gt; plot type =  fitted.ytT  Observations with fitted values</span></span></code></pre>
 <p>We also define a custom function to plot states:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -289,12 +282,12 @@ can fit a rank-deficient Gaussian Markov random field:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot estimated factors</span></span>
 <span><span class="fu">plot_states</span><span class="op">(</span> <span class="va">mydfa</span>, vars<span class="op">=</span><span class="fl">5</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="672"></p>
 <p>and the estimated predictor for manifest variables</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot estimated variables</span></span>
 <span><span class="fu">plot_states</span><span class="op">(</span> <span class="va">mydfa</span>, vars<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span> <span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="672"></p>
 <p>This results in similar (but not identical) factor values using MARSS
 and DSEM. In particular, DSEM has higher variance in early years. This
 likely arises because the default MARSS implementation of DFA includes a
@@ -331,7 +324,7 @@ DSEM</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plots states using all data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit_MARSS2</span>, plot.type<span class="op">=</span><span class="st">"xtT"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" width="672"></p>
+<p><img src="dynamic_factor_analysis_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="672"></p>
 <pre><code><span><span class="co">#&gt; plot type = xtT Estimated states</span></span></code></pre>
 <p>We can now compare the three options in terms of the fitted
 log-likelihood:</p>
@@ -386,7 +379,7 @@ compare the three options in terms of estimated loadings:</p>
 </tr>
 <tr class="even">
 <td align="left">Z.21</td>
-<td align="right">-0.440</td>
+<td align="right">-0.439</td>
 <td align="right">0.320</td>
 <td align="right">0.332</td>
 </tr>
@@ -422,7 +415,7 @@ compare the three options in terms of estimated loadings:</p>
 </tr>
 <tr class="even">
 <td align="left">Z.42</td>
-<td align="right">-0.079</td>
+<td align="right">-0.078</td>
 <td align="right">-0.128</td>
 <td align="right">-0.095</td>
 </tr>

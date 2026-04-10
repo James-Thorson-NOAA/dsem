@@ -300,14 +300,14 @@ royale.model.1 <- list(
   U = "zero"
 )
 kem.1 <- MARSS(z.royale.dat, model = royale.model.1)
-#> Success! abstol and log-log tests passed at 16 iterations.
+#> Success! algorithm run for 15 iterations. abstol and log-log tests passed.
 #> Alert: conv.test.slope.tol is 0.5.
 #> Test with smaller values (<0.1) to ensure convergence.
 #> 
 #> MARSS fit is
 #> Estimation method: kem 
 #> Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001
-#> Estimation converged in 16 iterations. 
+#> Algorithm ran 15 (=minit) iterations and convergence was reached. 
 #> Log-likelihood: -3.21765 
 #> AIC: 22.4353   AICc: 23.70964   
 #>  

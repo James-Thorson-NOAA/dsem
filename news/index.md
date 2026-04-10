@@ -1,17 +1,5 @@
 # Changelog
 
-## dsem 2.0.0
-
-- Add option to specify a path based fixed at another variable
-- Renamed `gmrf_parameterization = "conditional_krig"` as
-  `gmrf_parameterization = "mvn_project"` and confirmed it in simple
-  case
-- Fixed bug where `predict` for `type="link"` was pulling `x_tj` rather
-  than `z_tj` and therefore was missing the initial conditions, mean
-  value, and only worked for `gmrf_parameterization = "separable"`
-- Add `stabilize_Q` option to `dsem_control`, adding a diagonal
-  component to t(Gamma)\*Gamma to ensure it’s PD
-
 ## dsem 1.7.0
 
 CRAN release: 2025-09-16

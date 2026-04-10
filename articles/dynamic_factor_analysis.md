@@ -13,10 +13,8 @@ package.
 
 ``` r
 library(dsem)
-#> Warning: package 'dsem' was built under R version 4.5.2
 library(MARSS)
 library(ggplot2)
-#> Warning: package 'ggplot2' was built under R version 4.5.2
 data( harborSealWA, package="MARSS")
 
 # Define helper function
@@ -248,8 +246,8 @@ plot_states( mydfa, vars=1:5 )
 This results in similar (but not identical) factor values using MARSS
 and DSEM. In particular, DSEM has higher variance in early years. This
 likely arises because the default MARSS implementation of DFA includes a
-penalty of the initial state $`\mathbf{x}_0`$ with mean zero and
-variance of $`5\mathbf{I}`$. This term presumably provides additional
+penalty of the initial state $\mathbf{x}_{0}$ with mean zero and
+variance of $5\mathbf{I}$. This term presumably provides additional
 information about the initial year such that MARSS DFA results are not
 invariant to reversing the order of the data.
 
@@ -321,13 +319,13 @@ knitr::kable( Table, digits=3)
 |      |  MARSS |   DSEM | MARSS_no_pen |
 |:-----|-------:|-------:|-------------:|
 | Z.11 | -0.473 |  0.362 |        0.360 |
-| Z.21 | -0.440 |  0.320 |        0.332 |
+| Z.21 | -0.439 |  0.320 |        0.332 |
 | Z.31 | -0.465 |  0.218 |        0.356 |
 | Z.41 | -0.382 |  0.368 |        0.292 |
 | Z.51 |  0.075 | -0.150 |       -0.065 |
 | Z.22 |  0.213 |  0.299 |        0.213 |
 | Z.32 | -0.134 | -0.088 |       -0.157 |
-| Z.42 | -0.079 | -0.128 |       -0.095 |
+| Z.42 | -0.078 | -0.128 |       -0.095 |
 | Z.52 |  0.924 |  0.941 |        0.944 |
 
 The estimating loadings are similar using DSEM and the MARSS model
