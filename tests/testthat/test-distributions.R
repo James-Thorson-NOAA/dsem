@@ -50,6 +50,7 @@ test_that("dsem example is working ", {
 
 #
 test_that("dsem `gaussian_fixed_sd` is working ", {
+  set.seed(123)
   z = rnorm(100)
   y = 1 + 1 * z + rnorm(100)
   x = z + rnorm(100)
