@@ -1,7 +1,7 @@
 
 if( FALSE ){
   setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem\src\)')
-  TMB::compile( "dsem.cpp" )
+  TMB::compile( "dsem.cpp", framework = "TMBad" )
   setwd(R'(C:\Users\James.Thorson\Desktop\Git\dsem\)')
   devtools::document()
   devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force = TRUE )

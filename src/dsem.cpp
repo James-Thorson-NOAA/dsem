@@ -94,6 +94,7 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR( familycode_j );
   DATA_IVECTOR( linkcode_j );
   DATA_IVECTOR( sigmastart_j );
+  DATA_ARRAY( eps_tj );
   DATA_ARRAY( y_tj );
 
   // Parameters
@@ -536,6 +537,16 @@ Type objective_function<Type>::operator() ()
         y_tj(t,j) = rgamma( pow(sigma_z(sigmastart_j(j)),-2), mu_tj(t,j)*pow(sigma_z(sigmastart_j(j)),2) );
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2 * ( (y_tj(t,j)-mu_tj(t,j))/mu_tj(t,j) - log(y_tj(t,j)/mu_tj(t,j)) ), 0.5);
+    }
+    if( familycode_j(j)==5 ){
+      // familycode = 5 :  normal with known standard deviation
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), eps_tj(t,j), true );
+      }
+      SIMULATE{
+        y_tj(t,j) = rnorm( mu_tj(t,j), eps_tj(t,j) );
+      }
+      devresid_tj(t,j) = NAN;
     }
   }}
   jnll -= loglik_tj.sum();

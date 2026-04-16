@@ -9,7 +9,7 @@
 #'        for missing values.
 #' @param family A named list of families, each returning a class \code{family},
 #'        including [fixed()], [gaussian()], [binomial()],  [Gamma()], [poisson()],
-#'        with names that match levels of
+#'        or [gaussian_fixed_sd()] with names that match levels of
 #'        \code{colnames(tsdata)} to allow different
 #'        families by variable.  Family [fixed()] specifies that states
 #'        are known (i.e., measurements for that variable have no error).
@@ -307,11 +307,25 @@ function( sem,
                          "poisson" = c(),
                          "binomial" = c(),
                          "bernoulli" = c(),
-                         "Gamma" = NA
+                         "Gamma" = NA,
+                         "gaussian_fixed_sd" = c()
                        )} )
     Nsigma_j = sapply(sigma_j, length)
     sigmastart_j = remove_last(cumsum(c(0,Nsigma_j)))
     names(sigmastart_j) = variables
+
+    # Extract known SDs
+    sd_tj = sapply( family,
+      FUN = function(x){
+        if(length(x$fixed_sd)==0){
+          return(rep(0, nrow(tsdata)))
+        }else{
+          sd = rep(0, nrow(tsdata))
+          sd[] = x$fixed_sd
+          return(sd)
+        }
+      }
+    )
 
     #
     family_code = sapply( family, FUN=function(x){
@@ -320,19 +334,23 @@ function( sem,
                          "binomial" = 2,
                          "bernoulli" = 2,
                          "poisson" = 3,
-                         "Gamma" = 4)[x$family]
-                       } )
+                         "Gamma" = 4,
+                         "gaussian_fixed_sd" = 5
+                       )[x$family]} )
     link_code = sapply( family, FUN=function(x){
                        c("identity" = 0,
                          "log" = 1,
                          "logit" = 2,
-                         "cloglog" = 3 )[x$link]
-                       } )
-    out = list( "family_code" = family_code,
-                "link_code" = link_code,
-                "Nsigma_j" = Nsigma_j,
-                "sigmastart_j" = sigmastart_j,
-                "sigma_j" = sigma_j )
+                         "cloglog" = 3
+                       )[x$link]} )
+    out = list(
+      family_code = family_code,
+      link_code = link_code,
+      Nsigma_j = Nsigma_j,
+      sigmastart_j = sigmastart_j,
+      sigma_j = sigma_j,
+      sd_tj = sd_tj
+    )
     return(out)
   }
   family = family[match(colnames(tsdata), names(family))]
@@ -340,14 +358,14 @@ function( sem,
 
   #
   Data = list( 
-    "options" = options,
-    #"RAM" = as.matrix(na.omit(ram[,1:4])),
-    "RAM" = as.matrix(ram[,-5]),
-    "RAMstart" = as.numeric(ram[,5]),
-    "familycode_j" = distributions$family_code,
-    "linkcode_j" = distributions$link_code,
-    "sigmastart_j" = distributions$sigmastart_j,
-    "y_tj" = tsdata
+    options = options,
+    RAM = as.matrix(ram[,-5]),
+    RAMstart = as.numeric(ram[,5]),
+    familycode_j = distributions$family_code,
+    linkcode_j = distributions$link_code,
+    sigmastart_j = distributions$sigmastart_j,
+    eps_tj = distributions$sd_tj,
+    y_tj = tsdata
   )
 
   # Default ... unobs_idx for fixed variables with zero variance
@@ -404,7 +422,7 @@ function( sem,
   if( is.null(control$map) ){
     Map = list()
     # Map off x_tj for fixed when data is available
-    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA )
+    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4,5)), seq_len(prod(dim(tsdata))), NA )
     # Map off sigma_j for fixed / bernoulli / Poisson
     # Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 

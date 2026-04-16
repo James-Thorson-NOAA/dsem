@@ -34,7 +34,7 @@ test_that("dsem example is working ", {
   fit2 = dsem( 
     tsdata = ts(data.frame(x=y_ti[,1], y=y_ti[,2])),
     sem = sem,
-    family = list( x = poisson(), y = poisson() )
+    family = list( x = poisson("log"), y = poisson("log") )
   )
   #expect_equal( as.numeric(fit2$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 
@@ -48,3 +48,24 @@ test_that("dsem example is working ", {
   }
 })
 
+#
+test_that("dsem `gaussian_fixed_sd` is working ", {
+  z = rnorm(100)
+  y = 1 + 1 * z + rnorm(100)
+  x = z + rnorm(100)
+
+  fit0 = dsem(
+    sem = "x -> y, 0, beta",
+    tsdata = ts( data.frame(x=x, y=y) ),
+    family = list( x = fixed(), y = fixed() )
+  )
+
+  fit1 = dsem(
+    sem = "x -> y, 0, beta",
+    tsdata = ts( data.frame(x=x, y=y) ),
+    family = list( x = gaussian_fixed_sd(sd=1), y = fixed() )
+  )
+
+  # Should be identical (despite different slopes) because it's using a measurement-error form for identical model
+  expect_equal( as.numeric(fit0$opt$obj), as.numeric(fit1$opt$obj), tolerance=1e-2 )
+})
