@@ -7,7 +7,7 @@
 dsem(
   sem,
   tsdata,
-  family = rep("fixed", ncol(tsdata)),
+  family = Map(function(.) fixed(), colnames(tsdata)),
   estimate_delta0 = FALSE,
   estimate_mu = NULL,
   prior_negloglike = NULL,

@@ -92,11 +92,13 @@ Type objective_function<Type>::operator() ()
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
   DATA_IVECTOR( familycode_j );
+  DATA_IVECTOR( linkcode_j );
+  DATA_IVECTOR( sigmastart_j );
   DATA_ARRAY( y_tj );
 
   // Parameters
   PARAMETER_VECTOR( beta_z );
-  PARAMETER_VECTOR( lnsigma_j );
+  PARAMETER_VECTOR( lnsigma_z );
   PARAMETER_VECTOR( mu_j );
   PARAMETER_VECTOR( delta0_j );
   PARAMETER_ARRAY( x_tj );
@@ -112,8 +114,7 @@ Type objective_function<Type>::operator() ()
   Type jnll_gmrf = 0;
   matrix<Type> loglik_tj( n_t, n_j );
   loglik_tj.setZero();
-  vector<Type> sigma_j( n_j );
-  sigma_j = exp( lnsigma_j );
+  vector<Type> sigma_z = exp( lnsigma_z );
 
   // Assemble precision
   // SEM
@@ -474,28 +475,40 @@ Type objective_function<Type>::operator() ()
   array<Type> mu_tj( n_t, n_j );
   for(int t=0; t<n_t; t++){
   for(int j=0; j<n_j; j++){
-    // familycode = 0 :  don't include likelihood
-    if( familycode_j(j)==0 ){
+    // Link function
+    if( linkcode_j(j)==0 ){
       mu_tj(t,j) = z_tj(t,j);
+    }
+    if( linkcode_j(j)==1 ){
+      mu_tj(t,j) = exp(z_tj(t,j));
+    }
+    if( linkcode_j(j)==2 ){
+      mu_tj(t,j) = invlogit(z_tj(t,j));
+    }
+    if( linkcode_j(j)==3 ){
+      mu_tj(t,j) = Type(1.0) - exp( -1.0 * exp(z_tj(t,j)) );
+    }
+
+    // Likelihood
+    if( familycode_j(j)==0 ){
+      // familycode = 0 :  don't include likelihood
       SIMULATE{
         y_tj(t,j) = mu_tj(t,j);
       }
       devresid_tj(t,j) = 0;
     }
-    // familycode = 1 :  normal
     if( familycode_j(j)==1 ){
-      mu_tj(t,j) = z_tj(t,j);
+      // familycode = 1 :  normal
       if(!R_IsNA(asDouble(y_tj(t,j)))){
-        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
+        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_z(sigmastart_j(j)), true );
       }
       SIMULATE{
-        y_tj(t,j) = rnorm( mu_tj(t,j), sigma_j(j) );
+        y_tj(t,j) = rnorm( mu_tj(t,j), sigma_z(sigmastart_j(j)) );
       }
       devresid_tj(t,j) = y_tj(t,j) - mu_tj(t,j);
     }
-    // familycode = 2 :  Bernoulli
     if( familycode_j(j)==2 ){
-      mu_tj(t,j) = invlogit(z_tj(t,j));
+      // familycode = 2 :  Bernoulli
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
       }
@@ -504,9 +517,8 @@ Type objective_function<Type>::operator() ()
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(-2*(((1-y_tj(t,j))*log(1-mu_tj(t,j)) + y_tj(t,j)*log(mu_tj(t,j)))), 0.5);
     }
-    // familycode = 3 :  Poisson
     if( familycode_j(j)==3 ){
-      mu_tj(t,j) = exp(z_tj(t,j));
+      // familycode = 3 :  Poisson
       if(!R_IsNA(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
       }
@@ -515,14 +527,13 @@ Type objective_function<Type>::operator() ()
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2*(y_tj(t,j)*log((Type(1e-10) + y_tj(t,j))/mu_tj(t,j)) - (y_tj(t,j)-mu_tj(t,j))), 0.5);
     }
-    // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
     if( familycode_j(j)==4 ){
-      mu_tj(t,j) = exp(z_tj(t,j));
+      // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
       if(!R_IsNA(asDouble(y_tj(t,j)))){
-        loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
+        loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_z(sigmastart_j(j)),-2), mu_tj(t,j)*pow(sigma_z(sigmastart_j(j)),2), true );
       }
       SIMULATE{
-        y_tj(t,j) = rgamma( pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2) );
+        y_tj(t,j) = rgamma( pow(sigma_z(sigmastart_j(j)),-2), mu_tj(t,j)*pow(sigma_z(sigmastart_j(j)),2) );
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2 * ( (y_tj(t,j)-mu_tj(t,j))/mu_tj(t,j) - log(y_tj(t,j)/mu_tj(t,j)) ), 0.5);
     }

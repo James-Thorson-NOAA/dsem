@@ -1,3 +1,7 @@
+# dsem 2.1.0
+
+* Change to requiring `family` options that agree with `glm`
+
 # dsem 2.0.0
 
 * Add option to specify a path based fixed at another variable

@@ -29,14 +29,14 @@ test_that("dsem example is working ", {
   fit1 = dsem( 
     tsdata = ts(data.frame(x=z_ti[,1], y=z_ti[,2])),
     sem = sem,
-    family = c("fixed", "fixed") 
+    family = list( x = fixed(), y = fixed() )
   )
   fit2 = dsem( 
     tsdata = ts(data.frame(x=y_ti[,1], y=y_ti[,2])),
     sem = sem,
-    family = c("poisson", "poisson") 
+    family = list( x = poisson(), y = poisson() )
   )
-  expect_equal( as.numeric(fit2$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
+  #expect_equal( as.numeric(fit2$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 
   if( FALSE ){
     fit3 = dsemRTMB( tsdata = ts(data.frame(x=y_ti[,1], y=y_ti[,2])),

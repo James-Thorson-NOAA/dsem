@@ -42,7 +42,9 @@
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport config
-#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
+#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom
+#'             rgamma rpois rnorm simulate time tsp<- plogis pchisq
+#'             gaussian poisson Gamma binomial
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_ graph.adjacency clusters
@@ -193,7 +195,7 @@
 dsem <-
 function( sem,
           tsdata,
-          family = rep("fixed",ncol(tsdata)),
+          family = Map(function(.) fixed(), colnames(tsdata)),
           estimate_delta0 = FALSE,
           estimate_mu = NULL,
           prior_negloglike = NULL,
@@ -277,14 +279,67 @@ function( sem,
     stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
   }
 
+  # distribution/link
+  build_distributions <-
+  function( variables ){
+
+    # Check for errors
+    if(any(is.na(family))){
+      stop("some variable in `colnames(tsdata)` not found in `names(family)`")
+    }
+
+    # Construct log_sigma based on family
+    remove_last = function(x) x[-length(x)]
+
+    # Fixed values
+    sigma_j = lapply( family, FUN=function(x){
+                       switch( x$family[length(x$family)],
+                         "fixed" = c(),
+                         "gaussian" = NA,
+                         "poisson" = c(),
+                         "binomial" = c(),
+                         "bernoulli" = c(),
+                         "Gamma" = NA
+                       )} )
+    Nsigma_j = sapply(sigma_j, length)
+    sigmastart_j = remove_last(cumsum(c(0,Nsigma_j)))
+    names(sigmastart_j) = variables
+
+    #
+    family_code = sapply( family, FUN=function(x){
+                       c("fixed" = 0,
+                         "gaussian" = 1,
+                         "binomial" = 2,
+                         "bernoulli" = 2,
+                         "poisson" = 3,
+                         "Gamma" = 4)[x$family]
+                       } )
+    link_code = sapply( family, FUN=function(x){
+                       c("identity" = 0,
+                         "log" = 1,
+                         "logit" = 2,
+                         "cloglog" = 3 )[x$link]
+                       } )
+    out = list( "family_code" = family_code,
+                "link_code" = link_code,
+                "Nsigma_j" = Nsigma_j,
+                "sigmastart_j" = sigmastart_j,
+                "sigma_j" = sigma_j )
+    return(out)
+  }
+  family = family[match(colnames(tsdata), names(family))]
+  distributions = build_distributions( colnames(tsdata) )
+
   #
   Data = list( 
     "options" = options,
     #"RAM" = as.matrix(na.omit(ram[,1:4])),
     "RAM" = as.matrix(ram[,-5]),
     "RAMstart" = as.numeric(ram[,5]),
-    "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
-    "y_tj" = tsdata 
+    "familycode_j" = distributions$family_code,
+    "linkcode_j" = distributions$link_code,
+    "sigmastart_j" = distributions$sigmastart_j,
+    "y_tj" = tsdata
   )
 
   # Default ... unobs_idx for fixed variables with zero variance
@@ -295,11 +350,13 @@ function( sem,
 
   # Construct parameters
   if( is.null(control$parameters) ){
-    Params = list( "beta_z" = rep(0,max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
-                   "lnsigma_j" = rep(0,ncol(tsdata)),
-                   "mu_j" = rep(0,ncol(tsdata)),
-                   "delta0_j" = rep(0,ncol(tsdata)),
-                   "x_tj" = ifelse( is.na(tsdata), 0, tsdata ) )
+    Params = list(
+      "beta_z" = rep(0, max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
+      "lnsigma_z" = rep(0, sum(distributions$Nsigma_j)),
+      "mu_j" = rep(0, ncol(tsdata)),
+      "delta0_j" = rep(0, ncol(tsdata)),
+      "x_tj" = ifelse( is.na(tsdata), 0, tsdata )
+    )
     #if( control$gmrf_parameterization=="full" ){
     #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
     #}else{
@@ -341,7 +398,7 @@ function( sem,
     # Map off x_tj for fixed when data is available
     Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA )
     # Map off sigma_j for fixed / bernoulli / Poisson
-    Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
+    # Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colnames(tsdata) %in% estimate_mu, seq_len(ncol(tsdata)), NA) )
