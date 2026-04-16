@@ -70,8 +70,8 @@ function( object,
     # Modify inputs
     map = fit_r$tmb_inputs$map
     parameters = fit_r$tmb_inputs$parameters
-    parameters[c("beta_z","lnsigma_j","mu_j","delta0_j")] = parlist[c("beta_z","lnsigma_j","mu_j","delta0_j")]
-    for( v in c("beta_z","lnsigma_j","mu_j","delta0_j") ){
+    parameters[c("beta_z","lnsigma_z","mu_j","delta0_j")] = parlist[c("beta_z","lnsigma_z","mu_j","delta0_j")]
+    for( v in c("beta_z","lnsigma_z","mu_j","delta0_j") ){
       map[[v]] = factor( rep(NA,length(as.vector(parameters[[v]]))))
     }
 

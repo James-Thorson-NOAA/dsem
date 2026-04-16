@@ -209,12 +209,12 @@ $$
 
 ## Measurement errors
 
-DSEM includes multiple distribution for measurement errors.  For example, if the user specifies `family[j] = "fixed"` then:
+DSEM includes multiple distribution for measurement errors.  For example, if the user specifies `family[[j]] = fixed()` then:
 
 $$
 y_{tj} = x_{tj} + d_{tj}
 $$
-for all years.  Alternatively, if the user specifies `family[j] = "normal"` then:
+for all years.  Alternatively, if the user specifies `family[[j]] = gaussian()` then:
 $$
 y_{tj} \sim \PL{Normal}( x_{tj} + d_{tj}, {\sigma_j}^2)
 $$
@@ -349,11 +349,10 @@ data = data.frame(
 out = dsem(
   tsdata = ts(data),
   sem = dsem,
-  family = c("normal","normal","fixed"),
+  family = list(x = gaussian(), y = gaussian(), F = fixed() ),
   control = dsem_control(
-    run_model = FALSE, 
-    quiet = TRUE,
-    gmrf_parameterization = "project"
+    run_model = FALSE,
+    quiet = TRUE
   )
 )
 ```
@@ -373,17 +372,6 @@ eigen(Q_kk)$values
 
 where this shows that the precision has a rank of 10 while being a $30 \times 30$ matrix.  We therefore cannot evaluate the probability density of state matrix $\B X$ using this precision matrix (i.e., the log-determinant is not defined).
 
-To address this circumstance, we can switch to using `gmrf_parameterization = "project"`.  This evaluates the probability density of a set of innovations $\B X^*$ that follow a unit variance:
-
-$$
-\PL{vec}(\B X)^* \sim \PL{GMRF}(\B{0, I})
-$$
-and then projects these full-rank innovations to the reduced rank states:
-
-$$
-\PL{vec}(\B X) = (\mathbf{I - P}_{\PL{joint}})^{-1} \B G_{\PL{joint}} \PL{vec}(\B X)^*
-$$
-
-This parameterization allows us to fit DSEM using a rank-deficient structural model.  
+To address this circumstance, _dsem_ by default uses to using `gmrf_parameterization = "gmrf_project"`.  This evaluates the probability density of fixed variables, and then projects to those variables that have non-zero variance.  This parameterization allows us to fit DSEM using a rank-deficient structural model.  
 
 # Works cited
