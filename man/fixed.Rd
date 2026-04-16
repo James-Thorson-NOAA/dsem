@@ -6,9 +6,6 @@
 \usage{
 fixed()
 }
-\arguments{
-\item{link}{Link for first part of delta/hurdle model.}
-}
 \description{
 Allows using \code{family = fixed()} to specify data that have no measurement error
 }

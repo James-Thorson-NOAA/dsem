@@ -5,8 +5,6 @@
 #' @description
 #' Allows using \code{family = fixed()} to specify data that have no measurement error
 #'
-#' @param link Link for first part of delta/hurdle model.
-#'
 #' @export
 fixed <- function() {
   link1 = "identity"
