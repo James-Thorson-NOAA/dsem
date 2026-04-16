@@ -68,12 +68,27 @@ test_that("dsem example is working ", {
   simulate(fit, resimulate_gmrf=TRUE)
 
   # Refit with measurement errors .. ignore quality of fit, just checking that it runs
-  fit1 = dsem( sem=sem,
-               tsdata = tsdata,
-               family = c("normal","gamma",rep("fixed",ncol(tsdata)-2)),
-               control = dsem_control(getsd=FALSE,
-                                      extra_convergence_checks = FALSE,
-                                      newton_loops=0) )
+  family = list(
+    time = gaussian(),
+    gnp = Gamma("log"),
+    pwage = fixed(),
+    cprofits = fixed(),
+    consumption = fixed(),
+    gwage = fixed(),
+    invest = fixed(),
+    capital = fixed()
+  )
+  fit1 = dsem(
+    sem = sem,
+    tsdata = tsdata,
+    #family = c("normal","gamma",rep("fixed",ncol(tsdata)-2)),
+    family = family,
+    control = dsem_control(
+      getsd=FALSE,
+      extra_convergence_checks = FALSE,
+      newton_loops=0
+    )
+  )
   residuals(fit1, type="deviance")
   residuals(fit1, type="response")
 
@@ -85,9 +100,11 @@ test_that("dsem example is working ", {
   "
   sem_equations = convert_equations(equations)
   # Fit model
-  fit_equations = dsem( sem=sem_equations,
-              tsdata=tsdata,
-              control = dsem_control(getsd=FALSE) )
+  fit_equations = dsem(
+    sem = sem_equations,
+    tsdata=tsdata,
+    control = dsem_control(getsd=FALSE)
+  )
   # Check objective function
   expect_equal( as.numeric(fit$opt$obj), as.numeric(fit_equations$opt$obj), tolerance=1e-2 )
 })
@@ -101,11 +118,15 @@ test_that("dsem adds variances ", {
     moose <-> moose, 0, sd2
   "
   # initial first without delta0 (to improve starting values)
-  fit1 = dsem( sem = "",
-               tsdata = data )
+  fit1 = dsem(
+    sem = "",
+    tsdata = data
+  )
   # initial first without delta0 (to improve starting values)
-  fit2 = dsem( sem = sem,
-               tsdata = data )
+  fit2 = dsem(
+    sem = sem,
+    tsdata = data
+  )
   # Check objective function
   expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 })
@@ -121,8 +142,10 @@ test_that("dsem works with fixed variances ", {
     wolves -> wolves, 1, rho1
     moose -> moose, 1, rho2
   "
-  fit1 = dsem( sem = sem,
-               tsdata = data )
+  fit1 = dsem(
+    sem = sem,
+    tsdata = data
+  )
 
   # initial first without delta0 (to improve starting values)
   sem = "
@@ -131,9 +154,11 @@ test_that("dsem works with fixed variances ", {
     wolves -> wolves, 1, NA, 0.8558536
     moose -> moose, 1, NA, 0.9926087
   "
-  fit2 = dsem( sem = sem,
-               tsdata = data,
-               family = c("normal", "normal") )
+  fit2 = dsem(
+    sem = sem,
+    tsdata = data,
+    family = list( wolves = gaussian(), moose = gaussian() )
+  )
   expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 
   # initial first without delta0 (to improve starting values)
@@ -157,7 +182,7 @@ test_that("bering sea example is stable ", {
 
   #
   Z = ts( bering_sea )
-  family = rep( "fixed", ncol(bering_sea) )
+  #family = rep( "fixed", ncol(bering_sea) )
 
   # Specify model
   sem = "
@@ -181,10 +206,14 @@ test_that("bering sea example is stable ", {
   "
 
   # Run model
-  fit = dsem( sem=sem,
-               tsdata=Z,
-               family=family,
-               control = dsem_control(use_REML=FALSE) )
+  fit = dsem(
+    sem = sem,
+    tsdata = Z,
+    #family = family,
+    control = dsem_control(
+      use_REML=FALSE
+    )
+  )
 
   # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 189.3005, tolerance=1e-2 )
@@ -207,9 +236,13 @@ test_that("Fixing parameters works ", {
   tsdata = ts(cbind(A=A, B=B, C=C, D=D))
 
   # Run models
-  fit = dsem( sem=sem,
-               tsdata=tsdata,
-               control = dsem_control(getsd=FALSE) )
+  fit = dsem(
+    sem = sem,
+    tsdata = tsdata,
+    control = dsem_control(
+      getsd=FALSE
+    )
+  )
   expect_equal( as.numeric(fit$opt$obj), 224.2993, tolerance=1e-2 )
 
   # Turning off RTMB
@@ -266,10 +299,13 @@ test_that("dfa example is working ", {
   sem = convert_equations(equations)
   
   # Initial fit
-  mydsem0 = dsem( 
+  family = Map(function(.) gaussian(), colnames(tsdata))
+    family$F1 = fixed()
+    family$F2 = fixed()
+  mydsem0 = dsem(
     tsdata = tsdata,
     sem = sem,
-    family = c( rep("normal",5), rep("fixed",n_factors) ),
+    family = family,
     estimate_delta0 = TRUE,
     estimate_mu = vector(),
     control = dsem_control( 
@@ -281,7 +317,7 @@ test_that("dfa example is working ", {
   
   # fix all measurement errors at diagonal and equal
   map = mydsem0$tmb_inputs$map
-  map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
+  map$lnsigma_z = factor( rep(1,length(mydsem0$tmb_inputs$parameters$lnsigma_z)) )
   
   # Fix factors to have initial value, and variables to not
   map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
@@ -290,7 +326,7 @@ test_that("dfa example is working ", {
   mydfa = dsem( 
     tsdata = tsdata,
     sem = sem,
-    family = c( rep("normal",5), rep("fixed",n_factors) ),
+    family = family,
     estimate_delta0 = TRUE,
     estimate_mu = vector(),
     control = dsem_control( 

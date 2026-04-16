@@ -7,14 +7,20 @@
 #'        \code{\link[dsem]{make_dsem_ram}} for more description
 #' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}, with \code{NA}
 #'        for missing values.
-#' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
-#'        each element must be \code{fixed} (for no measurement error), 
-#'        \code{normal} for normal measurement error using an identity link,
-#'        \code{gamma} for a gamma measurement error using a fixed CV and log-link, 
-#'        \code{bernoulli} for a Bernoulli measurement error using a logit-link, or
-#'        \code{poisson} for a Poisson measurement error using a log-link.
-#'        \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
-#'        Other options correspond to different specifications of measurement error.
+#' @param family A named list of families, each returning a class \code{family},
+#'        including [fixed()], [gaussian()], [binomial()],  [Gamma()], [poisson()],
+#'        with names that match levels of
+#'        \code{colnames(tsdata)} to allow different
+#'        families by variable.  Family [fixed()] specifies that states
+#'        are known (i.e., measurements for that variable have no error).
+#'        Other families allow users to supply a link function including `identity`,
+#'        `log`, `logit`, or `cloglog`.  For example
+#'        \code{family = list(y = binomial("logit"), x = fixed())}
+#'        would specify logit-linked Bernoulli distribution for variable `tsdata$y`
+#'        and a fixed (no measurement error) distribution for `tsdata$x`.
+#'        For many variables, it is convenient to do e.g.,
+#'        \code{family = Map(function(.) gaussian(), colnames(tsdata))} rather than writing
+#'        them all manually.
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
@@ -182,10 +188,12 @@
 #'                "gwage","invest","capital")]
 #'
 #' # Fit model
-#' fit = dsem( sem=sem,
-#'             tsdata = tsdata,
-#'             estimate_delta0 = TRUE,
-#'             control = dsem_control(quiet=TRUE) )
+#' fit = dsem(
+#'   sem = sem,
+#'   tsdata = tsdata,
+#'   estimate_delta0 = TRUE,
+#'   control = dsem_control(quiet=TRUE)
+#' )
 #' summary( fit )
 #' plot( fit )
 #' plot( fit, edge_label="value" )
@@ -279,14 +287,14 @@ function( sem,
     stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
   }
 
+  # Check for errors
+  if( !all(colnames(tsdata) %in% names(family)) ){
+    stop("some variable in `colnames(tsdata)` not found in `names(family)`")
+  }
+
   # distribution/link
   build_distributions <-
   function( variables ){
-
-    # Check for errors
-    if(any(is.na(family))){
-      stop("some variable in `colnames(tsdata)` not found in `names(family)`")
-    }
 
     # Construct log_sigma based on family
     remove_last = function(x) x[-length(x)]

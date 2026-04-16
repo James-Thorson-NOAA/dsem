@@ -23,14 +23,20 @@ including lagged or simultaneous effects.  See Details section in
 \item{tsdata}{time-series data, as outputted using \code{\link[stats]{ts}}, with \code{NA}
 for missing values.}
 
-\item{family}{Character-vector listing the distribution used for each column of \code{tsdata}, where
-each element must be \code{fixed} (for no measurement error),
-\code{normal} for normal measurement error using an identity link,
-\code{gamma} for a gamma measurement error using a fixed CV and log-link,
-\code{bernoulli} for a Bernoulli measurement error using a logit-link, or
-\code{poisson} for a Poisson measurement error using a log-link.
-\code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
-Other options correspond to different specifications of measurement error.}
+\item{family}{A named list of families, each returning a class \code{family},
+including \code{\link[=fixed]{fixed()}}, \code{\link[=gaussian]{gaussian()}}, \code{\link[=binomial]{binomial()}},  \code{\link[=Gamma]{Gamma()}}, \code{\link[=poisson]{poisson()}},
+with names that match levels of
+\code{colnames(tsdata)} to allow different
+families by variable.  Family \code{\link[=fixed]{fixed()}} specifies that states
+are known (i.e., measurements for that variable have no error).
+Other families allow users to supply a link function including \code{identity},
+\code{log}, \code{logit}, or \code{cloglog}.  For example
+\code{family = list(y = binomial("logit"), x = fixed())}
+would specify logit-linked Bernoulli distribution for variable \code{tsdata$y}
+and a fixed (no measurement error) distribution for \code{tsdata$x}.
+For many variables, it is convenient to do e.g.,
+\code{family = Map(function(.) gaussian(), colnames(tsdata))} rather than writing
+them all manually.}
 
 \item{estimate_delta0}{Boolean indicating whether to estimate deviations from equilibrium in initial year
 as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
@@ -183,10 +189,12 @@ tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
                "gwage","invest","capital")]
 
 # Fit model
-fit = dsem( sem=sem,
-            tsdata = tsdata,
-            estimate_delta0 = TRUE,
-            control = dsem_control(quiet=TRUE) )
+fit = dsem(
+  sem = sem,
+  tsdata = tsdata,
+  estimate_delta0 = TRUE,
+  control = dsem_control(quiet=TRUE)
+)
 summary( fit )
 plot( fit )
 plot( fit, edge_label="value" )

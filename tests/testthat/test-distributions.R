@@ -39,9 +39,11 @@ test_that("dsem example is working ", {
   #expect_equal( as.numeric(fit2$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 
   if( FALSE ){
-    fit3 = dsemRTMB( tsdata = ts(data.frame(x=y_ti[,1], y=y_ti[,2])),
-          sem = sem,
-          family = c("poisson", "poisson") ) 
+    fit3 = dsemRTMB(
+             tsdata = ts(data.frame(x=y_ti[,1], y=y_ti[,2])),
+             sem = sem,
+             family = list( x = poisson(), y = poisson() )
+          )
     expect_equal( resid(fit2), resid(fit3), tolerance=1e-2 )
   }
 })

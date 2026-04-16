@@ -11,7 +11,7 @@ test_that("priors interface is working ", {
 
   #
   Z = ts( bering_sea )
-  family = rep( "fixed", ncol(bering_sea) )
+  #family = rep( "fixed", ncol(bering_sea) )
 
   # Specify model
   sem = "
@@ -55,11 +55,15 @@ test_that("priors interface is working ", {
     "[<-" <- ADoverload("[<-")
     -1 * sum(dnorm( obj$par[9:16], mean=0, sd=0.25, log=TRUE))
   }
-  fit = dsem( sem=sem,
-               tsdata=Z,
-               family=family,
-               prior_negloglike = neglog_prior,
-               control = dsem_control(use_REML=FALSE) )
+  fit = dsem(
+    sem = sem,
+    tsdata = Z,
+    #family = family,
+    prior_negloglike = neglog_prior,
+    control = dsem_control(
+      use_REML = FALSE
+    )
+  )
   expect_equal( as.numeric(fit$opt$obj), 198.1363, tolerance=1e-2 )
 })
 

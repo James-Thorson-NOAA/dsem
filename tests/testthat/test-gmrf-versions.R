@@ -16,7 +16,7 @@ test_that("dsem gmrf-parameterization options ", {
   fit0 = dsem( 
     sem = sem,
     tsdata = data,
-    family = c("normal", "normal"),
+    family = list( wolves = gaussian(), moose = gaussian() ),
     estimate_delta0 = TRUE,
     control = dsem_control(
       nlminb_loops = 0,
@@ -36,7 +36,7 @@ test_that("dsem gmrf-parameterization options ", {
   fit1 = dsem( 
     sem = sem,
     tsdata = data,
-    family = c("normal", "normal"),
+    family = list( wolves = gaussian(), moose = gaussian() ),
     estimate_delta0 = TRUE,
     control = dsem_control(
       map = map,
@@ -50,14 +50,17 @@ test_that("dsem gmrf-parameterization options ", {
   )
   
   # gmrf_parameterization = "projection"
-  fit2 = dsem( sem = sem,
-               tsdata = data,
-               family = c("normal", "normal"),
-               estimate_delta0 = TRUE,
-               control = dsem_control(
-                 map = map,
-                 parameters = fit1$obj$env$parList(),
-                 gmrf_parameterization = "project") )
+  fit2 = dsem(
+    sem = sem,
+    tsdata = data,
+    family = list( wolves = gaussian(), moose = gaussian() ),
+    estimate_delta0 = TRUE,
+    control = dsem_control(
+      map = map,
+      parameters = fit1$obj$env$parList(),
+      gmrf_parameterization = "project"
+    )
+  )
   #expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
   expect_equal( summary(fit1$sdrep), summary(fit1$sdrep), tolerance=1e-3 )
 })
@@ -210,7 +213,7 @@ test_that("dsem `gmrf_project` and `mvn_project` are working ", {
     tsdata = ts(dat),
     sem = sem,
     control = control,
-    family = c("fixed", "bernoulli")
+    family = list( X = fixed(), Y = binomial("logit") )
   )
   
   # New option
@@ -222,7 +225,7 @@ test_that("dsem `gmrf_project` and `mvn_project` are working ", {
     tsdata = ts(dat),
     sem = sem,
     control = control,
-    family = c("fixed", "bernoulli")
+    family = list( X = fixed(), Y = binomial("logit") )
   )
 
   # Old option
@@ -244,7 +247,7 @@ test_that("dsem `gmrf_project` and `mvn_project` are working ", {
     tsdata = ts(dat),
     sem = sem,
     control = control,
-    family = c("fixed", "bernoulli")
+    family = list( X = fixed(), Y = binomial("logit") )
   )
 
   # `gmrf_project` without any projection
@@ -257,7 +260,7 @@ test_that("dsem `gmrf_project` and `mvn_project` are working ", {
     tsdata = ts(dat),
     sem = sem,
     control = control,
-    family = c("fixed", "bernoulli")
+    family = list( X = fixed(), Y = binomial("logit") )
   )
 
   expect_equal( summary(fit1), summary(fit2), tolerance=0.001 )
