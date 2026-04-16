@@ -28,9 +28,9 @@ test_that("dsem gmrf-parameterization options ", {
 
   #
   params = fit0$tmb_inputs$parameters
-  params$lnsigma_j = log( c(0.1,0.1) )
+  params$lnsigma_z = log( c(0.1,0.1) )
   map = fit0$tmb_inputs$map
-  map$lnsigma_j = factor( c(NA,NA) )
+  map$lnsigma_z = factor( c(NA,NA) )
   
   # gmrf_parameterization = "full"
   fit1 = dsem( 
