@@ -25,6 +25,7 @@ reference:
   - parse_path
   - read_model
   - dsemRTMB
+  - rk4sys
 
 - title: 'Specification and fitting'
   desc: |
