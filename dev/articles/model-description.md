@@ -1,0 +1,454 @@
+# dsem model description
+
+## Dynamic structural equation models
+
+Package *dsem* (Thorson et al. 2024) involves specifying a dynamic
+structural equation model (DSEM). This DSEM be viewed either:
+
+1.  *Weak interpretation*: as an expressive interface to parameterize
+    the correlation among variables, using as many or few parameters as
+    might be appropriate; or
+2.  *Strong interpretation*: as a structural causal model, allowing
+    predictions about the consequence of counterfactual changes to the
+    system.
+
+We introduce DSEM first from the perspective of a software user (i.e.,
+the interface) and then from the perspective of a statistician (i.e.,
+the equations and their interpretation).
+
+#### Viewpoint 1: Software interface
+
+To specify a DSEM, the user uses *arrow-and-lag notation*, based on
+*arrow notation* derived from package `sem` (Fox 2006). For example, to
+specify a first-order autoregressive process with variable $x$ this
+involves:
+
+``` r
+x -> x, 1, ar1
+x <-> x, 0, sd
+```
+
+This then estimates a single parameter representing first-order
+autoregression (represented with a one-headed arrow), as well as the
+Cholesky decomposition of the exogenous covariance of of model variables
+(specified with two-headed arrows). See
+[`?make_dsem_ram`](https://james-thorson-NOAA.github.io/dsem/dev/reference/make_dsem_ram.md)
+Details section for more details about syntax.
+
+If there were four time-intervals ($T = 4$) this would then result in
+the path matrix:
+
+$$\mathbf{P}_{joint} = \begin{pmatrix}
+0 & 0 & 0 & 0 \\
+\rho & 0 & 0 & 0 \\
+0 & \rho & 0 & 0 \\
+0 & 0 & \rho & 0
+\end{pmatrix}$$ This joint path matrix then represents the partial
+effect of each variable and time (column) on each other variable and
+time (row).
+
+DSEM interactions can be as complicated or simple as desired, and can
+include:
+
+1.  Latent variables and loops (i.e., they are not restricted to
+    directed acyclic graphs);
+2.  Values that are fixed a priori, where the `parameter_name` is
+    provided as `NA` and the starting value that follows is the fixed
+    value;
+3.  Values that are mirrored among path coefficients, where the same
+    `parameter_name` is provided for multiple rows of the text file.
+
+The user also specifies a distribution for measurement errors for each
+variable using arguement `family`, and whether each time-series starts
+from its stationary distribution or from some non-equilibrium initial
+condition using argument `estimate_delta0`. If the latter is specified,
+then variables will tend to converge back on the stationary distribution
+at a rate that is determined by estimated parameters.
+
+#### Viewpoint 2: Mathematical details
+
+The DSEM defines a generalized linear mixed model (GLMM) for a
+$T \times J$ matrix $\mathbf{Y}$, where $y_{tj}$ is the measurement in
+time $t$ for variable $j$. This measurement matrix can include missing
+values $y_{tj} = {NA}$, and it will estimate a $T \times J$ matrix of
+latent states $\mathbf{X}$ for all modeled times and variables, where
+$\mathbf{x}_{t}$ is the vector of states in time $t$ and
+$\text{vec}(\mathbf{X})$ is a $TJ$ length vector constructed by stacking
+columns. DSEM also estimates a $T \times J$ matrix of process errors
+$\mathbf{E}$ where ${\mathbf{ϵ}}_{t}$ is the vector of process errors in
+time $t$, and $\text{vec}(\mathbf{E})$ is the $TJ$ vector of stacked
+columns.
+
+DSEM can be written in structural vector-autoregressive (SVAR) notation
+as a SVAR model of arbitrary lag, from lag-0 upwards:
+
+$$\mathbf{x}_{t} = \underset{\text{Simultaneous effects}}{\underbrace{\mathbf{P}_{0}\mathbf{x}_{t}}} + \underset{\text{Lag-1 effects}}{\underbrace{\mathbf{P}_{1}\mathbf{x}_{t - 1}}} + \underset{\text{Lag-2 effects}}{\underbrace{\mathbf{P}_{2}\mathbf{x}_{t - 2}}} + \underset{\text{Higher-order lags}}{\underbrace{...}} + {\mathbf{ϵ}}_{t}$$
+where $\mathbf{P}_{0}$ is the $J \times J$ matrix of simultaneous
+interactions (the inclusion of which distinguishes an SVAR from a VAR),
+$\mathbf{P}_{1}$ and $\mathbf{P}_{2}$ are interactions occurring at
+lag-1 and lag-2, respectively, and it can also include higher-order lags
+(not shown here). Additionally, ${\mathbf{ϵ}}_{t}$ is exogenous
+covariation in time $t$:
+
+$${\mathbf{ϵ}}_{t} \sim \text{MVN}\left( {\mathbf{0},\mathbf{G}\mathbf{G}}^{T} \right)$$
+and $\mathbf{G}$ is the square-root of exogenous covariance
+${\mathbf{G}\mathbf{G}}^{T}$ that occurs in each time. $\mathbf{G}$ is
+then estimated by DSEM, and is identifiable without constraints when
+specified as a lower-triangle matrix (representing the Cholesky
+decomposition of the covariance of exogenous process errors occurring in
+each time).
+
+This VAR notation can also be rewritten as a joint simultaneous equation
+model (SEM):
+
+$$\text{vec}(\mathbf{X}) = \mathbf{P}_{\text{joint}}\text{vec}(\mathbf{X}) + \text{vec}(\mathbf{E})$$
+
+where:
+$$\text{vec}(\mathbf{E}) \sim \text{MVN}\left( \mathbf{0},\mathbf{G}_{\text{joint}}\mathbf{G}_{\text{joint}}^{T} \right)$$
+We sum across the Kronecker product of interaction matrices and lag
+matrices to obtain the joint path matrix:
+
+$$\mathbf{P}_{joint} = \sum\limits_{g = 0}^{T}\left( \mathbf{L}_{g} \otimes \mathbf{P}_{g} \right)$$
+where $\otimes$ is the Kronecker product, $g$ is the lag index, $T$ is
+the highest-order lag that can be included, and $\mathbf{L}_{g}$ is a
+matrix representing lag-g (see example below). Similarly, the exogenous
+covariance is constructed from a Kronecker product, although we assume
+that all covariance is simultaneous (i.e., no lags are allowed for
+two-headed arrows):
+
+$$\mathbf{G}_{joint} = \mathbf{L}_{0} \otimes \mathbf{G}$$ where
+$\mathbf{L}_{0}$ is a $T \times T$ lag-0 (identity) matrix.
+
+For illustration, when $T = 4$ and given a maximum lag of 2, we can
+write $\mathbf{P}_{\text{joint}}$ as:
+
+$$\mathbf{P}_{\text{joint}} = \begin{pmatrix}
+\mathbf{P}_{0} & 0 & 0 & 0 \\
+\mathbf{P}_{1} & \mathbf{P}_{0} & 0 & 0 \\
+\mathbf{P}_{2} & \mathbf{P}_{1} & \mathbf{P}_{0} & 0 \\
+0 & \mathbf{P}_{2} & \mathbf{P}_{1} & \mathbf{P}_{0} \\
+ & & & 
+\end{pmatrix}$$ and $\mathbf{G}_{\text{joint}}$ as:
+
+$$\mathbf{G}_{\text{joint}} = \begin{pmatrix}
+\mathbf{G} & 0 & 0 & 0 \\
+0 & \mathbf{G} & 0 & 0 \\
+0 & 0 & \mathbf{G} & 0 \\
+0 & 0 & 0 & \mathbf{G} \\
+ & & & 
+\end{pmatrix}$$ The DSEM then results in Gaussian Markov random field
+for latent states:
+
+$${vec}(\mathbf{X}) \sim {GMRF}\left( {\mathbf{0},\mathbf{Q}}_{joint} \right)$$
+where $\mathbf{Q}_{joint}$ is a $TJ \times TJ$ precision matrix such
+that ${\mathbf{Q}_{joint}}^{- 1}$ is the estimated covariance among
+latent states. This joint precision is itself constructed from the joint
+path matrix $\mathbf{P}_{joint}$ and the joint exogenous covariance
+matrix $\mathbf{G}_{joint}$:
+
+$$\mathbf{Q}_{joint} = \left( {{\mathbf{I} - \mathbf{P}}_{joint}}^{T} \right)\left( \mathbf{G}_{joint}\mathbf{G}_{joint}^{T} \right)^{- 1}\left( {\mathbf{I} - \mathbf{P}_{joint}} \right)$$
+
+Finally, it is convenient to write the joint path matrix by summing
+across path coefficients $k$ rather than lags $g$:
+
+$$\mathbf{P}_{joint} = \sum\limits_{k = 1}^{K}\left( \mathbf{L}_{g{\lbrack k\rbrack}} \otimes \mathbf{P}_{k} \right)$$
+where $g\lbrack k\rbrack$ is the lag associated with path coefficient
+$k$, and $\mathbf{P}_{k}$ is a $J \times J$ matrix with only a single
+non-zero value (with non-zero value equal to path coefficient $k$).
+
+Say we specify a model with $K = 2$ two interactions (one-headed
+arrows). For each one-headed arrow, we define a $J \times J$ path matrix
+$\mathbf{P}_{k}$ and a lag matrix $\mathbf{L}_{g{\lbrack k\rbrack}}$.
+For example, in a model with $J = 3$ variables
+$\mathbf{X} = (\mathbf{A},\mathbf{B},\mathbf{C})$ and $T = 4$ times, and
+specifying $K = 2$ one-headed arrows:
+
+``` r
+A -> B, 0, b_AB
+B -> C, 1, b_BC
+```
+
+this then results two path matrices:
+
+$$\mathbf{P}_{k = 1} = \begin{pmatrix}
+0 & 0 & 0 \\
+b_{AB} & 0 & 0 \\
+0 & 0 & 0 \\
+ & & 
+\end{pmatrix}$$ and $$\mathbf{P}_{k = 2} = \begin{pmatrix}
+0 & 0 & 0 \\
+0 & 0 & 0 \\
+0 & b_{BC} & 0 \\
+ & & 
+\end{pmatrix}$$ with corresponding lag matrices
+
+$$\mathbf{L}_{g{\lbrack 1\rbrack}} = \begin{pmatrix}
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{pmatrix}$$ and $$\mathbf{L}_{g{\lbrack 2\rbrack}} = \begin{pmatrix}
+0 & 0 & 0 & 0 \\
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0
+\end{pmatrix}$$
+
+### Measurement errors
+
+DSEM includes multiple distribution for measurement errors. For example,
+if the user specifies `family[j] = "fixed"` then:
+
+$$y_{tj} = x_{tj} + d_{tj}$$ for all years. Alternatively, if the user
+specifies `family[j] = "normal"` then:
+$$y_{tj} \sim {Normal}\left( x_{tj} + d_{tj},{\sigma_{j}}^{2} \right)$$
+and ${\sigma_{j}}^{2}$ is then included as an estimated parameter. When
+estimating missing values or masurement errors in $\mathbf{Y}$, *dsem*
+must then marginalize across the latent value of states $\mathbf{X}$. It
+does this using the Laplace approximation (Skaug and Fournier 2006), as
+implemented using the R-package TMB (Kristensen et al. 2016).
+Computations involving sparse matrices are efficient using the Matrix
+package (Bates, Maechler, and Jagan 2023) to interface with the Eigen
+library (Guennebaud, Jacob, et al. 2010).
+
+These expressions include the $T \times J$ matrix $\mathbf{D}$
+representing the ongoing impact of initial conditions $d_{tj}$ for each
+variable and year, as explained in detail next.
+
+### Initial conditions and total effects
+
+Imagine we have some exogenous intervention that caused a $T \times J$
+matrix of changes $\mathbf{C}$. The total effect of this exogenous
+intervention would then be
+$\left( {\mathbf{I} - \mathbf{P}}_{joint} \right)^{- 1}{vec}(\mathbf{C})$,
+and we can calculate any total effect using this matrix inverse
+$\left( {\mathbf{I} - \mathbf{P}}_{joint} \right)^{- 1}$ (called the
+“Leontief matrix”). To see this, consider that the first-order effect of
+change $\mathbf{C}$ is $\mathbf{P}_{joint}{vec}(\mathbf{C})$, but this
+response then in turn causes a second-order effect
+${\mathbf{P}_{joint}}^{2}{vec}(\mathbf{C})$, and so on. The total effect
+is therefore:
+
+$$\sum\limits_{l = 0}^{\infty}{\mathbf{P}_{joint}}^{l} = \left( {\mathbf{I} - \mathbf{P}}_{joint} \right)^{- 1}$$
+where this power-series of direct and indirect effects then results in
+the Leontief matrix (as long as the $\mathbf{I} - \mathbf{P}$ is
+invertible).
+
+We can use this expression to calculate the matrix $\mathbf{D}$
+represents the ongoing effect of initial conditions. It is constructed
+from a $J$ length vector of estimated initial conditions
+${\mathbf{δ}}_{1}$ in time $t = 1$, and we construct a $T \times J$
+matrix $\mathbf{\Delta}$ where the first row (corresponding to year
+$t = 1$) is ${\mathbf{δ}}_{1}$ and all other elements are $0$. The
+ongoing effect of initial conditions can then be calculated as:
+
+$${vec}(\mathbf{D}) = \left( {\mathbf{I} - \mathbf{P}}_{joint} \right)^{- 1}{vec}(\mathbf{\Delta})$$
+Calculating the effect of initial conditions is in a sense the total
+effect of ${\mathbf{δ}}_{1}$ in year $t = 1$ on subsequent years.
+Calculating the effect $\mathbf{D}$ of initial conditions involves
+inverting ${\mathbf{I} - \mathbf{P}}_{joint}$, but this is
+computationally efficient using a sparse LU decomposition.
+
+### Constant conditional vs. marginal variance
+
+We have defined the joint precision for a GMRF based on a path matrix
+and matrix of exogenous covariances. The exogenous (or conditional)
+variances are stationary for each variable over time, and some path
+matrices will result in a nonstationary marginal variance. To see this,
+consider a first-order autoregressive process
+
+``` r
+dsem = " 
+x -> x, 1, ar1, 0.8
+x <-> x, 0, sd, 1
+"
+```
+
+We can parse this DSEM and construct the precision using internal
+functions:
+
+``` r
+# Load package
+library(dsem)
+
+# call dsem without estimating parameters
+out = dsem(
+  tsdata = ts(data.frame( x = rep(1,10) )),
+  sem = dsem,
+  control = dsem_control(
+    run_model = FALSE, 
+    quiet = TRUE
+  )
+)
+
+# Extract covariance
+Sigma1 = solve(as.matrix(out$obj$report()$Q_oo))
+plot( x=1:10, y = diag(Sigma1), xlab="time", 
+      ylab="Marginal variance", type="l", 
+      ylim = c(0,max(diag(Sigma1))))
+```
+
+![](model-description_files/figure-html/unnamed-chunk-4-1.png)
+
+where we can see that the diagonal of this covariance matrix is
+non-constant.
+
+We therefore derive an alternative specification that preserves a
+stationary marginal variance by rescaling the exogenous (conditional)
+variance.
+
+Specifically, we see that the marginal variance is:
+
+\$\$ \mathrm{Var}(\mathbf X) = \mathrm{diag}(\mathbf\Sigma) = \mathbf{ L
+L}^T \\ \mathbf L = (\mathbf{I - P}\_{\mathrm{joint}})^{-1} \mathbf G
+\$\$ Given the properties of the Hadamard (elementwise) product, this
+can be rewritten as:
+
+$${diag}(\mathbf{\Sigma}) = {(\mathbf{L} \circ \mathbf{L})\mathbf{1}}$$
+Now suppose we have a desired vector of length $TJ$ for the constant
+marginal variance $\mathbf{v}$. We can solve for the exogenous
+covariance that would result in that marginal variance:
+
+$$\mathbf{u} = (\mathbf{L} \circ \mathbf{L})^{- 1}\mathbf{v}$$
+
+and we can then rescale the exogenous covariance:
+
+$${diag}\left( \mathbf{G}^{*} \right) = \mathbf{u}$$ and then using this
+rescaled exogenous covariance when constructing the precision of the
+GMRF. We can see this again using our first-order autoregressive example
+
+``` r
+# call dsem without estimating parameters
+out = dsem(
+  tsdata = ts(data.frame( x = rep(1,10) )),
+  sem = dsem,
+  control = dsem_control(
+    run_model = FALSE, 
+    quiet = TRUE, 
+    constant_variance = "marginal"
+  )
+)
+
+# Extract covariance
+Sigma2 = solve(as.matrix(out$obj$report()$Q_oo))
+plot( x=1:10, y = diag(Sigma2), xlab="time", 
+      ylab="Marginal variance", type="l", 
+      ylim = c(0,max(diag(Sigma1))))
+```
+
+![](model-description_files/figure-html/unnamed-chunk-5-1.png)
+
+This shows that the corrected (nonstationary) exogenous variance results
+in a stationary marginal variance for the AR1 process. This correction
+can be done in two different ways that are identical when the exogenous
+covariance is diagonal (as it is in this simple example), but differ
+when specifying some exogenous covariance. However, we do not discuss
+this in detail here. Note that this calculating this correction for a
+constant marginal variance requires the inverse of the squared values of
+Leontief matrix (which is itself a matrix inverse). It therefore is
+computationally expensive for large models containing complicated
+dependencies.
+
+### Reduced rank models
+
+We note that some DSEM specifications will be reduced rank. This arises
+for example when specifying a dynamic factor analysis, where $J$
+variables are explained by $F < J$ factors that each follow a random
+walk:
+
+``` r
+#
+dsem = "
+  # Factor follows random walk with unit variance
+  F <-> F, 0, NA, 1
+  F -> F, 1, NA, 1
+  # Loadings on two manifest variables
+  F -> x, 0, b_x, 1
+  F -> y, 0, b_y, 1
+  # No residual variance for manifest variables
+  x <-> x, 0, NA, 0
+  y <-> y, 0, NA, 0
+"
+data = data.frame( 
+  x = rnorm(10),
+  y = rnorm(10),
+  F = rep(NA,10)
+)
+
+# call dsem without estimating parameters
+out = dsem(
+  tsdata = ts(data),
+  sem = dsem,
+  family = c("normal","normal","fixed"),
+  control = dsem_control(
+    run_model = FALSE, 
+    quiet = TRUE,
+    gmrf_parameterization = "project"
+  )
+)
+```
+
+We can extract the covariance and inspect the eigenvalues:
+
+``` r
+# Extract covariance
+library(Matrix)
+IminusRho_kk = out$obj$report()$IminusRho_kk
+G_kk = out$obj$report()$Gamma_kk
+Q_kk = t(IminusRho_kk) %*% t(G_kk) %*% G_kk %*% IminusRho_kk
+
+# Display eigenvalues
+eigen(Q_kk)$values
+#>  [1] 3.91114561 3.65247755 3.24697960 2.73068205 2.14946019 1.55495813
+#>  [7] 1.00000000 0.53389626 0.19806226 0.02233835 0.00000000 0.00000000
+#> [13] 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
+#> [19] 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
+#> [25] 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
+```
+
+where this shows that the precision has a rank of 10 while being a
+$30 \times 30$ matrix. We therefore cannot evaluate the probability
+density of state matrix $\mathbf{X}$ using this precision matrix (i.e.,
+the log-determinant is not defined).
+
+To address this circumstance, we can switch to using
+`gmrf_parameterization = "project"`. This evaluates the probability
+density of a set of innovations $\mathbf{X}^{*}$ that follow a unit
+variance:
+
+$${vec}(\mathbf{X})^{*} \sim {GMRF}\left( {\mathbf{0},\mathbf{I}} \right)$$
+and then projects these full-rank innovations to the reduced rank
+states:
+
+$${vec}(\mathbf{X}) = \left( {\mathbf{I} - \mathbf{P}}_{joint} \right)^{- 1}\mathbf{G}_{joint}{vec}(\mathbf{X})^{*}$$
+
+This parameterization allows us to fit DSEM using a rank-deficient
+structural model.
+
+## Works cited
+
+Bates, Douglas, Martin Maechler, and Mikael Jagan. 2023. *Matrix: Sparse
+and Dense Matrix Classes and Methods*.
+<https://CRAN.R-project.org/package=Matrix>.
+
+Fox, John. 2006. “Structural Equation Modeling with the Sem Package in
+R.” *Structural Equation Modeling-a Multidisciplinary Journal* 13:
+465–86.
+
+Guennebaud, G., B. Jacob, et al. 2010. “Eigen V3.”
+<https://libeigen.gitlab.io/>.
+
+Kristensen, Kasper, Anders Nielsen, Casper W. Berg, Hans Skaug, and
+Bradley M. Bell. 2016. “TMB: Automatic Differentiation and Laplace
+Approximation.” *Journal of Statistical Software* 70 (5): 1–21.
+<https://doi.org/10.18637/jss.v070.i05>.
+
+Skaug, Hans, and Dave Fournier. 2006. “Automatic Approximation of the
+Marginal Likelihood in Non-Gaussian Hierarchical Models.” *Computational
+Statistics & Data Analysis* 51 (2): 699–709.
+
+Thorson, James T., Alexander G. Andrews III, Timothy E. Essington, and
+Scott I. Large. 2024. “Dynamic Structural Equation Models Synthesize
+Ecosystem Dynamics Constrained by Ecological Mechanisms.” *Methods in
+Ecology and Evolution* 15 (4): 744–55.
+<https://doi.org/10.1111/2041-210X.14289>.
