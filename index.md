@@ -7,7 +7,10 @@
 [![](https://cranlogs.r-pkg.org/badges/grand-total/dsem)](https://cran.r-project.org/package=dsem)
 [![Codecov test
 coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
-[![Documentation](https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
+[![docs
+(main)](https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
+[![docs
+(dev)](https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/dev)
 
 Package *dsem* fits dynamic structural equation models, which includes
 as nested submodels:
