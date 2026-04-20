@@ -1,6 +1,6 @@
 # Changelog
 
-## dsem 2.0.0
+## dsem 1.7.0.9000
 
 - Add option to specify a path based fixed at another variable
 - Renamed `gmrf_parameterization = "conditional_krig"` as
