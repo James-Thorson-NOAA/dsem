@@ -10,14 +10,12 @@ fixed <- function() {
   link1 = "identity"
   l1 <- substitute(link1)
   if (!is.character(l1)) l1 <- deparse(l1)
-  .type <- "fixed"
-  clean_name <- "fixed"
   structure(
     list(
       link = l1,
-      type = .type,
+      type = "fixed",
       family = "fixed",
-      clean_name = clean_name
+      clean_name = "fixed"
     ),
     class = "family"
   )
@@ -78,7 +76,6 @@ lognormal <- function( link ) {
   structure(
     list(
       link = l1,
-      fixed_sd = sd,
       type = "lognormal",
       family = "lognormal",
       clean_name = "lognormal"
