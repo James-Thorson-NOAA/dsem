@@ -54,3 +54,36 @@ gaussian_fixed_sd <- function( link, sd ) {
   )
 }
 
+#' @title
+#' Lognormal distribution
+#'
+#' @description
+#' Lognormal distribution
+#'
+#' @details
+#' Central tendancy meanlog is the median of log-response
+#' i.e., does not include bias correction term $sigma^2/2$
+#'
+#' @param link Link function
+#' @param sd vector of known standard deviations (repeated for length of time-series, so be careful)
+#'
+#' @export
+lognormal <- function( link ) {
+  if( missing(link) ){
+    link = "log"
+  }
+  l1 <- substitute(link)
+  if (!is.character(l1)) l1 <- deparse(l1)
+
+  structure(
+    list(
+      link = l1,
+      fixed_sd = sd,
+      type = "lognormal",
+      family = "lognormal",
+      clean_name = "lognormal"
+    ),
+    class = "family"
+  )
+}
+

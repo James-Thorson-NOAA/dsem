@@ -24,7 +24,7 @@ for missing values.}
 
 \item{family}{A named list of families, each returning a class \code{family},
 including \code{\link[=fixed]{fixed()}}, \code{\link[=gaussian]{gaussian()}}, \code{\link[=binomial]{binomial()}},  \code{\link[=Gamma]{Gamma()}}, \code{\link[=poisson]{poisson()}},
-or \code{\link[=gaussian_fixed_sd]{gaussian_fixed_sd()}} with names that match levels of
+\code{\link[=lognormal]{lognormal()}}, or \code{\link[=gaussian_fixed_sd]{gaussian_fixed_sd()}} with names that match levels of
 \code{colnames(tsdata)} to allow different
 families by variable.  Family \code{\link[=fixed]{fixed()}} specifies that states
 are known (i.e., measurements for that variable have no error).

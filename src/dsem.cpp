@@ -8,6 +8,18 @@ Type sign(Type x){
   return x / pow(pow(x,2),0.5);
 }
 
+// dlnorm
+template<class Type>
+Type dlnorm( Type x,
+             Type meanlog,
+             Type sdlog,
+             int give_log=0){
+
+  //return 1/(sqrt(2*M_PI)*sd) * exp(-.5*pow((x-mean)/sd,2));
+  Type logres = dnorm( log(x), meanlog, sdlog, true) - log(x);
+  if(give_log) return logres; else return exp(logres);
+}
+
 // Get sparse submatrix, for use in dgmrf_conditional
 // Modified from chatGPT-5
 template<class Type>
@@ -478,15 +490,19 @@ Type objective_function<Type>::operator() ()
   for(int j=0; j<n_j; j++){
     // Link function
     if( linkcode_j(j)==0 ){
+      // identity link
       mu_tj(t,j) = z_tj(t,j);
     }
     if( linkcode_j(j)==1 ){
+      // log link
       mu_tj(t,j) = exp(z_tj(t,j));
     }
     if( linkcode_j(j)==2 ){
+      // logit link
       mu_tj(t,j) = invlogit(z_tj(t,j));
     }
     if( linkcode_j(j)==3 ){
+      // cloglog link
       mu_tj(t,j) = Type(1.0) - exp( -1.0 * exp(z_tj(t,j)) );
     }
 
@@ -547,6 +563,16 @@ Type objective_function<Type>::operator() ()
         y_tj(t,j) = rnorm( mu_tj(t,j), eps_tj(t,j) );
       }
       devresid_tj(t,j) = NAN;
+    }
+    if( familycode_j(j)==6 ){
+      // familycode = 6 :  lognormal
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dlnorm( y_tj(t,j), log(mu_tj(t,j)), sigma_z(sigmastart_j(j)), true );
+      }
+      SIMULATE{
+        y_tj(t,j) = exp(rnorm( log(mu_tj(t,j)), sigma_z(sigmastart_j(j)) ));
+      }
+      devresid_tj(t,j) = log(y_tj(t,j)) - log(mu_tj(t,j));
     }
   }}
   jnll -= loglik_tj.sum();
