@@ -8,8 +8,6 @@ lognormal(link)
 }
 \arguments{
 \item{link}{Link function}
-
-\item{sd}{vector of known standard deviations (repeated for length of time-series, so be careful)}
 }
 \description{
 Lognormal distribution

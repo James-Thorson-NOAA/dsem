@@ -63,7 +63,6 @@ gaussian_fixed_sd <- function( link, sd ) {
 #' i.e., does not include bias correction term $sigma^2/2$
 #'
 #' @param link Link function
-#' @param sd vector of known standard deviations (repeated for length of time-series, so be careful)
 #'
 #' @export
 lognormal <- function( link ) {
