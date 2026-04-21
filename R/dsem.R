@@ -253,6 +253,11 @@ function( sem,
       stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
     }
   }
+  if( any(ram$head==0) ){
+    if( control$gmrf_parameterization %in% c("project") ){
+      stop("Cannot use gmrf_parameterization == `project` when using moderated variables")
+    }
+  }
 
   #
   options = c(
