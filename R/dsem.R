@@ -254,6 +254,8 @@ function( sem,
     }
   }
   if( any(ram$head==0) ){
+    # Using moderating variables, their raw values to construct Rho_kk and raw values follow standard-normal distribution
+    # so Gamma_kk and Rho_kk are not properly applied to moderating variables
     if( control$gmrf_parameterization %in% c("project") ){
       stop("Cannot use gmrf_parameterization == `project` when using moderated variables")
     }
