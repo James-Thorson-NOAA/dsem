@@ -299,7 +299,7 @@ function( sem,
     stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
   }
 
-  if( any(project_k & moderator_k) )
+  if( any(project_k & moderator_k) ){
     # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
     # so Gamma_kk and Rho_kk are not properly applied to moderating variables
     if( control$gmrf_parameterization %in% c("mvn_project", "gmrf_project") ){
