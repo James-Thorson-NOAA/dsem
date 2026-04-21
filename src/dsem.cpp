@@ -101,6 +101,7 @@ Type objective_function<Type>::operator() ()
   // options(0) -> 0: full rank;  1: rank-reduced GMRF;  2: conditional krigging
   // options(1) -> 0: constant conditional variance;  1: constant marginal variance
   // options(2) -> 0: use GMRF(Q);  1: use GMRF(Q + 1e-14 \times I)
+  // options(3) -> 0: natural-scale moderating variance;  1: log-scale moderating variance
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
   DATA_IVECTOR( familycode_j );
@@ -144,14 +145,19 @@ Type objective_function<Type>::operator() ()
     }else{
       tmp = RAMstart(r);
     }
-    if(RAM(r,0)==0){
-      Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = x_tj( RAM(r,4)-1, RAM(r,5)-1 );
-    }
-    if(RAM(r,0)==1){
+    if(RAM(r,0) == 1){
       Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
     }
-    if(RAM(r,0)==2){
+    if(RAM(r,0) == 2){
       Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp; // Cholesky of covariance, so -Inf to Inf;
+    }
+    if(RAM(r,0) == 3){
+      Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = x_tj( RAM(r,4)-1, RAM(r,5)-1 );
+    }
+    if(RAM(r,0) == 4){
+      // Trying to decide whether to use log or natural-space
+      if( options(3) == 0) Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = x_tj( RAM(r,4)-1, RAM(r,5)-1 );
+      if( options(3) == 1) Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = exp(x_tj( RAM(r,4)-1, RAM(r,5)-1 ));
     }
   }
   Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;

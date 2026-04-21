@@ -275,13 +275,15 @@ function( sem,
 
   ####### Step 2 -- Make RAM
   # convert to data frame
-  model = scan( text = sem,
-                what = list(path = "", lag = 1, par = "", start = 1, dump = ""),
-                sep = ",",
-                strip.white = TRUE,
-                comment.char = "#",
-                fill = TRUE,
-                quiet = quiet)
+  model = scan(
+    text = sem,
+    what = list(path = "", lag = 1, par = "", start = 1, dump = ""),
+    sep = ",",
+    strip.white = TRUE,
+    comment.char = "#",
+    fill = TRUE,
+    quiet = quiet
+  )
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
   model <- data.frame( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
@@ -338,14 +340,15 @@ function( sem,
     model[i,c('first','second','direction')] = unlist( path[c('first','second','direction')] )
   }
 
-  # ADD LOGIC FOR PATHS
+  # ADD LOGIC FOR MODERATOR VARIABLES
   which_rows = model[,'name'] %in% variables
   if( any(which_rows) ){
-    model[which_rows,'direction'] = 0  
+    model[which_rows,'direction'] = ifelse( model[which_rows,'direction'] == "1", "3", model[which_rows,'direction'] )
+    model[which_rows,'direction'] = ifelse( model[which_rows,'direction'] == "2", "4", model[which_rows,'direction'] )
   }
   
   # Loop through paths
-  B_kk = G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
+  Gmoderator_kk = Pmoderator_kk = G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
   #P_kk = new("dgCMatrix")
   #P_kk = Matrix()
   #P_kk@Dim <- as.integer(rep(length(variables)*length(times),2))
@@ -369,14 +372,17 @@ function( sem,
 
     # Combine them 
     tmp_kk = kronecker(P_jj, L_tt)
-    if( abs(as.numeric(model[i,'direction'])) == 0 ){
-      B_kk = B_kk + tmp_kk * match(model[i,'name'],variables)
-    }
     if( abs(as.numeric(model[i,'direction'])) == 1 ){
       P_kk = P_kk + tmp_kk * i
     }
     if( abs(as.numeric(model[i,'direction'])) == 2 ){
       G_kk = G_kk + tmp_kk * i
+    }
+    if( abs(as.numeric(model[i,'direction'])) == 3 ){
+      Pmoderator_kk = Pmoderator_kk + tmp_kk * match(model[i,'name'],variables)
+    }
+    if( abs(as.numeric(model[i,'direction'])) == 4 ){
+      Gmoderator_kk = Gmoderator_kk + tmp_kk * match(model[i,'name'],variables)
     }
   }
   
@@ -392,13 +398,13 @@ function( sem,
     return(out)
   }
   # Convert to triplet for spatially varying slope
-  f2 = function( x ){
+  f2 = function( x, first_column ){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
       t_k = rep( seq_along(times), length(variables) )[triplet$i]
       #j_k = rep( seq_along(variables), each = length(times) )[triplet$i]
       # use NA for 4th so it keeps an NA for par.nos[ram[,4]
-      out = data.frame( 0, triplet$i, triplet$j, NA, t_k, triplet$x )
+      out = data.frame( first_column, triplet$i, triplet$j, NA, t_k, triplet$x )
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
@@ -414,13 +420,18 @@ function( sem,
   # starvalue (starting value)
   # to_t (for varying path, row of tsdata)
   # to_j (for varying path, column of tsdata)
-  ram = rbind( f(P_kk, 1),
-               f(G_kk, 2),
-               f2(B_kk) )  # Ignore column names
-  ram = data.frame( ram[,1:3, drop=FALSE],
-                    as.numeric(par.nos)[ram[,4]],
-                    as.numeric(startvalues)[ram[,4]],
-                    ram[,5:6, drop=FALSE] )
+  ram = rbind(
+    f(P_kk, 1),
+    f(G_kk, 2),
+    f2(Pmoderator_kk, 3),
+    f2(Gmoderator_kk, 4)
+  )  # Ignore column names
+  ram = data.frame(
+    ram[,1:3, drop=FALSE],
+    as.numeric(par.nos)[ram[,4]],
+    as.numeric(startvalues)[ram[,4]],
+    ram[,5:6, drop=FALSE]
+  )
   colnames(ram) = c( "heads", "to", "from", "parameter", 
                      "start", "to_t", "to_j")
 

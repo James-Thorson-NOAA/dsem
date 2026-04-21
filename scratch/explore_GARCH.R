@@ -1,9 +1,10 @@
 
 
 #devtools::install_github("James-thorson-NOAA/dsem@dev_add-family")
+#devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)' )
 library(dsem)
 
-n_t = 5
+n_t = 100
 n_c = 3
 
 sigF_t = seq( 0.1, 0.3, length = n_t )
@@ -11,45 +12,48 @@ sigF_t = seq( 0.1, 0.3, length = n_t )
 eps_tc = matrix( rnorm(n_t*n_c), nrow = n_t, ncol = n_c )
 eps_tc = sweep( eps_tc, MARGIN = 1, FUN = "*", STAT = sigF_t )
 
+#########################
+# Option-2
+#########################
+
+
 dat = data.frame(
   setNames( data.frame(eps_tc),letters[seq_len(n_c)]),
-  "F" = NA,
-  setNames( NA*data.frame(eps_tc),paste0("v_",letters[seq_len(n_c)]) )
+  F = NA,
+  slope = scale( seq_len(n_t), center = TRUE, scale = TRUE )
 )
+dat$slope[ sample(seq_len(n_t),n_t/2) ] = NA
 
 sem = "
-  a <-> a, 0, NA, 0
-  b <-> b, 0, NA, 0
-  c <-> c, 0, NA, 0
-  #d <-> d, 0, NA, 0
-  #e <-> e, 0, NA, 0
-  v_a <-> v_a, 0, NA, 1
-  v_b <-> v_b, 0, NA, 1
-  v_c <-> v_c, 0, NA, 1
-  #v_d <-> v_d, 0, NA, 1
-  #v_e <-> v_e, 0, NA, 1
+  a <-> a, 0, F
+  b <-> b, 0, F
+  c <-> c, 0, F
   F <-> F, 0, sdF, 0.1
-  #F -> F, 1, NA, 1
-  v_a -> a, 0, F
-  v_b -> b, 0, F
-  v_c -> c, 0, F
-  #v_d -> d, 0, F
-  #v_e -> e, 0, F
+  F -> F, 1, NA, 1
+  slope <-> slope, 0, sd_slope
+  slope -> slope, 1, NA, 1
+  slope -> F, 0, beta
 "
 
 # Initial build
-fit0 = dsem(
+fit = dsem(
   tsdata = ts(dat),
   sem = sem,
   control = dsem_control(
-    build_model = FALSE,
-    use_REML = FALSE
+    build_model = TRUE,
+    use_REML = FALSE,
+    gmrf_parameterization = "full",
+    logscale_moderating_variance = TRUE
   )
 )
 
 #
 pars = fit0$parameters
 pars$x_tj = ifelse( pars$x_tj==0, array(rnorm(prod(dim(pars$x_tj))),dim=dim(pars$x_tj)), pars$x_tj )
+pars$x_tj[,(names(dat)=="F")] = abs(pars$x_tj[,(names(dat)=="F")])
+
+# Using log-scale for moderating variances
+#pars$mu_j[(names(dat)=="F")] = 1
 
 #
 family = Map(function(.) fixed(), colnames(dat))
@@ -64,14 +68,15 @@ fit = dsem(
   tsdata = ts(dat),
   sem = sem,
   family = family,
-  estimate_mu = vector(),
+  estimate_mu = c("F"),
   control = dsem_control(
-    run_model = FALSE,
+    run_model = TRUE,
     use_REML = FALSE,
     parameters = pars,
-    gmrf_parameterization = "project"
+    gmrf_parameterization = "full",
+    logscale_moderating_variance = TRUE
   )
 )
-fit$obj$fn( fit$obj$par )
-fit$obj$gr( fit$obj$par )
 rep = fit$obj$report()
+
+

@@ -3,6 +3,7 @@
 * Change to requiring `family` options that agree with `glm`
 * Adding `family = gaussian_fixed_sd()` option to pre-specify a known standard deviation
 * Adding `family = lognormal()` option (e.g., for linearized Beverton-Holt stock recruit analysis)
+* Adding option for moderator variables affecting exogenous variance in Gamma (not just paths in Rho)
 
 # dsem 2.0.0
 

@@ -253,7 +253,7 @@ function( sem,
       stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
     }
   }
-  if( any(ram$heads==0) ){
+  if( any(ram$heads %in% c(3,4)) ){
     # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
     # so Gamma_kk and Rho_kk are not properly applied to moderating variables
     if( control$gmrf_parameterization %in% c("project") ){
@@ -265,7 +265,8 @@ function( sem,
   options = c(
     switch(control$gmrf_parameterization, "full" = 0, "project" = 1, "mvn_project" = 2, "gmrf_project" = 3, NA),
     switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2),
-    ifelse( isTRUE(control$stabilize_Q), 1, 0 )
+    ifelse( isTRUE(control$stabilize_Q), 1, 0 ),
+    ifelse( isTRUE(control$logscale_moderating_variance), 1, 0)
   )
   
   # define variables to project to `project_k` unless provided by user
@@ -704,6 +705,9 @@ function( sem,
 #'        are then replaced with Inf and avoided during estimation
 #' @param stabilize_Q add \code{stability_eps = 1e-10} to stabilize precision
 #'        (experimental)
+#' @param logscale_moderating_variance When users supply a moderating variable
+#'        for an exogenous variance (i.e., double-headed arrow), whether to
+#'        exponentiate the variable prior to
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -732,7 +736,8 @@ function( nlminb_loops = 1,
           upper = Inf,
           project_k = NULL,
           suppress_nlminb_warnings = TRUE,
-          stabilize_Q = FALSE ){
+          stabilize_Q = FALSE,
+          logscale_moderating_variance = FALSE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -760,7 +765,8 @@ function( nlminb_loops = 1,
     upper = upper,
     project_k = project_k,
     suppress_nlminb_warnings = suppress_nlminb_warnings,
-    stabilize_Q = stabilize_Q
+    stabilize_Q = stabilize_Q,
+    logscale_moderating_variance = logscale_moderating_variance
   ), class = "dsem_control" )
 }
 
