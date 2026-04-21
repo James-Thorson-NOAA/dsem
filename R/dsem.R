@@ -243,8 +243,8 @@ function( sem,
       stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
     }
   }
-  if( any(ram$head==0) ){
-    # Using moderating variables, their raw values to construct Rho_kk and raw values follow standard-normal distribution
+  if( any(ram$heads==0) ){
+    # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
     # so Gamma_kk and Rho_kk are not properly applied to moderating variables
     if( control$gmrf_parameterization %in% c("project") ){
       stop("Cannot use gmrf_parameterization == `project` when using moderated variables")
@@ -273,6 +273,11 @@ function( sem,
     project_k = as.vector(control$project_k)
   }
 
+  # Identify variables that serve as moderators
+  moderator_tj = array( FALSE, dim = dim(tsdata) )
+  moderator_tj[ as.matrix(na.omit(ram[,6:7])) ] = 1
+  moderator_k = as.vector(moderator_tj)
+
   # Switch `gmrf_project` to `full` if no variables in `project_k`
   # Now added simplified code to CPP instead
   #if( (options[1] == 3) & (sum(project_k)==0) ){
@@ -282,6 +287,13 @@ function( sem,
   # Error check
   if( any(subset(ram, ram$heads==2 & !is.na(ram$start))$start==0) & (options[1]==0) ){
     stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
+  }
+  if( any(project_k & moderator_k) )
+    # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
+    # so Gamma_kk and Rho_kk are not properly applied to moderating variables
+    if( control$gmrf_parameterization %in% c("mvn_project", "gmrf_project") ){
+      stop("Cannot use gmrf_parameterization == `project` when using moderated variables")
+    }
   }
 
   #

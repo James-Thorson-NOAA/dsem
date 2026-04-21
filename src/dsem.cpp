@@ -374,6 +374,8 @@ Type objective_function<Type>::operator() ()
   // x_o has V_oo that is full rank, and some are fixed ("observed")
   // x_u has V_uu that has no rank (V_uu = 0), and none are fixed ("unobserved" and projected to)
   //
+  // NOTE:  x_u cannot include moderator variables
+  //
   // Define
   // P = | P_oo, P_ou |
   //     | P_uo, P_uu  |
