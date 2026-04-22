@@ -347,6 +347,11 @@ function( sem,
     model[which_rows,'direction'] = ifelse( model[which_rows,'direction'] == "2", "4", model[which_rows,'direction'] )
   }
   
+  which_missing = setdiff(c(model$first,model$second), variables)
+  if( length(which_missing) > 0 ){
+    stop( "variables in `sem` missing from tsdata: ", paste0(which_missing,collapse = ", ") )
+  }
+
   # Loop through paths
   Gmoderator_kk = Pmoderator_kk = G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
   #P_kk = new("dgCMatrix")
