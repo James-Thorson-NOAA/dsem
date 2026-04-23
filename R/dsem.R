@@ -9,7 +9,7 @@
 #'        for missing values.
 #' @param family A named list of families, each returning a class \code{family},
 #'        including [fixed()], [gaussian()], [binomial()],  [Gamma()], [poisson()],
-#'        [lognormal()], or [gaussian_fixed_sd()] with names that match levels of
+#'        [lognormal()], [tweedie()], or [gaussian_fixed_sd()] with names that match levels of
 #'        \code{colnames(tsdata)} to allow different
 #'        families by variable.  Family [fixed()] specifies that states
 #'        are known (i.e., measurements for that variable have no error).
@@ -330,7 +330,8 @@ function( sem,
                          "bernoulli" = c(),
                          "Gamma" = NA,
                          "gaussian_fixed_sd" = c(),
-                         "lognormal" = NA
+                         "lognormal" = NA,
+                         "tweedie" = c(NA, NA)
                        )} )
     Nsigma_j = sapply(sigma_j, length)
     sigmastart_j = remove_last(cumsum(c(0,Nsigma_j)))
@@ -358,7 +359,8 @@ function( sem,
                          "poisson" = 3,
                          "Gamma" = 4,
                          "gaussian_fixed_sd" = 5,
-                         "lognormal" = 6
+                         "lognormal" = 6,
+                         "tweedie" = 7
                        )[x$family]} )
     link_code = sapply( family, FUN=function(x){
                        c("identity" = 0,
@@ -445,7 +447,7 @@ function( sem,
   if( is.null(control$map) ){
     Map = list()
     # Map off x_tj for fixed when data is available
-    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4,5,6)), seq_len(prod(dim(tsdata))), NA )
+    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4,5,6,7)), seq_len(prod(dim(tsdata))), NA )
     # Map off sigma_j for fixed / bernoulli / Poisson
     # Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 

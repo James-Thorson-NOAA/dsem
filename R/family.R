@@ -83,3 +83,31 @@ lognormal <- function( link ) {
   )
 }
 
+
+#' @title
+#' Tweedie distribution
+#'
+#' @description
+#' Tweedie distribution
+#'
+#' @param link Link function
+#'
+#' @export
+tweedie <- function( link ) {
+  if( missing(link) ){
+    link = "log"
+  }
+  l1 <- substitute(link)
+  if (!is.character(l1)) l1 <- deparse(l1)
+
+  structure(
+    list(
+      link = l1,
+      type = "tweedie",
+      family = "tweedie",
+      clean_name = "tweedie"
+    ),
+    class = "family"
+  )
+}
+

@@ -8,6 +8,21 @@ Type sign(Type x){
   return x / pow(pow(x,2),0.5);
 }
 
+// Deviance for the Tweedie
+// https://en.wikipedia.org/wiki/Tweedie_distribution#Properties
+template<class Type>
+Type devresid_tweedie( Type y,
+                       Type mu,
+                       Type p ){
+
+  Type c1 = pow( y, 2.0-p ) / (1.0-p) / (2.0-p);
+  Type c2 = y * pow( mu, 1.0-p ) / (1.0-p);
+  Type c3 = pow( mu, 2.0-p ) / (2.0-p);
+  Type deviance = 2 * (c1 - c2 + c3 );
+  Type devresid = sign( y - mu ) * pow( deviance, 0.5 );
+  return devresid;
+}
+
 // dlnorm
 template<class Type>
 Type dlnorm( Type x,
@@ -579,6 +594,16 @@ Type objective_function<Type>::operator() ()
         y_tj(t,j) = exp(rnorm( log(mu_tj(t,j)), sigma_z(sigmastart_j(j)) ));
       }
       devresid_tj(t,j) = log(y_tj(t,j)) - log(mu_tj(t,j));
+    }
+    if( familycode_j(j)==7 ){
+      // familycode = 7 :  tweedie
+      if(!R_IsNA(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dtweedie( y_tj(t,j), mu_tj(t,j), exp(sigma_z(sigmastart_j(j))), 1.0 + invlogit(sigma_z(sigmastart_j(j)+1)), true );
+      }
+      SIMULATE{
+        y_tj(t,j) = rtweedie( mu_tj(t,j), exp(sigma_z(sigmastart_j(j))), 1.0 + invlogit(sigma_z(sigmastart_j(j)+1)) );
+      }
+      devresid_tj(t,j) = devresid_tweedie( y_tj(t,j), mu_tj(t,j), 1.0 + invlogit(sigma_z(sigmastart_j(j)+1)) );
     }
   }}
   jnll -= loglik_tj.sum();
