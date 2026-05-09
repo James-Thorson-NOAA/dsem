@@ -251,6 +251,14 @@ structural equation models synthesize ecosystem dynamics constrained by
 ecological mechanisms. Methods in Ecology and Evolution.
 [doi:10.1111/2041-210X.14289](https://doi.org/10.1111/2041-210X.14289)
 
+**Introducing moderated DSEM (e.g., nonstationarity and varying
+paths):**
+
+Thorson, J. T., Kristensen, K. (In press). Ecological examples of
+nonstationarity, nonlinearity, and statistical interactions in dynamic
+structural equation models. Methods in Ecology and Evolution.
+<https://ecoevorxiv.org/repository/view/11418/>
+
 ## Examples
 
 ``` r
