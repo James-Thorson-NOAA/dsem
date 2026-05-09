@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Dynamic Structural Equation Models
-Version: 1.7.0.9000
-Date: 2026-04-18
+Version: 2.0.0
+Date: 2026-05-09
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
