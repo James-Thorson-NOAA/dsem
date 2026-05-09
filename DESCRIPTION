@@ -65,8 +65,8 @@ Description: Applies dynamic structural equation models to time-series data
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 LazyData: true
 URL: https://james-thorson-noaa.github.io/dsem/
 BugReports: https://github.com/James-Thorson-NOAA/dsem/issues
+Config/roxygen2/version: 8.0.0
