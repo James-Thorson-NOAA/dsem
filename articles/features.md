@@ -1,6 +1,7 @@
 # Demonstration of selected features
 
 ``` r
+
 library(dsem)
 library(dynlm)
 library(ggplot2)
@@ -20,6 +21,7 @@ We first show that `dsem` is identical to a linear model. To do so, we
 simulate data with a single response and single predictor:
 
 ``` r
+
 # simulate normal distribution
 x = rnorm(100)
 y = 1 + 0.5 * x + rnorm(100)
@@ -53,6 +55,7 @@ We can also calculate leave-one-out residuals and display them using
 DHARMa:
 
 ``` r
+
 # sample-based quantile residuals
 samples = loo_residuals(fit, what="samples", track_progress=FALSE)
 which_use = which(!is.na(data))
@@ -74,6 +77,7 @@ that we have a correctly specified model. We can also confirm that this
 gives identical to results to the linear model:
 
 ``` r
+
 # Get DSEM Loo residuals and LM working residuals
 res = loo_residuals(fit, what="quantiles", track_progress=FALSE)
 res0 = resid(Lm,"working")
@@ -92,6 +96,7 @@ We next demonstrate `dsem` using a well-known econometric model, the
 Klein-1 model.
 
 ``` r
+
 data(KleinI, package="AER")
 TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
@@ -125,6 +130,7 @@ This model could instead be specified using equation-and-lag notation,
 which makes the model structure more clear:
 
 ``` r
+
 # Specify using equations
 equations = "
   consumption = a1*cprofits + a2*lag[cprofits,1]+ a3*pwage + a3*gwage
@@ -145,6 +151,7 @@ fit = dsem( sem = sem_equations,
 We first demonstrate that `dsem` gives identical results to `dynlm`:
 
 ``` r
+
 # dynlm
 fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
 fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)
@@ -184,12 +191,14 @@ p1
 ![](features_files/figure-html/unnamed-chunk-7-1.png)
 
 ``` r
+
 p2
 ```
 
 ![](features_files/figure-html/unnamed-chunk-7-2.png)
 
 ``` r
+
 grid.arrange( arrangeGrob(p3, p4, nrow=2) )
 ```
 
@@ -206,6 +215,7 @@ distribution with positive skewness), but otherwise the two produce
 similar estimates.
 
 ``` r
+
 library(tmbstan)
 
 # MCMC for both fixed and random effects
@@ -214,6 +224,7 @@ summary_mcmc = summary(mcmc)
 ```
 
 ``` r
+
 # long-form data frame
 m1 = summary_mcmc$summary[1:17,c('mean','sd')]
 rownames(m1) = paste0( "b", seq_len(nrow(m1)) )
@@ -253,6 +264,7 @@ Here, we compare fits using `dsem` with `dynlm`, as well as a vector
 autoregressive model package `vars`, and finally with `MARSS`.
 
 ``` r
+
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
 
@@ -378,6 +390,7 @@ We can then plot the total effects, which shows that effects propagate
 through time due to both interactions and density dependence:
 
 ``` r
+
 # Calculate total effects
 effect = total_effect( fit )
 
@@ -399,6 +412,7 @@ We next replicate an analysis involving climate, forage fishes, stomach
 contents, and recruitment of a predatory fish.
 
 ``` r
+
 data(bering_sea)
 Z = ts( bering_sea )
 family = rep('fixed', ncol(bering_sea))
@@ -435,6 +449,7 @@ ParHat = fit$obj$env$parList()
 ```
 
 ``` r
+
 # Timeseries plot
 oldpar <- par(no.readonly = TRUE)
 par( mfcol=c(3,3), mar=c(2,2,2,0), mgp=c(2,0.5,0), tck=-0.02 )
@@ -458,6 +473,7 @@ par(oldpar)
 ![](features_files/figure-html/unnamed-chunk-15-1.png)
 
 ``` r
+
 #
 library(phylopath)
 library(ggplot2)
@@ -498,6 +514,7 @@ Finally, we replicate an analysis involving a trophic cascade involving
 sea stars predators, sea urchin consumers, and kelp producers.
 
 ``` r
+
 data(sea_otter)
 Z = ts( sea_otter[,-1] )
 

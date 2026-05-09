@@ -10,6 +10,7 @@ that are adjacent to one another along a single line (e.g., C is
 adjacent to B and D):
 
 ``` r
+
 library(igraph)
 library(Matrix)
 
@@ -44,6 +45,7 @@ We then specify a SEM that approximates diffusive movement, specifically
 using a diffusion-enhanced spatio-temporal process:
 
 ``` r
+
 library(dsem)
 
 # Specify SEM
@@ -91,6 +93,7 @@ Finally, we can predict movement resulting from the estimated path
 coefficients:
 
 ``` r
+
 # Calculate total effect
 effect = total_effect(fit, n_lags = 3)
 
@@ -114,6 +117,7 @@ And we can compare this with the true transition matrix from diffusive
 movement
 
 ``` r
+
 knitr::kable( as.matrix(M), digits=2)
 ```
 

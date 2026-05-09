@@ -78,8 +78,8 @@ specification of simultaneous and lagged effects in a potentially
 recursive structure. Here, we highlight how DSEM can be used to
 implement dynamic factor analysis (DFA). We specifically replicate
 analysis using the Multivariate Autoregressive State-Space (MARSS)
-package <span class="citation">(Holmes, Ward, and Wills 2012)</span>,
-using data that are provided as an example in the MARSS package.</p>
+package <span class="citation">(Holmes et al. 2012)</span>, using data
+that are provided as an example in the MARSS package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://atsa-es.github.io/MARSS/" class="external-link">MARSS</a></span><span class="op">)</span></span>
@@ -430,12 +430,13 @@ compare the three options in terms of estimated loadings:</p>
 <p>The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):</p>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-holmes_marss:_2012" class="csl-entry">
 Holmes, Elizabeth E., Eric J. Ward, and Kellie Wills. 2012.
-<span>“Marss: <span>Multivariate</span> Autoregressive State-Space
-Models for Analyzing Time-Series Data.”</span> <em>The R Journal</em> 4:
-11–19. <a href="http://journal.r-project.org/archive/2012-1/RJournal_2012-1.pdf#page=11" class="external-link">http://journal.r-project.org/archive/2012-1/RJournal_2012-1.pdf#page=11</a>.
+<span>“<span>MARSS</span>: <span>Multivariate</span>
+<span>Autoregressive</span> <span>State</span>-Space <span>Models</span>
+for <span>Analyzing</span> <span>Time</span>-Series
+<span>Data</span>.”</span> <em>The R Journal</em> 4 (1): 11–19. <a href="https://doi.org/10.32614/RJ-2012-002" class="external-link">https://doi.org/10.32614/RJ-2012-002</a>.
 </div>
 </div>
 </div>
