@@ -11,7 +11,7 @@ from 0 (simultaneous effects) to a user-specified maximum lag."><meta property="
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,8 +24,11 @@ from 0 (simultaneous effects) to a user-specified maximum lag."><meta property="
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-description.html">dsem model description</a></li>
     <li><a class="dropdown-item" href="../articles/features.html">Demonstration of selected features</a></li>
-    <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
+    <li><a class="dropdown-item" href="../articles/random_slopes.html">Random slopes</a></li>
+    <li><a class="dropdown-item" href="../articles/nonlinear.html">Nonlinear dynamics</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -39,7 +42,7 @@ from 0 (simultaneous effects) to a user-specified maximum lag."><meta property="
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Partition variance in one variable due to another (EXPERIMENTAL)</h1>
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/R/utility.R" class="external-link"><code>R/utility.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/dev/R/utility.R" class="external-link"><code>R/utility.R</code></a></small>
       <div class="d-none name"><code>partition_variance.Rd</code></div>
     </div>
 
@@ -115,29 +118,29 @@ to one or more variables.</p>
 <span class="r-in"><span>                    n_times <span class="op">=</span> <span class="fl">10</span> <span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $total_variance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             x        y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_1  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_2  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_3  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_4  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_5  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_6  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_7  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_8  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_9  1.002155 2.283792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_10 1.002155 2.283792</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_1  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_2  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_3  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_4  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_5  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_6  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_7  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_8  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_9  1.104402 2.076077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_10 1.104402 2.076077</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $proportion_variance_explained</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             x        y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_1  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_2  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_3  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_4  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_5  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_6  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_7  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_8  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_9  0.506721 0.493279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t_10 0.506721 0.493279</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              x         y</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_1  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_2  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_3  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_4  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_5  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_6  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_7  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_8  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_9  0.5048239 0.4951761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t_10 0.5048239 0.4951761</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

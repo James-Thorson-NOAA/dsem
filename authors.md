@@ -19,7 +19,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/James-Thorson-NOAA/dsem/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/James-Thorson-NOAA/dsem/blob/dev/inst/CITATION)
 
 Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024).
 Dynamic structural equation models synthesize ecosystem dynamics
@@ -36,4 +36,17 @@ constrained by ecological mechanisms. Methods in Ecology and Evolution
       doi = {10.1111/2041-210X.14289},
       url = {https://doi.org/10.1111/2041-210X.14289},
       author = {J. T. Thorson and A. G. Andrews and T. Essington and S. Large},
+    }
+
+Thorson JT, Kristensen K (In press). “Ecological examples of
+nonstationarity, nonlinearity, and statistical interactions in dynamic
+structural equation models.” *Methods in Ecology and Evolution*.
+<https://ecoevorxiv.org/repository/view/11418/>.
+
+    @Article{,
+      title = {Ecological examples of nonstationarity, nonlinearity, and statistical interactions in dynamic structural equation models},
+      author = {James T. Thorson and Kasper Kristensen},
+      year = {In press},
+      journal = {Methods in Ecology and Evolution},
+      url = {https://ecoevorxiv.org/repository/view/11418/},
     }

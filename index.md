@@ -7,10 +7,7 @@
 [![](https://cranlogs.r-pkg.org/badges/grand-total/dsem)](https://cran.r-project.org/package=dsem)
 [![Codecov test
 coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
-[![docs
-(main)](https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
-[![docs
-(dev)](https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/dev)
+[![Documentation](https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
 
 Package *dsem* fits dynamic structural equation models, which includes
 as nested submodels:
@@ -53,10 +50,27 @@ features.
 
 ### Citation
 
+*For description of dynamic structural equation models and path-lag
+interface*
+
 Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024).
 Dynamic structural equation models synthesize ecosystem dynamics
 constrained by ecological mechanisms. Methods in Ecology and Evolution
 15(4): 744-755. <https://doi.org/10.1111/2041-210X.14289>
+
+*For description of generalized graphical mixed models in general*
+
+Thorson, J. T. (2026). Generalized graphical mixed models connect
+ecological theory with widely used statistical models. Methods in
+Ecology and Evolution, 17(4), 1290–1302.
+<https://doi.org/10.1111/2041-210x.70272>
+
+*For description of moderated DSEM and varying path coefficients*
+
+Thorson, J. T., & Kristensen, K. (In press). Ecological examples of
+nonstationarity, nonlinearity, and statistical interactions in dynamic
+structural equation models. Methods in Ecology and Evolution.
+<https://ecoevorxiv.org/repository/view/11418/>
 
 This repository is a scientific product and is not official
 communication of the National Oceanic and Atmospheric Administration, or

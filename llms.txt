@@ -7,10 +7,7 @@
 [![](https://cranlogs.r-pkg.org/badges/grand-total/dsem)](https://cran.r-project.org/package=dsem)
 [![Codecov test
 coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
-[![docs
-(main)](https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
-[![docs
-(dev)](https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/dev)
+[![Documentation](https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
 
 Package *dsem* fits dynamic structural equation models, which includes
 as nested submodels:
@@ -53,10 +50,27 @@ features.
 
 ### Citation
 
+*For description of dynamic structural equation models and path-lag
+interface*
+
 Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024).
 Dynamic structural equation models synthesize ecosystem dynamics
 constrained by ecological mechanisms. Methods in Ecology and Evolution
 15(4): 744-755. <https://doi.org/10.1111/2041-210X.14289>
+
+*For description of generalized graphical mixed models in general*
+
+Thorson, J. T. (2026). Generalized graphical mixed models connect
+ecological theory with widely used statistical models. Methods in
+Ecology and Evolution, 17(4), 1290–1302.
+<https://doi.org/10.1111/2041-210x.70272>
+
+*For description of moderated DSEM and varying path coefficients*
+
+Thorson, J. T., & Kristensen, K. (In press). Ecological examples of
+nonstationarity, nonlinearity, and statistical interactions in dynamic
+structural equation models. Methods in Ecology and Evolution.
+<https://ecoevorxiv.org/repository/view/11418/>
 
 This repository is a scientific product and is not official
 communication of the National Oceanic and Atmospheric Administration, or
@@ -79,8 +93,6 @@ commercial product or activity by DOC or the United States Government.
 Core tools for model fitting and diagnostics.
 
 - [`dsem()`](https://james-thorson-NOAA.github.io/dsem/reference/dsem.md)
-  : Fit dynamic structural equation model
-- [`dsemRTMB()`](https://james-thorson-NOAA.github.io/dsem/reference/dsemRTMB.md)
   : Fit dynamic structural equation model
 - [`dsem_control()`](https://james-thorson-NOAA.github.io/dsem/reference/dsem_control.md)
   : Detailed control for dsem structure
@@ -150,6 +162,14 @@ Data sets used for illustration and testing.
   : Isle Royale wolf and moose
 - [`sea_otter`](https://james-thorson-NOAA.github.io/dsem/reference/sea_otter.md)
   : Sea otter trophic cascade
+- [`lake_washington`](https://james-thorson-NOAA.github.io/dsem/reference/lake_washington.md)
+  : Lake washington plankton
+- [`paramesium_didinium`](https://james-thorson-NOAA.github.io/dsem/reference/paramesium_didinium.md)
+  : Paramesium-Didinium dynamics
+- [`hare_lynx`](https://james-thorson-NOAA.github.io/dsem/reference/hare_lynx.md)
+  : Lynx-Hare dynamics
+- [`pdo_departure_bay`](https://james-thorson-NOAA.github.io/dsem/reference/pdo_departure_bay.md)
+  : Pacific Decadal Oscillation and Departure Bay temperatures
 
 # Articles
 
@@ -159,7 +179,13 @@ Data sets used for illustration and testing.
   description](https://james-thorson-NOAA.github.io/dsem/articles/model-description.md):
 - [Demonstration of selected
   features](https://james-thorson-NOAA.github.io/dsem/articles/features.md):
-- [Dynamic factor
-  analysis](https://james-thorson-NOAA.github.io/dsem/articles/dynamic_factor_analysis.md):
 - [Spatial
   diffusion](https://james-thorson-NOAA.github.io/dsem/articles/spatial_diffusion.md):
+- [Random
+  slopes](https://james-thorson-NOAA.github.io/dsem/articles/random_slopes.md):
+- [Nonlinear
+  dynamics](https://james-thorson-NOAA.github.io/dsem/articles/nonlinear.md):
+- [Statistical
+  interactions](https://james-thorson-NOAA.github.io/dsem/articles/web_only/statistical_interactions.md):
+- [Dynamic factor
+  analysis](https://james-thorson-NOAA.github.io/dsem/articles/web_only/dynamic_factor_analysis.md):

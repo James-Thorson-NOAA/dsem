@@ -77,10 +77,13 @@ can include missing values $`y_{tj} = \mathrm{NA}`$, and it will
 estimate a $`T \times J`$ matrix of latent states $`\mathbf{X}`$ for all
 modeled times and variables, where $`\mathbf{x}_t`$ is the vector of
 states in time $`t`$ and $`\text{vec}(\mathbf{X})`$ is a $`TJ`$ length
-vector constructed by stacking columns
+vector constructed by stacking columns. DSEM also estimates a
+$`T \times J`$ matrix of process errors $`\mathbf{E}`$ where
+$`\mathbf{\epsilon}_t`$ is the vector of process errors in time $`t`$,
+and $`\text{vec}(\mathbf{E})`$ is the $`TJ`$ vector of stacked columns.
 
-DSEM defines this GLMM by specifying a vector autoregressive model of
-arbitrary lag, from lag-0 upwards:
+DSEM can be written in structural vector-autoregressive (SVAR) notation
+as a SVAR model of arbitrary lag, from lag-0 upwards:
 
 ``` math
 \mathbf{x}_t = \underbrace{\mathbf{P}_0 \mathbf{x}_t}_{\text{Simultaneous effects}} + 
@@ -89,25 +92,52 @@ arbitrary lag, from lag-0 upwards:
 \underbrace{...}_{\text{Higher-order lags}} + 
 \mathbf{\epsilon}_t
 ```
-where $`\mathbf{B}_0`$ is the $`J \times J`$ matrix of simultaneous
-interactions, $`\mathbf{B}_1`$ and $`\mathbf{B}_2`$ are interactions
-occurring at lag-1 and lag-2, respectively, and $`\mathbf{\epsilon}_t`$
-is exogenous covariation:
+where $`\mathbf{P}_0`$ is the $`J \times J`$ matrix of simultaneous
+interactions (the inclusion of which distinguishes an SVAR from a VAR),
+$`\mathbf{P}_1`$ and $`\mathbf{P}_2`$ are interactions occurring at
+lag-1 and lag-2, respectively, and it can also include higher-order lags
+(not shown here). Additionally, $`\mathbf{\epsilon}_t`$ is exogenous
+covariation in time $`t`$:
 
 ``` math
 \mathbf{\epsilon}_t \sim \text{MVN}(\mathbf{0,GG}^T)
 ```
 and $`\mathbf{G}`$ is the square-root of exogenous covariance
-$`\mathbf{GG}^T`$. With three times and a maximum lag of 2, this can be
-rewritten as a joint simultaneous equation:
+$`\mathbf{GG}^T`$ that occurs in each time. $`\mathbf{G}`$ is then
+estimated by DSEM, and is identifiable without constraints when
+specified as a lower-triangle matrix (representing the Cholesky
+decomposition of the covariance of exogenous process errors occurring in
+each time).
 
-\$\$ \text{vec}(\mathbf{X}) = \mathbf{P}\_{\text{joint}}
-\text{vec}(\mathbf{X}) + \text{vec}(\mathbf{E}) \\ \$\$
+This VAR notation can also be rewritten as a joint simultaneous equation
+model (SEM):
+
+``` math
+\text{vec}(\mathbf{X}) = \mathbf{P}_{\text{joint}} \text{vec}(\mathbf{X}) + \text{vec}(\mathbf{E}) 
+```
 
 where:
 ``` math
 \text{vec}(\mathbf{E}) \sim \text{MVN}(\mathbf{0},\mathbf{G}_{\text{joint}} \mathbf{G}_{\text{joint}}^T)
 ```
+We sum across the Kronecker product of interaction matrices and lag
+matrices to obtain the joint path matrix:
+
+``` math
+\mathbf P_{\mathrm{joint}} = \sum_{g=0}^{T}(\mathbf L_g \otimes \mathbf P_g)
+```
+where $`\otimes`$ is the Kronecker product, $`g`$ is the lag index,
+$`T`$ is the highest-order lag that can be included, and
+$`\mathbf{L}_g`$ is a matrix representing lag-g (see example below).
+Similarly, the exogenous covariance is constructed from a Kronecker
+product, although we assume that all covariance is simultaneous (i.e.,
+no lags are allowed for two-headed arrows):
+
+``` math
+\mathbf G_{\mathrm{joint}} = \mathbf L_0 \otimes \mathbf G
+```
+where $`\mathbf{L}_0`$ is a $`T \times T`$ lag-0 (identity) matrix.
+
 For illustration, when $`T=4`$ and given a maximum lag of 2, we can
 write $`\mathbf{P}_{\text{joint}}`$ as:
 
@@ -120,9 +150,18 @@ write $`\mathbf{P}_{\text{joint}}`$ as:
   0 & \mathbf{P}_2 & \mathbf{P}_1 & \mathbf{P}_0 \\
 \end{pmatrix}
 ```
+and $`\mathbf{G}_{\text{joint}}`$ as:
 
-The specified DSEM then results in Gaussian Markov random field for
-latent states:
+``` math
+\mathbf{G}_{\text{joint}} = 
+\begin{pmatrix}
+  \mathbf{G} & 0 & 0 & 0\\
+  0 & \mathbf{G} & 0 & 0\\
+  0 & 0 & \mathbf{G} & 0\\
+  0 & 0 & 0 & \mathbf{G} \\
+\end{pmatrix}
+```
+The DSEM then results in Gaussian Markov random field for latent states:
 
 ``` math
 \mathrm{vec}(\mathbf X) \sim \mathrm{GMRF}(\mathbf{0, Q}_{\mathrm{joint}})
@@ -130,19 +169,29 @@ latent states:
 where $`\mathbf Q_{\mathrm{joint}}`$ is a $`TJ \times TJ`$ precision
 matrix such that $`\mathbf{Q_{\mathrm{joint}}}^{-1}`$ is the estimated
 covariance among latent states. This joint precision is itself
-constructed from a joint path matrix $`\mathbf P_{\mathrm{joint}}`$ and
-a joint matrix of exogenous covariance $`\mathbf G_{\mathrm{joint}}`$:
+constructed from the joint path matrix $`\mathbf P_{\mathrm{joint}}`$
+and the joint exogenous covariance matrix
+$`\mathbf G_{\mathrm{joint}}`$:
 
 ``` math
-\mathbf Q_{\mathrm{joint}} = ({\mathbf{I - P}_{\mathrm{joint}}}^T) \mathbf G_{\mathrm{joint}}^{-1} \mathbf G_{\mathrm{joint}}^{-T} (\mathbf{I - P_{\mathrm{joint}}})
+\mathbf Q_{\mathrm{joint}} = ({\mathbf{I - P}_{\mathrm{joint}}}^T) (\mathbf G_{\mathrm{joint}} \mathbf G_{\mathrm{joint}}^T)^{-1} (\mathbf{I - P_{\mathrm{joint}}})
 ```
 
-The joint path matrix is itself constructed by summing across lagged and
-simultaneous effects. Say we specify a model with $`K=2`$ one-headed
-arrows. For each one-headed arrow, we define a $`J \times J`$ path
-matrix $`\mathbf P_k`$ and a lag matrix $`\mathbf L_k`$. For example, in
-a model with $`J=3`$ variables $`(A,B,C)`$ and $`T=4`$ times, and
-specifying $`K=2`$ one-headed arrows:
+Finally, it is convenient to write the joint path matrix by summing
+across path coefficients $`k`$ rather than lags $`g`$:
+
+``` math
+\mathbf P_{\mathrm{joint}} = \sum_{k=1}^{K}(\mathbf L_{g[k]} \otimes \mathbf P_k)
+```
+where $`g[k]`$ is the lag associated with path coefficient $`k`$, and
+$`\mathbf{P}_k`$ is a $`J \times J`$ matrix with only a single non-zero
+value (with non-zero value equal to path coefficient $`k`$).
+
+Say we specify a model with $`K=2`$ two interactions (one-headed
+arrows). For each one-headed arrow, we define a $`J \times J`$ path
+matrix $`\mathbf P_k`$ and a lag matrix $`\mathbf L_{g[k]}`$. For
+example, in a model with $`J=3`$ variables $`\mathbf{X = (A,B,C)}`$ and
+$`T=4`$ times, and specifying $`K=2`$ one-headed arrows:
 
 ``` r
 A -> B, 0, b_AB
@@ -152,7 +201,7 @@ B -> C, 1, b_BC
 this then results two path matrices:
 
 ``` math
-\mathbf P_1 = 
+\mathbf P_{k=1} = 
 \begin{pmatrix}
   0 & 0 & 0 \\
   b_{AB} & 0 & 0 \\
@@ -161,7 +210,7 @@ this then results two path matrices:
 ```
 and
 ``` math
-\mathbf P_2 = 
+\mathbf P_{k=2} = 
 \begin{pmatrix}
   0 & 0 & 0 \\
   0 & 0 & 0 \\
@@ -171,7 +220,7 @@ and
 with corresponding lag matrices
 
 ``` math
-\mathbf L_{1} = 
+\mathbf L_{g[1]} = 
 \begin{pmatrix}
   1 & 0 & 0 & 0 \\
   0 & 1 & 0 & 0 \\
@@ -181,27 +230,13 @@ with corresponding lag matrices
 ```
 and
 ``` math
-\mathbf L_{2} = 
+\mathbf L_{g[2]} = 
 \begin{pmatrix}
   0 & 0 & 0 & 0 \\
   1 & 0 & 0 & 0 \\
   0 & 1 & 0 & 0 \\
   0 & 0 & 1 & 0 
 \end{pmatrix}
-```
-We then sum across the Kronecker product of these components to obtain
-the joint path matrix:
-
-``` math
-\mathbf P_{\mathrm{joint}} = \sum_{k=1}^{K}(\mathbf L_k \otimes \mathbf P_k)
-```
-where $`\otimes`$ is the Kronecker product. Similarly, the exogenous
-covariance is similar constructed from a Kronecker product, although we
-assume that all covariance is simultaneous (i.e., no lags are allowed
-for two-headed arrows):
-
-``` math
-\mathbf G_{\mathrm{joint}} = \mathbf I \otimes \mathbf G
 ```
 
 ### Measurement errors
@@ -302,7 +337,7 @@ out = dsem(
 )
 
 # Extract covariance
-Sigma1 = solve(as.matrix(out$obj$report()$Q_kk))
+Sigma1 = solve(as.matrix(out$obj$report()$Q_oo))
 plot( x=1:10, y = diag(Sigma1), xlab="time", 
       ylab="Marginal variance", type="l", 
       ylim = c(0,max(diag(Sigma1))))
@@ -358,7 +393,7 @@ out = dsem(
 )
 
 # Extract covariance
-Sigma2 = solve(as.matrix(out$obj$report()$Q_kk))
+Sigma2 = solve(as.matrix(out$obj$report()$Q_oo))
 plot( x=1:10, y = diag(Sigma2), xlab="time", 
       ylab="Marginal variance", type="l", 
       ylim = c(0,max(diag(Sigma1))))
@@ -412,7 +447,7 @@ out = dsem(
   control = dsem_control(
     run_model = FALSE, 
     quiet = TRUE,
-    gmrf_parameterization = "projection"
+    gmrf_parameterization = "project"
   )
 )
 ```
@@ -442,7 +477,7 @@ density of state matrix $`\mathbf X`$ using this precision matrix (i.e.,
 the log-determinant is not defined).
 
 To address this circumstance, we can switch to using
-`gmrf_parameterization = "projection"`. This evaluates the probability
+`gmrf_parameterization = "project"`. This evaluates the probability
 density of a set of innovations $`\mathbf X^*`$ that follow a unit
 variance:
 

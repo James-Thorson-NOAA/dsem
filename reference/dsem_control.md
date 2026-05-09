@@ -16,7 +16,8 @@ dsem_control(
   getsd = TRUE,
   quiet = FALSE,
   run_model = TRUE,
-  gmrf_parameterization = c("separable", "projection"),
+  build_model = TRUE,
+  gmrf_parameterization = c("gmrf_project", "full", "project", "mvn_project"),
   constant_variance = c("conditional", "marginal", "diagonal"),
   use_REML = TRUE,
   profile = NULL,
@@ -26,7 +27,9 @@ dsem_control(
   extra_convergence_checks = TRUE,
   lower = -Inf,
   upper = Inf,
-  suppress_nlminb_warnings = TRUE
+  project_k = NULL,
+  suppress_nlminb_warnings = TRUE,
+  stabilize_Q = FALSE
 )
 ```
 
@@ -75,14 +78,26 @@ dsem_control(
   instead to return the model inputs and compiled TMB object without
   running;
 
+- build_model:
+
+  Boolean indicating whether to return inputs to `MakeADFun`
+
 - gmrf_parameterization:
 
   Parameterization to use for the Gaussian Markov random field, where
-  the default `separable` constructs a precision matrix that must be
-  full rank, and the alternative `projection` constructs a full-rank and
-  IID precision for variables over time, and then projects this using
-  the inverse-cholesky of the precision, where this projection can be
-  rank-deficient.
+  the default `full` constructs a precision matrix that must be full
+  rank, `project` constructs a full-rank and IID precision for variables
+  over time and then projects this using the inverse-cholesky of the
+  precision (which allows a rank-deficient GMRF, but does not allow
+  `family = "fixed"`), `mvn_project` uses the dense variance for the
+  full-rank component of the distribution and then projects values to
+  the rank-deficient component (which allows `family = "fixed"` in any
+  set of set of variables that is estimable, but is much slower), and
+  `gmrf_project` uses a full-rank precision for all variables that have
+  non-zero exogenous variance, and then projects to the remaining
+  variables that have zero exogenous variance (where this is fast but
+  cannot allow `family = "fixed"` combined with measurements for those
+  variables that have zero exogenous variance)
 
 - constant_variance:
 
@@ -147,11 +162,27 @@ dsem_control(
   to [`nlminb`](https://rdrr.io/r/stats/nlminb.html). If unspecified,
   all parameters are assumed to be unconstrained.
 
+- project_k:
+
+  logical-vector only used when `gmrf_parameterization=="mvn_project"`,
+  with length `dim(tsdata)` indicating which state-values should be
+  projected determinstically while ignoring measurements. This is useful
+  e.g., for determinstic composite variables. If `project_k=NULL` (the
+  default), then it projects any variable with zero exogenous variance.
+  However, this then ignores any measurements for those variables.
+  Manual specification can be used to confidition upon measurements for
+  determinstic variables, but identifiability conditions are then hard
+  to determine automatically.
+
 - suppress_nlminb_warnings:
 
   whether to suppress uniformative warnings from `nlminb` arising when a
   function evaluation is NA, which are then replaced with Inf and
   avoided during estimation
+
+- stabilize_Q:
+
+  add `stability_eps = 1e-10` to stabilize precision (experimental)
 
 ## Value
 

@@ -10,6 +10,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
+  estimate_mu = NULL,
   prior_negloglike = NULL,
   control = dsem_control(),
   covs = colnames(tsdata)
@@ -49,6 +50,15 @@ dsem(
   dynamics start at some stochastic draw away from the stationary
   distribution
 
+- estimate_mu:
+
+  character-vector listing columns of `tsdata` for which to estimate the
+  mean, which is subtracted off of `tsdata` prior to evaluating
+  interactions among parameters. The default `estimate_mu = NULL`
+  estimates the mean for every column with at least one value that is
+  not `NA` (i.e., does *not* estimate the mean for latent variables). If
+  you want to have no `mu` parameters, use `estimate_mu = vector()`.
+
 - prior_negloglike:
 
   A user-provided function that takes as input the vector of fixed
@@ -57,11 +67,8 @@ dsem(
   `prior_negloglike = function(obj) -1 * dnorm( obj$par[1], mean=0, sd=0.1, log=TRUE)`
   specifies a normal prior probability for the for the first fixed
   effect with mean of zero and logsd of 0.1. NOTE: this implementation
-  does not work well with `tmbstan` and is highly experimental. If using
-  priors, considering using
-  [`dsemRTMB`](https://james-thorson-NOAA.github.io/dsem/reference/dsemRTMB.md)
-  instead. The option in `dsem` is mainly intended to validate its use
-  in `dsemRTMB`. Note that the user must load RTMB using
+  does not work well with `tmbstan` and is highly experimental. Note
+  that the user must load RTMB using
   [`library(RTMB)`](https://github.com/kaskr/RTMB) prior to running the
   model.
 

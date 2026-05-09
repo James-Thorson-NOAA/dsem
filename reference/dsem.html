@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,8 +20,11 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/model-description.html">dsem model description</a></li>
     <li><a class="dropdown-item" href="../articles/features.html">Demonstration of selected features</a></li>
-    <li><a class="dropdown-item" href="../articles/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_diffusion.html">Spatial diffusion</a></li>
+    <li><a class="dropdown-item" href="../articles/random_slopes.html">Random slopes</a></li>
+    <li><a class="dropdown-item" href="../articles/nonlinear.html">Nonlinear dynamics</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,7 +38,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Fit dynamic structural equation model</h1>
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/R/dsem.R" class="external-link"><code>R/dsem.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/dev/R/dsem.R" class="external-link"><code>R/dsem.R</code></a></small>
       <div class="d-none name"><code>dsem.Rd</code></div>
     </div>
 
@@ -50,6 +53,7 @@
 <span>  <span class="va">tsdata</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"fixed"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  estimate_delta0 <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  estimate_mu <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  prior_negloglike <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="dsem_control.html">dsem_control</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span></span>
@@ -88,6 +92,14 @@ as fixed effects, or alternatively to assume that dynamics start at some stochas
 the stationary distribution</p></dd>
 
 
+<dt id="arg-estimate-mu">estimate_mu<a class="anchor" aria-label="anchor" href="#arg-estimate-mu"></a></dt>
+<dd><p>character-vector listing columns of <code>tsdata</code> for which to estimate the mean,
+which is subtracted off of <code>tsdata</code> prior to evaluating interactions among parameters.
+The default <code>estimate_mu = NULL</code> estimates the mean for every column with at least one value
+that is not <code>NA</code> (i.e., does <em>not</em> estimate the mean for latent variables).
+If you want to have no <code>mu</code> parameters, use <code>estimate_mu = vector()</code>.</p></dd>
+
+
 <dt id="arg-prior-negloglike">prior_negloglike<a class="anchor" aria-label="anchor" href="#arg-prior-negloglike"></a></dt>
 <dd><p>A user-provided function that takes as input the vector of fixed effects out$obj$par
 returns the negative log-prior probability. For example
@@ -95,9 +107,7 @@ returns the negative log-prior probability. For example
 specifies a normal prior probability
 for the for the first fixed effect with mean of zero and logsd of 0.1.
 NOTE:  this implementation does not work well with <code>tmbstan</code> and
-is highly experimental.  If using priors, considering using <code><a href="dsemRTMB.html">dsemRTMB</a></code>
-instead.  The option in <code>dsem</code> is mainly intended to validate its
-use in <code>dsemRTMB</code>.  Note that the user must load RTMB using
+is highly experimental.  Note that the user must load RTMB using
 <code><a href="https://github.com/kaskr/RTMB" class="external-link">library(RTMB)</a></code> prior to running the model.</p></dd>
 
 

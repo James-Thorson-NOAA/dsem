@@ -12,13 +12,14 @@ library(phylopath)
 
 `dsem` is an R package for fitting dynamic structural equation models
 (DSEMs) with a simple user-interface and generic specification of
-simultaneous and lagged effects in a non-recursive structure. We here
-highlight a few features in particular.
+simultaneous and lagged effects in a non-recursive structure (Thorson et
+al. 2024). We here highlight a few features in particular.
 
-## Comparison with linear models
+### Comparison with linear models
 
-We first show that `dsem` is identical to a linear model. To do so, we
-simulate data with a single response and single predictor:
+We first show that `dsem` can be specified such that it collapses to a
+standard linear model. To do so, we simulate data with a single response
+and single predictor:
 
 ``` r
 
@@ -31,9 +32,11 @@ data = data.frame(x=x, y=y)
 Lm = lm( y ~ x, data=data )
 
 # Fit as DSEM
-fit = dsem( sem = "x -> y, 0, beta",
-            tsdata = ts(data),
-            control = dsem_control(quiet=TRUE) )
+fit = dsem( 
+  sem = "x -> y, 0, beta",
+  tsdata = ts(data),
+  control = dsem_control(quiet=TRUE) 
+)
 
 # Display output
 m1 = rbind(
@@ -64,9 +67,9 @@ simResp = apply(samples, MARGIN=3, FUN=as.vector)[which_use,]
 
 # Build and display DHARMa object
 res = DHARMa::createDHARMa(
-        simulatedResponse = simResp,
-        observedResponse = unlist(data)[which_use],
-        fittedPredictedResponse = fitResp )
+  simulatedResponse = simResp,
+  observedResponse = unlist(data)[which_use],
+  fittedPredictedResponse = fitResp )
 plot(res)
 ```
 
@@ -90,7 +93,90 @@ abline(a=0,b=1)
 
 ![](features_files/figure-html/unnamed-chunk-4-1.png)
 
-## Comparison with dynamic linear models
+### Comparison with generalized linear models
+
+Next, we show that DSEM can be specified to collapse to a standard
+generalized linear model. However, this requires first understanding a
+bit more about how DSEM treats both measurement and process errors.
+
+In particular, DSEM is capable of fitting a state-space model that
+incorporates two types of errors:
+
+1.  Process errors, i.e., exogenous variation in a variable, beyond was
+    is explained by covariates (paths from other variables);
+2.  Measurement errors, i.e., variation in a measurement that follows a
+    specified distribution (e.g., Gaussian, Poisson, etc.), where the
+    variance of measurement errors is then typically estimated;
+
+However, DSEM can then collapse this state-space model to:
+
+- Measurement error model, by turning off process errors. This is done
+  by fixing the exogenous variation for a given variable at zero (e.g.,
+  `X <-> X, 0, NA, 0` fixes the exogenous variation for variable X at
+  zero);
+- Process-error model, by turning off measurement errors by using
+  `family = "fixed"`).
+
+A generalized linear mixed model is then equivalent to a state-space
+model where:
+
+- covariates have no measurement errors;
+- the response has no process errors, such that residuals are attributed
+  purely to measurement errors.
+
+We show this equivalence by simulating counts from a log-linked Poisson
+GLM, and fitting it using `dsem` and `glm`
+
+``` r
+
+# Simulate a log-linked Poisson GLM
+x = rnorm(100)
+p = 1 + 0.8 * x
+y = rpois( length(x), lambda = exp(p) )
+data = data.frame(x=x, y=y)
+
+# Fit as generalized linear model
+Glm = glm( y ~ x, data=data, family = poisson() )
+
+# Define zero process errors (only process errors) in response y
+sem = "
+  x -> y, 0, beta
+  y <-> y, 0, NA, 0
+"
+
+# Fit as DSEM
+fit = dsem( 
+  sem = sem,
+  tsdata = ts(data),
+  family = c("fixed","poisson"),
+  control = dsem_control(quiet=TRUE) 
+)
+
+# Display output
+m1 = rbind(
+  "glm" = summary(Glm)$coef[2,1:2],
+  "dsem" = summary(fit)[1,9:10]
+)
+knitr::kable( m1, digits=3)
+```
+
+|      | Estimate | Std_Error |
+|:-----|---------:|----------:|
+| glm  |    0.715 |     0.051 |
+| dsem |    0.715 |     0.051 |
+
+We note that this model combines zero-measurement errors for predictor
+`x` with zero-process errors for response `y`. This combination requires
+`dsem` version 2.0.0 or later, using the new default option
+`dsem_control( gmrf_parameterization = "gmrf_project")`. In this GLM
+example, `gmrf_parameterization = "gmrf_project"` first calculates a
+full-rank GMRF for covariate `x` and then projects it to response `y`
+using a conditional prediction that has reduced rank. Detecting
+full-rank vs. reduced-rank then occurs “behind the scenes”; this option
+should be fast while allowing many combinations of turned-off process
+and measurement errors, but remains somewhat experimental.
+
+### Comparison with dynamic linear models
 
 We next demonstrate `dsem` using a well-known econometric model, the
 Klein-1 model.
@@ -118,12 +204,15 @@ sem = "
 "
 tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
                "gwage","invest","capital")]
-fit = dsem( sem=sem,
-            tsdata = tsdata,
-            estimate_delta0 = TRUE,
-            control = dsem_control(
-              quiet = TRUE,
-              newton_loops = 0) )
+fit = dsem( 
+  sem = sem,
+  tsdata = tsdata,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    quiet = TRUE,
+    newton_loops = 0
+  ) 
+)
 ```
 
 This model could instead be specified using equation-and-lag notation,
@@ -140,12 +229,15 @@ equations = "
 
 # Convert and run
 sem_equations = convert_equations(equations)
-fit = dsem( sem = sem_equations,
-            tsdata = tsdata,
-            estimate_delta0 = TRUE,
-            control = dsem_control(
-              quiet = TRUE,
-              newton_loops = 0) )
+fit = dsem( 
+  sem = sem_equations,
+  tsdata = tsdata,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    quiet = TRUE,
+    newton_loops = 0
+  ) 
+)
 ```
 
 We first demonstrate that `dsem` gives identical results to `dynlm`:
@@ -188,21 +280,21 @@ p4 = plot( as_fitted_DAG(fit, lag=1), text_size=4 ) +
 p1
 ```
 
-![](features_files/figure-html/unnamed-chunk-7-1.png)
+![](features_files/figure-html/unnamed-chunk-8-1.png)
 
 ``` r
 
 p2
 ```
 
-![](features_files/figure-html/unnamed-chunk-7-2.png)
+![](features_files/figure-html/unnamed-chunk-8-2.png)
 
 ``` r
 
 grid.arrange( arrangeGrob(p3, p4, nrow=2) )
 ```
 
-![](features_files/figure-html/unnamed-chunk-7-3.png)
+![](features_files/figure-html/unnamed-chunk-8-3.png)
 
 Results show that both packages provide (almost) identical estimates and
 standard errors.
@@ -243,22 +335,18 @@ ggplot(data=m, aes(x=par, y=mean, col=method)) +
                  width=0.25, position=position_dodge(0.9))  #
 ```
 
-![](features_files/figure-html/unnamed-chunk-11-1.png)
+![](features_files/figure-html/unnamed-chunk-12-1.png)
 
-## Comparison with vector autoregressive models
+### Comparison with vector autoregressive models
 
 We next demonstrate that `dsem` gives similar results to a vector
 autoregressive (VAR) model. To do so, we analyze population abundance of
 wolf and moose populations on Isle Royale from 1959 to 2019, downloaded
-from their website (Vucetich, JA and Peterson RO. 2012. The population
-biology of Isle Royale wolves and moose: an overview. URL:
+from their website (Vucetich and Peterson 2012) (URL:
 www.isleroyalewolf.org).
 
 This dataset was previously analyzed by in Chapter 14 of the User Manual
-for the R-package MARSS (Holmes, E. E., M. D. Scheuerell, and E. J. Ward
-(2023) Analysis of multivariate time-series using the MARSS package.
-Version 3.11.8. NOAA Fisheries, Northwest Fisheries Science Center, 2725
-Montlake Blvd E., Seattle, WA 98112, DOI: 10.5281/zenodo.5781847).
+for the R-package MARSS (Holmes et al. 2012).
 
 Here, we compare fits using `dsem` with `dynlm`, as well as a vector
 autoregressive model package `vars`, and finally with `MARSS`.
@@ -276,12 +364,15 @@ sem = "
   moose -> moose, 1, arM
 "
 # initial first without delta0 (to improve starting values)
-fit0 = dsem( sem = sem,
-             tsdata = data,
-             estimate_delta0 = FALSE,
-             control = dsem_control(
-               quiet = FALSE,
-               getsd = FALSE) )
+fit0 = dsem( 
+  sem = sem,
+  tsdata = data,
+  estimate_delta0 = FALSE,
+  control = dsem_control(
+    quiet = FALSE,
+    getsd = FALSE
+  ) 
+)
 #>   Coefficient_name Number_of_coefficients   Type
 #> 1           beta_z                      6  Fixed
 #> 2             mu_j                      2 Random
@@ -291,11 +382,15 @@ parameters = fit0$obj$env$parList()
   parameters$delta0_j = rep( 0, ncol(data) )
 
 # Refit with delta0
-fit = dsem( sem = sem,
-            tsdata = data,
-            estimate_delta0 = TRUE,
-            control = dsem_control( quiet=TRUE,
-                                    parameters = parameters ) )
+fit = dsem( 
+  sem = sem,
+  tsdata = data,
+  estimate_delta0 = TRUE,
+  control = dsem_control( 
+    quiet=TRUE,
+    parameters = parameters 
+  ) 
+)
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #
@@ -384,7 +479,7 @@ ggarrange( p1, p2, p3,
            ncol = 1, nrow = 3)
 ```
 
-![](features_files/figure-html/unnamed-chunk-12-1.png)
+![](features_files/figure-html/unnamed-chunk-13-1.png)
 
 We can then plot the total effects, which shows that effects propagate
 through time due to both interactions and density dependence:
@@ -400,13 +495,13 @@ ggplot( effect) +
   facet_grid( from ~ to  )
 ```
 
-![](features_files/figure-html/unnamed-chunk-13-1.png)
+![](features_files/figure-html/unnamed-chunk-14-1.png)
 
 Results again show that `dsem` can estimate parameters for a vector
 autoregressive model (VAM), and it exactly matches results from `vars`,
 using `dynlm`, or using `MARSS`.
 
-## Multi-causal ecosystem synthesis
+### Multi-causal ecosystem synthesis
 
 We next replicate an analysis involving climate, forage fishes, stomach
 contents, and recruitment of a predatory fish.
@@ -440,10 +535,15 @@ sem = "
 "
 
 # Fit
-fit = dsem( sem = sem,
-            tsdata = Z,
-            family = family,
-            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
+fit = dsem( 
+  sem = sem,
+  tsdata = Z,
+  family = family,
+  control = dsem_control(
+    use_REML=FALSE, 
+    quiet=TRUE
+  ) 
+)
 ParHat = fit$obj$env$parList()
 # summary( fit )
 ```
@@ -470,7 +570,7 @@ for(i in 1:ncol(bering_sea)){
 par(oldpar)
 ```
 
-![](features_files/figure-html/unnamed-chunk-15-1.png)
+![](features_files/figure-html/unnamed-chunk-16-1.png)
 
 ``` r
 
@@ -504,11 +604,11 @@ ggarrange(p1, p2, labels = c("Simultaneous effects", "Two-sided p-value"),
                     ncol = 1, nrow = 2)
 ```
 
-![](features_files/figure-html/unnamed-chunk-16-1.png)
+![](features_files/figure-html/unnamed-chunk-17-1.png)
 
 These results are further discussed in the paper describing dsem.
 
-## Site-replicated trophic cascade
+### Site-replicated trophic cascade
 
 Finally, we replicate an analysis involving a trophic cascade involving
 sea stars predators, sea urchin consumers, and kelp producers.
@@ -631,10 +731,14 @@ sem = "
 "
 
 # Fit model
-fit = dsem( sem = sem,
-            tsdata = Z,
-            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
-# summary( fit )
+fit = dsem( 
+  sem = sem,
+  tsdata = Z,
+  control = dsem_control(
+    use_REML=FALSE, 
+    quiet=TRUE
+  ) 
+)
 
 #
 library(phylopath)
@@ -670,6 +774,25 @@ ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
                     ncol = 1, nrow = 2)
 ```
 
-![](features_files/figure-html/unnamed-chunk-17-1.png)
+![](features_files/figure-html/unnamed-chunk-18-1.png)
 
 Again, these results are further discussed in the paper describing dsem.
+
+Runtime for this vignette: 27.28 secs
+
+## Works cited
+
+Holmes, Elizabeth E., Eric J. Ward, and Kellie Wills. 2012. “MARSS:
+Multivariate Autoregressive State-Space Models for Analyzing Time-Series
+Data.” *The R Journal* 4 (1): 11–19.
+<https://doi.org/10.32614/RJ-2012-002>.
+
+Thorson, James T., Alexander G. Andrews III, Timothy E. Essington, and
+Scott I. Large. 2024. “Dynamic Structural Equation Models Synthesize
+Ecosystem Dynamics Constrained by Ecological Mechanisms.” *Methods in
+Ecology and Evolution* 15 (4): 744–55.
+<https://doi.org/10.1111/2041-210X.14289>.
+
+Vucetich, John A., and R. O. Peterson. 2012. *The Population Biology of
+Isle Royale Wolves and Moose: An Overview*.
+[www.isleroyalewolf.org](https://www.isleroyalewolf.org).

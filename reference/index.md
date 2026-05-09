@@ -6,8 +6,6 @@ Core tools for model fitting and diagnostics.
 
 - [`dsem()`](https://james-thorson-NOAA.github.io/dsem/reference/dsem.md)
   : Fit dynamic structural equation model
-- [`dsemRTMB()`](https://james-thorson-NOAA.github.io/dsem/reference/dsemRTMB.md)
-  : Fit dynamic structural equation model
 - [`dsem_control()`](https://james-thorson-NOAA.github.io/dsem/reference/dsem_control.md)
   : Detailed control for dsem structure
 - [`stepwise_selection()`](https://james-thorson-NOAA.github.io/dsem/reference/stepwise_selection.md)
@@ -76,3 +74,11 @@ Data sets used for illustration and testing.
   : Isle Royale wolf and moose
 - [`sea_otter`](https://james-thorson-NOAA.github.io/dsem/reference/sea_otter.md)
   : Sea otter trophic cascade
+- [`lake_washington`](https://james-thorson-NOAA.github.io/dsem/reference/lake_washington.md)
+  : Lake washington plankton
+- [`paramesium_didinium`](https://james-thorson-NOAA.github.io/dsem/reference/paramesium_didinium.md)
+  : Paramesium-Didinium dynamics
+- [`hare_lynx`](https://james-thorson-NOAA.github.io/dsem/reference/hare_lynx.md)
+  : Lynx-Hare dynamics
+- [`pdo_departure_bay`](https://james-thorson-NOAA.github.io/dsem/reference/pdo_departure_bay.md)
+  : Pacific Decadal Oscillation and Departure Bay temperatures

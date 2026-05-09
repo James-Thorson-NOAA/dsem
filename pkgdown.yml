@@ -2,11 +2,14 @@ pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
-  dynamic_factor_analysis: dynamic_factor_analysis.html
+  web_only/dynamic_factor_analysis: web_only/dynamic_factor_analysis.html
   features: features.html
   model-description: model-description.html
+  nonlinear: nonlinear.html
+  random_slopes: random_slopes.html
   spatial_diffusion: spatial_diffusion.html
-last_built: 2026-05-09T15:33Z
+  web_only/statistical_interactions: web_only/statistical_interactions.html
+last_built: 2026-05-09T16:38Z
 urls:
   reference: https://james-thorson-NOAA.github.io/dsem/reference
   article: https://james-thorson-NOAA.github.io/dsem/articles
