@@ -9,6 +9,7 @@ To show this, we predict sea surface temperature from Departure Bay
 based upon the Pacific Decadal Oscillation:
 
 ``` r
+
 library(dsem)
 
 # Load data
@@ -25,6 +26,7 @@ tsdata = ts(data.frame(
 We first fit these data using a stationary slope parameter:
 
 ``` r
+
 # Model
 sem = "
   PDO -> Temp, 0, slope
@@ -49,6 +51,7 @@ We then re-fit while estimating the slope parameter as a model variable
 that follows a first-order autoregressive process:
 
 ``` r
+
 # Model
 sem = "
   PDO -> Temp, 0, slope
@@ -74,6 +77,7 @@ fit = dsem(
 We then plot the predicted state-variables:
 
 ``` r
+
 # get estimates and SEs for first model
 df = expand.grid( year = time(tsdata), var = colnames(tsdata))
 df$est = as.vector(as.list(fit$sdrep, what = "Estimate", report = TRUE)$z_tj)
@@ -109,6 +113,7 @@ ggplot(df) +
 And can also visualize the estimated graph
 
 ``` r
+
 library(igraph)
 library(ggraph)
 
@@ -175,4 +180,4 @@ ggraph(layout) +
 
 ![](random_slopes_files/figure-html/plot_graph-1.png)
 
-Runtime for this vignette: 5.32 secs
+Runtime for this vignette: 6.91 secs

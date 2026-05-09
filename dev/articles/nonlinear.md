@@ -10,6 +10,7 @@ To show this, we predict sea surface temperature from Departure Bay
 based upon the Pacific Decadal Oscillation:
 
 ``` r
+
 library(dsem)
 dataset = c("hare_lynx", "paramesium_didinium" )[2]
 
@@ -44,6 +45,7 @@ dat[,1:2] = sweep( dat[,1:2], FUN = "-", MARGIN = 2, STATS = mean_j )
 We then define a MDSEM:
 
 ``` r
+
 sem = "
   # Main interactions
   logX -> logX, 1, NA, 1
@@ -96,6 +98,7 @@ sem = "
 We then fit this without estimating any `mu` parameters:
 
 ``` r
+
 fit = dsem(
   tsdata = ts(dat),
   sem = sem,
@@ -110,6 +113,7 @@ fit = dsem(
 We can also visualize the estimated graph
 
 ``` r
+
 library(igraph)
 library(ggraph)
 
@@ -212,4 +216,4 @@ ggraph(layout) +
 
 ![](nonlinear_files/figure-html/plot_graph-1.png)
 
-Runtime for this vignette: 3.4 secs
+Runtime for this vignette: 3.78 secs

@@ -1,6 +1,7 @@
 # Demonstration of selected features
 
 ``` r
+
 library(dsem)
 library(dynlm)
 library(ggplot2)
@@ -21,6 +22,7 @@ standard linear model. To do so, we simulate data with a single response
 and single predictor:
 
 ``` r
+
 # simulate normal distribution
 x = rnorm(100)
 y = 1 + 0.5 * x + rnorm(100)
@@ -56,6 +58,7 @@ We can also calculate leave-one-out residuals and display them using
 DHARMa:
 
 ``` r
+
 # sample-based quantile residuals
 samples = loo_residuals(fit, what="samples", track_progress=FALSE)
 which_use = which(!is.na(data))
@@ -77,6 +80,7 @@ that we have a correctly specified model. We can also confirm that this
 gives identical to results to the linear model:
 
 ``` r
+
 # Get DSEM Loo residuals and LM working residuals
 res = loo_residuals(fit, what="quantiles", track_progress=FALSE)
 res0 = resid(Lm,"working")
@@ -124,6 +128,7 @@ We show this equivalence by simulating counts from a log-linked Poisson
 GLM, and fitting it using `dsem` and `glm`
 
 ``` r
+
 # Simulate a log-linked Poisson GLM
 x = rnorm(100)
 p = 1 + 0.8 * x
@@ -177,6 +182,7 @@ We next demonstrate `dsem` using a well-known econometric model, the
 Klein-1 model.
 
 ``` r
+
 data(KleinI, package="AER")
 TS = ts(data.frame(KleinI, "time"=time(KleinI) - 1931))
 
@@ -213,6 +219,7 @@ This model could instead be specified using equation-and-lag notation,
 which makes the model structure more clear:
 
 ``` r
+
 # Specify using equations
 equations = "
   consumption = a1*cprofits + a2*lag[cprofits,1]+ a3*pwage + a3*gwage
@@ -236,6 +243,7 @@ fit = dsem(
 We first demonstrate that `dsem` gives identical results to `dynlm`:
 
 ``` r
+
 # dynlm
 fm_cons <- dynlm(consumption ~ cprofits + L(cprofits) + I(pwage + gwage), data = TS)
 fm_inv <- dynlm(invest ~ cprofits + L(cprofits) + capital, data = TS)
@@ -275,12 +283,14 @@ p1
 ![](features_files/figure-html/unnamed-chunk-8-1.png)
 
 ``` r
+
 p2
 ```
 
 ![](features_files/figure-html/unnamed-chunk-8-2.png)
 
 ``` r
+
 grid.arrange( arrangeGrob(p3, p4, nrow=2) )
 ```
 
@@ -297,6 +307,7 @@ distribution with positive skewness), but otherwise the two produce
 similar estimates.
 
 ``` r
+
 library(tmbstan)
 
 # MCMC for both fixed and random effects
@@ -305,6 +316,7 @@ summary_mcmc = summary(mcmc)
 ```
 
 ``` r
+
 # long-form data frame
 m1 = summary_mcmc$summary[1:17,c('mean','sd')]
 rownames(m1) = paste0( "b", seq_len(nrow(m1)) )
@@ -334,12 +346,13 @@ from their website (Vucetich and Peterson 2012) (URL:
 www.isleroyalewolf.org).
 
 This dataset was previously analyzed by in Chapter 14 of the User Manual
-for the R-package MARSS (Holmes, Ward, and Wills 2012).
+for the R-package MARSS (Holmes et al. 2012).
 
 Here, we compare fits using `dsem` with `dynlm`, as well as a vector
 autoregressive model package `vars`, and finally with `MARSS`.
 
 ``` r
+
 data(isle_royale)
 data = ts( log(isle_royale[,2:3]), start=1959)
 
@@ -394,14 +407,14 @@ royale.model.1 <- list(
   U = "zero"
 )
 kem.1 <- MARSS(z.royale.dat, model = royale.model.1)
-#> Success! abstol and log-log tests passed at 19 iterations.
+#> Success! algorithm run for 15 iterations. abstol and log-log tests passed.
 #> Alert: conv.test.slope.tol is 0.5.
 #> Test with smaller values (<0.1) to ensure convergence.
 #> 
 #> MARSS fit is
 #> Estimation method: kem 
 #> Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001
-#> Estimation converged in 19 iterations. 
+#> Algorithm ran 15 (=minit) iterations and convergence was reached. 
 #> Log-likelihood: -3.21765 
 #> AIC: 22.4353   AICc: 23.70964   
 #>  
@@ -472,6 +485,7 @@ We can then plot the total effects, which shows that effects propagate
 through time due to both interactions and density dependence:
 
 ``` r
+
 # Calculate total effects
 effect = total_effect( fit )
 
@@ -493,6 +507,7 @@ We next replicate an analysis involving climate, forage fishes, stomach
 contents, and recruitment of a predatory fish.
 
 ``` r
+
 data(bering_sea)
 Z = ts( bering_sea )
 family = rep('fixed', ncol(bering_sea))
@@ -534,6 +549,7 @@ ParHat = fit$obj$env$parList()
 ```
 
 ``` r
+
 # Timeseries plot
 oldpar <- par(no.readonly = TRUE)
 par( mfcol=c(3,3), mar=c(2,2,2,0), mgp=c(2,0.5,0), tck=-0.02 )
@@ -557,6 +573,7 @@ par(oldpar)
 ![](features_files/figure-html/unnamed-chunk-16-1.png)
 
 ``` r
+
 #
 library(phylopath)
 library(ggplot2)
@@ -597,6 +614,7 @@ Finally, we replicate an analysis involving a trophic cascade involving
 sea stars predators, sea urchin consumers, and kelp producers.
 
 ``` r
+
 data(sea_otter)
 Z = ts( sea_otter[,-1] )
 
@@ -760,7 +778,7 @@ ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
 
 Again, these results are further discussed in the paper describing dsem.
 
-Runtime for this vignette: 26.37 secs
+Runtime for this vignette: 27.3 secs
 
 ## Works cited
 
@@ -775,6 +793,6 @@ Ecosystem Dynamics Constrained by Ecological Mechanisms.” *Methods in
 Ecology and Evolution* 15 (4): 744–55.
 <https://doi.org/10.1111/2041-210X.14289>.
 
-Vucetich, John A., and R. O. Peterson. 2012. “The Population Biology of
-Isle Royale Wolves and Moose: An Overview.”
+Vucetich, John A., and R. O. Peterson. 2012. *The Population Biology of
+Isle Royale Wolves and Moose: An Overview*.
 [www.isleroyalewolf.org](https://www.isleroyalewolf.org).

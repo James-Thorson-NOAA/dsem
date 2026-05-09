@@ -82,8 +82,8 @@ specification of simultaneous and lagged effects in a potentially
 recursive structure. Here, we highlight how DSEM can be used to
 implement dynamic factor analysis (DFA). We specifically replicate
 analysis using the Multivariate Autoregressive State-Space (MARSS)
-package <span class="citation">(Holmes, Ward, and Wills 2012)</span>,
-using data that are provided as an example in the MARSS package.</p>
+package <span class="citation">(Holmes et al. 2012)</span>, using data
+that are provided as an example in the MARSS package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://atsa-es.github.io/MARSS/" class="external-link">MARSS</a></span><span class="op">)</span></span>
@@ -407,7 +407,7 @@ compare the three options in terms of estimated loadings:</p>
 <tbody>
 <tr class="odd">
 <td align="left">Z.11</td>
-<td align="right">-0.472</td>
+<td align="right">-0.473</td>
 <td align="right">0.362</td>
 <td align="right">0.360</td>
 </tr>
@@ -464,12 +464,12 @@ compare the three options in terms of estimated loadings:</p>
 <p>The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):</p>
-<p>Runtime for this vignette: 17.75 secs</p>
+<p>Runtime for this vignette: 15.13 secs</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="works-cited">Works cited<a class="anchor" aria-label="anchor" href="#works-cited"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-holmes_marss:_2012" class="csl-entry">
 Holmes, Elizabeth E., Eric J. Ward, and Kellie Wills. 2012.
 <span>“<span>MARSS</span>: <span>Multivariate</span>

@@ -9,6 +9,7 @@ To show this, we fit a dome-shaped response of species interactions to
 temperature in a resource-consumer-predator model:
 
 ``` r
+
 library(dsem)
 
 # Load data
@@ -26,6 +27,7 @@ We first define a model with multiple dome-shaped responses to Temp,
 specifically constructing temperature-squared as a latent variable:
 
 ``` r
+
 #
 sem = "
   # Quadratic temperature effect on resource density
@@ -65,6 +67,7 @@ sem = "
 We then fit this model using `gmrf_parameterization = "full"`
 
 ``` r
+
 fit = dsem(
   tsdata = Z,
   sem = sem,
@@ -83,6 +86,7 @@ fit = dsem(
 We then plot the temperatures responses
 
 ``` r
+
 T_j = seq( 5, 19, by = 0.1 )
 X_j = T_j - 10
 
@@ -134,6 +138,7 @@ mtext( side = 1, text = c("Temperature (C)"), outer = TRUE, line = c(1) )
 We next visualize the predicted state-variables
 
 ``` r
+
 #
 df = expand.grid( year = as.vector(time(Z)), var = colnames(Z) )
 df$est = as.vector(as.list(fit$sdrep, what = "Estimate", report = TRUE)$z_tj)
@@ -165,6 +170,7 @@ ggplot(df) +
 Finally, we also visualize the estimated graph
 
 ``` r
+
 library(igraph)
 library(ggraph)
 
@@ -261,4 +267,4 @@ ggraph(layout) +
 
 ![](statistical_interactions_files/figure-html/plot_graph-1.png)
 
-Runtime for this vignette: 20.16 mins
+Runtime for this vignette: 56.06 mins

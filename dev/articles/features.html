@@ -403,8 +403,8 @@ abundance of wolf and moose populations on Isle Royale from 1959 to
 2019, downloaded from their website <span class="citation">(Vucetich and
 Peterson 2012)</span> (URL: www.isleroyalewolf.org).</p>
 <p>This dataset was previously analyzed by in Chapter 14 of the User
-Manual for the R-package MARSS <span class="citation">(Holmes, Ward, and
-Wills 2012)</span>.</p>
+Manual for the R-package MARSS <span class="citation">(Holmes et al.
+2012)</span>.</p>
 <p>Here, we compare fits using <code>dsem</code> with
 <code>dynlm</code>, as well as a vector autoregressive model package
 <code>vars</code>, and finally with <code>MARSS</code>.</p>
@@ -463,14 +463,14 @@ Wills 2012)</span>.</p>
 <span>  U <span class="op">=</span> <span class="st">"zero"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">kem.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atsa-es.github.io/MARSS/reference/MARSS.html" class="external-link">MARSS</a></span><span class="op">(</span><span class="va">z.royale.dat</span>, model <span class="op">=</span> <span class="va">royale.model.1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Success! abstol and log-log tests passed at 19 iterations.</span></span>
+<span><span class="co">#&gt; Success! algorithm run for 15 iterations. abstol and log-log tests passed.</span></span>
 <span><span class="co">#&gt; Alert: conv.test.slope.tol is 0.5.</span></span>
 <span><span class="co">#&gt; Test with smaller values (&lt;0.1) to ensure convergence.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; MARSS fit is</span></span>
 <span><span class="co">#&gt; Estimation method: kem </span></span>
 <span><span class="co">#&gt; Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001</span></span>
-<span><span class="co">#&gt; Estimation converged in 19 iterations. </span></span>
+<span><span class="co">#&gt; Algorithm ran 15 (=minit) iterations and convergence was reached. </span></span>
 <span><span class="co">#&gt; Log-likelihood: -3.21765 </span></span>
 <span><span class="co">#&gt; AIC: 22.4353   AICc: 23.70964   </span></span>
 <span><span class="co">#&gt;  </span></span>
@@ -814,12 +814,12 @@ producers.</p>
 <p><img src="features_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="480"></p>
 <p>Again, these results are further discussed in the paper describing
 dsem.</p>
-<p>Runtime for this vignette: 26.37 secs</p>
+<p>Runtime for this vignette: 27.3 secs</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="works-cited">Works cited<a class="anchor" aria-label="anchor" href="#works-cited"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-holmes_marss:_2012" class="csl-entry">
 Holmes, Elizabeth E., Eric J. Ward, and Kellie Wills. 2012.
 <span>“<span>MARSS</span>: <span>Multivariate</span>
@@ -835,9 +835,9 @@ Mechanisms.”</span> <em>Methods in Ecology and Evolution</em> 15 (4):
 744–55. <a href="https://doi.org/10.1111/2041-210X.14289" class="external-link">https://doi.org/10.1111/2041-210X.14289</a>.
 </div>
 <div id="ref-vucetich_population_2012" class="csl-entry">
-Vucetich, John A., and R. O. Peterson. 2012. <span>“The Population
-Biology of <span>Isle</span> <span>Royale</span> Wolves and Moose: An
-Overview.”</span> <a href="https://www.isleroyalewolf.org" class="external-link">www.isleroyalewolf.org</a>.
+Vucetich, John A., and R. O. Peterson. 2012. <em>The Population Biology
+of <span>Isle</span> <span>Royale</span> Wolves and Moose: An
+Overview</em>. <a href="https://www.isleroyalewolf.org" class="external-link">www.isleroyalewolf.org</a>.
 </div>
 </div>
 </div>

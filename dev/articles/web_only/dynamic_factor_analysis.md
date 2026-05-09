@@ -7,11 +7,11 @@
 simultaneous and lagged effects in a potentially recursive structure.
 Here, we highlight how DSEM can be used to implement dynamic factor
 analysis (DFA). We specifically replicate analysis using the
-Multivariate Autoregressive State-Space (MARSS) package (Holmes, Ward,
-and Wills 2012), using data that are provided as an example in the MARSS
-package.
+Multivariate Autoregressive State-Space (MARSS) package (Holmes et al.
+2012), using data that are provided as an example in the MARSS package.
 
 ``` r
+
 library(dsem)
 library(MARSS)
 library(ggplot2)
@@ -33,6 +33,7 @@ set.seed(123)
 We first illustrate a DFA model using two factors, fitted using MARSS:
 
 ``` r
+
 # Load data
 dat <- t(scale(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]))
 
@@ -49,6 +50,7 @@ fit_MARSS <- MARSS(
 We can then plot the estimated factors (latent variables):
 
 ``` r
+
 # Plots states using all data
 plot(fit_MARSS, plot.type="xtT")
 ```
@@ -60,6 +62,7 @@ plot(fit_MARSS, plot.type="xtT")
 And the estimated predictor for measurements (manifest variables):
 
 ``` r
+
 # Plot expectation for data using all data
 plot(fit_MARSS, plot.type="fitted.ytT")
 ```
@@ -71,6 +74,7 @@ plot(fit_MARSS, plot.type="fitted.ytT")
 We also define a custom function to plot states:
 
 ``` r
+
 plot_states = function( out,
                         vars=1:ncol(out$tmb_inputs$data$y_tj) ){
   # 
@@ -100,6 +104,7 @@ In DSEM syntax, we can first fit a saturated (full-covariance) model.
 However, we turn this off for vignette stability:
 
 ``` r
+
 # Make data into ts object
 tsdata = ts( cbind(harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]), start=1978)
 
@@ -175,6 +180,7 @@ rank-deficient Gaussian Markov random field, which we do using
 `gmrf_parameterization = "project"`:
 
 ``` r
+
 # Add factors to data
 tsdata = harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]
 newcols = array( NA,
@@ -254,6 +260,7 @@ mydfa = dsem(
 We again plot the estimated latent variables
 
 ``` r
+
 # Plot estimated factors
 plot_states( mydfa, vars=5+seq_len(n_factors) )
 ```
@@ -263,6 +270,7 @@ plot_states( mydfa, vars=5+seq_len(n_factors) )
 and the estimated predictor for manifest variables
 
 ``` r
+
 # Plot estimated variables
 plot_states( mydfa, vars=1:5 )
 ```
@@ -272,8 +280,8 @@ plot_states( mydfa, vars=1:5 )
 This results in similar (but not identical) factor values using MARSS
 and DSEM. In particular, DSEM has higher variance in early years. This
 likely arises because the default MARSS implementation of DFA includes a
-penalty of the initial state $\mathbf{x}_{0}$ with mean zero and
-variance of $5\mathbf{I}$. This term presumably provides additional
+penalty of the initial state $`\mathbf{x}_0`$ with mean zero and
+variance of $`5\mathbf{I}`$. This term presumably provides additional
 information about the initial year such that MARSS DFA results are not
 invariant to reversing the order of the data.
 
@@ -282,6 +290,7 @@ on initial conditions, based on help from Dr. Eli Holmes. This involves
 specifying:
 
 ``` r
+
 # Extract internal settings
 modmats <-  summary(fit_MARSS$model, silent=TRUE)
 #> Model Structure is
@@ -309,6 +318,7 @@ These have estimated time-series that are more similar to those from
 DSEM
 
 ``` r
+
 # Plots states using all data
 plot(fit_MARSS2, plot.type="xtT")
 ```
@@ -321,6 +331,7 @@ We can now compare the three options in terms of the fitted
 log-likelihood:
 
 ``` r
+
 # Compare likelihood for MARSS and DSEM
 Table = c( "MARSS" = logLik(fit_MARSS), 
            "DSEM" = logLik(mydfa), 
@@ -339,6 +350,7 @@ conditions results in the same likelihood as DSEM. Finally, we can also
 compare the three options in terms of estimated loadings:
 
 ``` r
+
 Table = cbind( "MARSS" = as.vector(fit_MARSS$par$Z),
        "DSEM" = grab(mydfa$opt$par,"beta_z"),
        "MARSS_no_pen" = as.vector(fit_MARSS2$par$Z) )
@@ -348,7 +360,7 @@ knitr::kable( Table, digits=3)
 
 |      |  MARSS |   DSEM | MARSS_no_pen |
 |:-----|-------:|-------:|-------------:|
-| Z.11 | -0.472 |  0.362 |        0.360 |
+| Z.11 | -0.473 |  0.362 |        0.360 |
 | Z.21 | -0.439 |  0.320 |        0.332 |
 | Z.31 | -0.465 |  0.218 |        0.356 |
 | Z.41 | -0.382 |  0.368 |        0.292 |
@@ -362,7 +374,7 @@ The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):
 
-Runtime for this vignette: 17.75 secs
+Runtime for this vignette: 15.13 secs
 
 ## Works cited
 
