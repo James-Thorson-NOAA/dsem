@@ -458,12 +458,24 @@ Type objective_function<Type>::operator() ()
     }else{
       dev_o = x_tj - xhat_tj - delta_tj;
       Vtilda_oo = Gamma_kk.transpose() * Gamma_kk;
+      // Add diagonal if isTRUE(control$stabilize_Q)
+      if( options(2) == 1 ){
+        Vtilda_oo += I_kk * 1e-10;
+      }
       Mtilda_oo = IminusRho_kk;
     }
+
     // Q_oo:  Eigen::SimplicialLDLT instead of Eigen::SparseLU because it's symmetric
-    Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type> > inverseVtilda_oo;
-    inverseVtilda_oo.compute(Vtilda_oo);
-    Eigen::SparseMatrix<Type> Q_oo = Mtilda_oo.transpose() * inverseVtilda_oo.solve(Mtilda_oo);
+    // SEEMS UNSTABLE
+    //Eigen::SimplicialLDLT< Eigen::SparseMatrix<Type> > inverseVtilda_oo;
+    //inverseVtilda_oo.compute(Vtilda_oo);
+    //Eigen::SparseMatrix<Type> Q_oo = Mtilda_oo.transpose() * inverseVtilda_oo.solve(Mtilda_oo);
+
+    // Same way as option(0) = 0
+    matrix<Type> inverseVtilda_oo = invertSparseMatrix( Vtilda_oo );
+    Eigen::SparseMatrix<Type> inverseVtilda2_oo = asSparseMatrix( inverseVtilda_oo );
+    Eigen::SparseMatrix<Type> Q_oo = Mtilda_oo.transpose() * inverseVtilda2_oo * Mtilda_oo;
+
     // Get GMRF for data
     REPORT( Q_oo );
     //REPORT( dev_o );
