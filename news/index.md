@@ -2,6 +2,12 @@
 
 ## dsem 2.0.0
 
+- Changing `gmrf_parameterization = "gmrf_project"`, given V = t(G)\*G,
+  to invert Vinv = invertSparseMatrix(V) where Vinv is then dense and
+  then casting Vinv2 = asSparseMatrix( Vinv ), rather than a sparseLDLT
+  for solve( V, I-P ), because the latter seems numerically unstable
+  when P has a high condition number (e.g., the moose-wolf vignette in
+  tinyVAST)
 - Add option to specify a path based fixed at another variable
 - Renamed `gmrf_parameterization = "conditional_krig"` as
   `gmrf_parameterization = "mvn_project"` and confirmed it in simple
