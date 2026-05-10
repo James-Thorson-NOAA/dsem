@@ -62,6 +62,44 @@ test_that("dsem gmrf-parameterization options ", {
   expect_equal( summary(fit1$sdrep), summary(fit1$sdrep), tolerance=1e-3 )
 })
 
+test_that("dsem works with high condition number ", {
+  data(isle_royale)
+  data = ts( log(isle_royale[,2:3]), start=1959)
+
+  sem = "
+    # Link, lag, param_name
+    wolves -> wolves, 1, arW
+    moose -> wolves, 1, MtoW
+    wolves -> moose, 1, WtoM
+    moose -> moose, 1, arM
+    moose <-> wolves, 0, crosscor
+  "
+  # fit
+  fit1 = dsem(
+    sem = sem,
+    tsdata = data,
+    family = c("normal", "normal"),
+    estimate_delta0 = TRUE,
+    control = dsem_control(
+      gmrf_parameterization = "gmrf_project",
+      getsd = FALSE
+    )
+  )
+  # fit
+  fit2 = dsem(
+    sem = sem,
+    tsdata = data,
+    family = c("normal", "normal"),
+    estimate_delta0 = TRUE,
+    control = dsem_control(
+      gmrf_parameterization = "full",
+      getsd = FALSE
+    )
+  )
+  expect_equal( as.numeric(fit1$opt$obj), 5.020765, tolerance=1e-3 )
+  expect_equal( as.numeric(fit2$opt$obj), 5.020765, tolerance=1e-3 )
+})
+
 test_that("dsem constant-variance options ", {
   data(isle_royale)
   data = ts( log(isle_royale[,2:3]), start=1959)
