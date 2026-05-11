@@ -78,7 +78,7 @@ test_that("dsem works with high condition number ", {
   fit1 = dsem(
     sem = sem,
     tsdata = data,
-    family = c("normal", "normal"),
+    #family = c("normal", "normal"),
     estimate_delta0 = TRUE,
     control = dsem_control(
       gmrf_parameterization = "gmrf_project",
@@ -91,7 +91,7 @@ test_that("dsem works with high condition number ", {
   fit2 = dsem(
     sem = sem,
     tsdata = data,
-    family = c("normal", "normal"),
+    #family = c("normal", "normal"),
     estimate_delta0 = TRUE,
     control = dsem_control(
       gmrf_parameterization = "full",
