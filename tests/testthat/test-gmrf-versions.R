@@ -82,7 +82,9 @@ test_that("dsem works with high condition number ", {
     estimate_delta0 = TRUE,
     control = dsem_control(
       gmrf_parameterization = "gmrf_project",
-      getsd = FALSE
+      newton_loops = 0,
+      getsd = FALSE,
+      extra = FALSE
     )
   )
   # fit
@@ -93,7 +95,9 @@ test_that("dsem works with high condition number ", {
     estimate_delta0 = TRUE,
     control = dsem_control(
       gmrf_parameterization = "full",
-      getsd = FALSE
+      newton_loops = 0,
+      getsd = FALSE,
+      extra = FALSE
     )
   )
   expect_equal( as.numeric(fit1$opt$obj), 5.020765, tolerance=1e-3 )
