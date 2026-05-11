@@ -778,7 +778,7 @@ ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
 
 Again, these results are further discussed in the paper describing dsem.
 
-Runtime for this vignette: 26.81 secs
+Runtime for this vignette: 27.65 secs
 
 ## Works cited
 
