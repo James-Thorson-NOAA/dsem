@@ -32,6 +32,7 @@ jobs:
           install.packages(c("remotes", "rcmdcheck", "knitr", "rmarkdown"))
           install.packages("Matrix", type = "source")
           install.packages("TMB", type = "source")
+          install.packages("igraph", type = "source")
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
 
