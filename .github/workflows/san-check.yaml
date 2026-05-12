@@ -15,6 +15,7 @@ jobs:
     env:
       UBSAN_OPTIONS: print_stacktrace=1
       ASAN_OPTIONS: detect_leaks=0
+      _R_CHECK_FORCE_SUGGESTS_: false
 
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +23,8 @@ jobs:
       - name: Install dependencies
         run: |
           R -q -e 'install.packages("pak")'
-          R -q -e 'pak::pkg_install(c("local::.", "rcmdcheck", "knitr", "rmarkdown"))'
+          R -q -e 'pak::pkg_install(c("rcmdcheck", "knitr", "rmarkdown"))'
+          R -q -e 'pak::local_install_dev_deps(".")'
 
       - name: Run check
         run: |
