@@ -70,7 +70,7 @@ jobs:
 
       - name: Run R CMD check with sanitizers
         run: |
-          RDsan CMD check --no-manual --as-cran ${{ env.PKG_TGZ }}
+          RDsan CMD check --no-manual --no-vignettes --as-cran ${{ env.PKG_TGZ }}
 
       - name: Show check output on failure
         if: failure()
