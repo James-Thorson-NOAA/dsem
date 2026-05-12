@@ -1,5 +1,9 @@
 # Changelog
 
+## dsem 2.0.1
+
+- Fix an indexing error identified by SAN
+
 ## dsem 2.0.0
 
 CRAN release: 2026-05-12
