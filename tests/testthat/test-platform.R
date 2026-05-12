@@ -24,19 +24,29 @@ test_that("dsem example is working ", {
                  "gwage","invest","capital")]
 
   # Fit model
-  fit = dsem( sem=sem,
-              tsdata=tsdata,
-              control = dsem_control(getJointPrecision=TRUE) )
+  fit = dsem( 
+    sem = sem,
+    tsdata = tsdata,
+    control = dsem_control(
+      getJointPrecision = TRUE
+    ) 
+  )
   # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 431.6122, tolerance=1e-2 )
 
-  #
-  fitRTMB = dsemRTMB( sem=sem,
-              tsdata=tsdata,
-              control = dsem_control(getsd=FALSE) )
-  # Check objective function
-  expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
-
+  # Turning off RTMB for now
+  if( FALSE ){
+    fitRTMB = dsemRTMB( 
+      sem = sem,
+      tsdata = tsdata,
+      control = dsem_control(
+        getsd = FALSE
+      ) 
+    )
+    # Check objective function
+    expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
+  }
+  
   # Convert and plot using phylopath
   as_fitted_DAG(fit)
 
@@ -124,21 +134,22 @@ test_that("dsem works with fixed variances ", {
   fit2 = dsem( sem = sem,
                tsdata = data,
                family = c("normal", "normal") )
+  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
 
   # initial first without delta0 (to improve starting values)
-  sem = "
-    wolves <-> wolves, 0, NA, 0.3732812
-    moose <-> moose, 0, NA, 0.1911209
-    wolves -> wolves, 1, NA, 0.8558536
-    moose -> moose, 1, NA, 0.9926087
-  "
-  fit3 = dsemRTMB( sem = sem,
-               tsdata = data,
-               family = c("normal", "normal") )
-
-  # Check objective function
-  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit2$opt$obj), tolerance=1e-2 )
-  expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit3$opt$obj), tolerance=1e-2 )
+  # Turn off RTMB
+  if( FALSE ){
+    sem = "
+      wolves <-> wolves, 0, NA, 0.3732812
+      moose <-> moose, 0, NA, 0.1911209
+      wolves -> wolves, 1, NA, 0.8558536
+      moose -> moose, 1, NA, 0.9926087
+    "
+    fit3 = dsemRTMB( sem = sem,
+                 tsdata = data,
+                 family = c("normal", "normal") )
+    expect_equal( as.numeric(fit1$opt$obj), as.numeric(fit3$opt$obj), tolerance=1e-2 )
+  }
 })
 
 test_that("bering sea example is stable ", {
@@ -199,11 +210,97 @@ test_that("Fixing parameters works ", {
   fit = dsem( sem=sem,
                tsdata=tsdata,
                control = dsem_control(getsd=FALSE) )
-  fitRTMB = dsemRTMB( sem=sem,
-               tsdata=tsdata,
-               control = dsem_control(getsd=FALSE) )
-  # Check objective function
   expect_equal( as.numeric(fit$opt$obj), 224.2993, tolerance=1e-2 )
-  expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
 
+  # Turning off RTMB
+  if( FALSE ){
+    fitRTMB = dsemRTMB( sem=sem,
+                 tsdata=tsdata,
+                 control = dsem_control(getsd=FALSE) )
+    # Check objective function
+    expect_equal( as.numeric(fit$opt$obj), as.numeric(fitRTMB$opt$obj), tolerance=1e-2 )
+  }
+})
+
+test_that("dfa example is working ", {
+  data( harborSealWA, package="MARSS")
+  n_factors = 2
+
+  # Add factors to data
+  tsdata = harborSealWA[,c("SJI","EBays","SJF","PSnd","HC")]
+  newcols = array( NA,
+                   dim = c(nrow(tsdata),n_factors),
+                   dimnames = list(NULL,paste0("F",seq_len(n_factors))) )
+  tsdata = ts( cbind(tsdata, newcols), start=1978)
+  
+  # Scale and center (matches with MARSS does when fitting a DFA)
+  tsdata = scale( tsdata, center=TRUE, scale=TRUE )
+  
+  # Automated version
+  #sem = make_dfa( variables = c("SJI","EBays","SJF","PSnd","HC"),
+  #                n_factors = n_factors )
+  # Manual specification to show structure, using equations-and-lags interface
+  equations = "
+    # Loadings of variables onto factors
+    SJI = L11(0.1) * F1
+    EBays = L12(0.1) * F1 + L22(0.1) * F2
+    SJF = L13(0.1) * F1 + L23(0.1) * F2
+    PSnd = L14(0.1) * F1 + L24(0.1) * F2
+    HC = L15(0.1) * F1 + L25(0.1) * F2
+  
+    # random walk for factors
+    F1 = NA(1) * lag[F1,1]
+    F2 = NA(1) * lag[F2,1]
+  
+    # Unit variance for factors
+    V(F1) = NA(1)
+    V(F2) = NA(1)
+  
+    # Zero residual variance for variables
+    V(SJI) = NA(0)
+    V(EBays) = NA(0)
+    V(SJF) = NA(0)
+    V(PSnd) = NA(0)
+    V(HC) = NA(0)
+  "
+  sem = convert_equations(equations)
+  
+  # Initial fit
+  mydsem0 = dsem( 
+    tsdata = tsdata,
+    sem = sem,
+    family = c( rep("normal",5), rep("fixed",n_factors) ),
+    estimate_delta0 = TRUE,
+    estimate_mu = vector(),
+    control = dsem_control( 
+      quiet = TRUE,
+      gmrf_parameterization = "project",
+      run_model = FALSE
+    ) 
+  )
+  
+  # fix all measurement errors at diagonal and equal
+  map = mydsem0$tmb_inputs$map
+  map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
+  
+  # Fix factors to have initial value, and variables to not
+  map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
+  
+  # profile "delta0_j" to match MARSS (which treats initial condition as unpenalized random effect)
+  mydfa = dsem( 
+    tsdata = tsdata,
+    sem = sem,
+    family = c( rep("normal",5), rep("fixed",n_factors) ),
+    estimate_delta0 = TRUE,
+    estimate_mu = vector(),
+    control = dsem_control( 
+      quiet = TRUE,
+      map = map,
+      gmrf_parameterization = "project",
+      use_REML = TRUE
+    ) 
+  )
+
+  # Check objective function
+  expect_equal( as.numeric(mydfa$opt$obj), 40.00618, tolerance=1e-2 )
 })

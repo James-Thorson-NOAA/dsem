@@ -57,6 +57,7 @@ if( FALSE ){
 # Check online but document first!
 document()
 check_win_devel()
+check_win_release()
 
 # Submit to CRAN via devtools .. not preferred!
 if( FALSE ){

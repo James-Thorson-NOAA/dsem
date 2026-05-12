@@ -3,6 +3,7 @@ title: "Demonstration of selected features"
 author: "James Thorson"
 output: rmarkdown::html_vignette
 #output: rmarkdown::pdf_document
+bibliography: 'dsem_vignettes.bib'
 vignette: >
   %\VignetteIndexEntry{Demonstration of selected features}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,6 +16,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 set.seed(101)
+start_time = Sys.time()
 # Install locally
 #  devtools::install_local( R'(C:\Users\James.Thorson\Desktop\Git\dsem)', force=TRUE )
 # Build
@@ -30,11 +32,11 @@ library(gridExtra)
 library(phylopath)
 ```
 
-`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure.   We here highlight a few features in particular.
+`dsem` is an R package for fitting dynamic structural equation models (DSEMs) with a simple user-interface and generic specification of simultaneous and lagged effects in a non-recursive structure [@thorson_dynamic_2024].   We here highlight a few features in particular.
 
 ## Comparison with linear models
 
-We first show that `dsem` is identical to a linear model.  To do so, we simulate data with a single response and single predictor:
+We first show that `dsem` can be specified such that it collapses to a standard linear model.  To do so, we simulate data with a single response and single predictor:
 
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 # simulate normal distribution
@@ -46,9 +48,11 @@ data = data.frame(x=x, y=y)
 Lm = lm( y ~ x, data=data )
 
 # Fit as DSEM
-fit = dsem( sem = "x -> y, 0, beta",
-            tsdata = ts(data),
-            control = dsem_control(quiet=TRUE) )
+fit = dsem( 
+  sem = "x -> y, 0, beta",
+  tsdata = ts(data),
+  control = dsem_control(quiet=TRUE) 
+)
 
 # Display output
 m1 = rbind(
@@ -71,9 +75,9 @@ simResp = apply(samples, MARGIN=3, FUN=as.vector)[which_use,]
 
 # Build and display DHARMa object
 res = DHARMa::createDHARMa(
-        simulatedResponse = simResp,
-        observedResponse = unlist(data)[which_use],
-        fittedPredictedResponse = fitResp )
+  simulatedResponse = simResp,
+  observedResponse = unlist(data)[which_use],
+  fittedPredictedResponse = fitResp )
 plot(res)
 ```
 
@@ -89,6 +93,61 @@ plot( x=res0, y=qnorm(res[,2]),
       xlab="linear model residuals", ylab="dsem residuals" )
 abline(a=0,b=1)
 ```
+
+## Comparison with generalized linear models
+
+Next, we show that DSEM can be specified to collapse to a standard generalized linear model.  However, this requires first understanding a bit more about how DSEM treats both measurement and process errors.
+
+In particular, DSEM is capable of fitting a state-space model that incorporates two types of errors:
+
+1.  Process errors, i.e., exogenous variation in a variable, beyond was is explained by covariates (paths from other variables);
+2.  Measurement errors, i.e., variation in a measurement that follows a specified distribution (e.g., Gaussian, Poisson, etc.), where the variance of measurement errors is then typically estimated;
+
+However, DSEM can then collapse this state-space model to:
+
+- Measurement error model, by turning off process errors.  This is done by fixing the exogenous variation for a given variable at zero (e.g., `X <-> X, 0, NA, 0` fixes the exogenous variation for variable X at zero);
+- Process-error model, by turning off measurement errors by using `family = "fixed"`).  
+
+A generalized linear mixed model is then equivalent to a state-space model where:
+
+- covariates have no measurement errors;
+- the response has no process errors, such that residuals are attributed purely to measurement errors.
+
+We show this equivalence by simulating counts from a log-linked Poisson GLM, and fitting it using `dsem` and `glm`
+
+```{r}
+# Simulate a log-linked Poisson GLM
+x = rnorm(100)
+p = 1 + 0.8 * x
+y = rpois( length(x), lambda = exp(p) )
+data = data.frame(x=x, y=y)
+
+# Fit as generalized linear model
+Glm = glm( y ~ x, data=data, family = poisson() )
+
+# Define zero process errors (only process errors) in response y
+sem = "
+  x -> y, 0, beta
+  y <-> y, 0, NA, 0
+"
+
+# Fit as DSEM
+fit = dsem( 
+  sem = sem,
+  tsdata = ts(data),
+  family = c("fixed","poisson"),
+  control = dsem_control(quiet=TRUE) 
+)
+
+# Display output
+m1 = rbind(
+  "glm" = summary(Glm)$coef[2,1:2],
+  "dsem" = summary(fit)[1,9:10]
+)
+knitr::kable( m1, digits=3)
+```
+
+We note that this model combines zero-measurement errors for predictor `x` with zero-process errors for response `y`. This combination requires `dsem` version 2.0.0 or later, using the new default option `dsem_control( gmrf_parameterization = "gmrf_project")`.  In this GLM example, `gmrf_parameterization = "gmrf_project"` first calculates a full-rank GMRF for covariate `x` and then projects it to response `y` using a conditional prediction that has reduced rank.  Detecting full-rank vs. reduced-rank then occurs "behind the scenes"; this option should be fast while allowing many combinations of turned-off process and measurement errors, but remains somewhat experimental.  
 
 ## Comparison with dynamic linear models
 
@@ -116,12 +175,15 @@ sem = "
 "
 tsdata = TS[,c("time","gnp","pwage","cprofits",'consumption',
                "gwage","invest","capital")]
-fit = dsem( sem=sem,
-            tsdata = tsdata,
-            estimate_delta0 = TRUE,
-            control = dsem_control(
-              quiet = TRUE,
-              newton_loops = 0) )
+fit = dsem( 
+  sem = sem,
+  tsdata = tsdata,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    quiet = TRUE,
+    newton_loops = 0
+  ) 
+)
 ```
 
 This model could instead be specified using equation-and-lag notation, which makes the model structure more clear:
@@ -136,12 +198,15 @@ equations = "
 
 # Convert and run
 sem_equations = convert_equations(equations)
-fit = dsem( sem = sem_equations,
-            tsdata = tsdata,
-            estimate_delta0 = TRUE,
-            control = dsem_control(
-              quiet = TRUE,
-              newton_loops = 0) )
+fit = dsem( 
+  sem = sem_equations,
+  tsdata = tsdata,
+  estimate_delta0 = TRUE,
+  control = dsem_control(
+    quiet = TRUE,
+    newton_loops = 0
+  ) 
+)
 ```
 
 We first demonstrate that `dsem` gives identical results to `dynlm`:
@@ -223,10 +288,9 @@ ggplot(data=m, aes(x=par, y=mean, col=method)) +
 
 ## Comparison with vector autoregressive models
 
-We next demonstrate that `dsem` gives similar results to a vector autoregressive (VAR) model.  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website (Vucetich, JA and Peterson RO. 2012. The population biology of Isle Royale wolves and moose: an overview. URL: www.isleroyalewolf.org).
+We next demonstrate that `dsem` gives similar results to a vector autoregressive (VAR) model.  To do so, we analyze population abundance of wolf and moose populations on Isle Royale from 1959 to 2019, downloaded from their website [@vucetich_population_2012] (URL: www.isleroyalewolf.org).
 
-This dataset was previously analyzed by in Chapter 14 of the User Manual for the R-package MARSS (Holmes, E. E., M. D. Scheuerell, and E. J. Ward (2023) Analysis of multivariate time-series using the MARSS package. Version 3.11.8. NOAA Fisheries,
-  Northwest Fisheries Science Center, 2725 Montlake Blvd E., Seattle, WA 98112, DOI: 10.5281/zenodo.5781847).
+This dataset was previously analyzed by in Chapter 14 of the User Manual for the R-package MARSS [@holmes_marss:_2012].
 
 Here, we compare fits using `dsem` with `dynlm`, as well as a vector autoregressive model package `vars`, and finally with `MARSS`.
 
@@ -242,23 +306,30 @@ sem = "
   moose -> moose, 1, arM
 "
 # initial first without delta0 (to improve starting values)
-fit0 = dsem( sem = sem,
-             tsdata = data,
-             estimate_delta0 = FALSE,
-             control = dsem_control(
-               quiet = FALSE,
-               getsd = FALSE) )
+fit0 = dsem( 
+  sem = sem,
+  tsdata = data,
+  estimate_delta0 = FALSE,
+  control = dsem_control(
+    quiet = FALSE,
+    getsd = FALSE
+  ) 
+)
 
 #
 parameters = fit0$obj$env$parList()
   parameters$delta0_j = rep( 0, ncol(data) )
 
 # Refit with delta0
-fit = dsem( sem = sem,
-            tsdata = data,
-            estimate_delta0 = TRUE,
-            control = dsem_control( quiet=TRUE,
-                                    parameters = parameters ) )
+fit = dsem( 
+  sem = sem,
+  tsdata = data,
+  estimate_delta0 = TRUE,
+  control = dsem_control( 
+    quiet=TRUE,
+    parameters = parameters 
+  ) 
+)
 
 # dynlm
 fm_wolf = dynlm( wolves ~ 1 + L(wolves) + L(moose), data=data )   #
@@ -370,10 +441,15 @@ sem = "
 "
 
 # Fit
-fit = dsem( sem = sem,
-            tsdata = Z,
-            family = family,
-            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
+fit = dsem( 
+  sem = sem,
+  tsdata = Z,
+  family = family,
+  control = dsem_control(
+    use_REML=FALSE, 
+    quiet=TRUE
+  ) 
+)
 ParHat = fit$obj$env$parList()
 # summary( fit )
 ```
@@ -551,10 +627,14 @@ sem = "
 "
 
 # Fit model
-fit = dsem( sem = sem,
-            tsdata = Z,
-            control = dsem_control(use_REML=FALSE, quiet=TRUE) )
-# summary( fit )
+fit = dsem( 
+  sem = sem,
+  tsdata = Z,
+  control = dsem_control(
+    use_REML=FALSE, 
+    quiet=TRUE
+  ) 
+)
 
 #
 library(phylopath)
@@ -592,4 +672,10 @@ ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
 
 Again, these results are further discussed in the paper describing dsem.
 
+```{r, include = FALSE, warning=FALSE, message=FALSE}
+run_time = Sys.time() - start_time
+```
+Runtime for this vignette: `r paste( round(unclass(run_time),2), attr(run_time, "units") )`
+
+# Works cited
 

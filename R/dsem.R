@@ -18,6 +18,11 @@
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
+#' @param estimate_mu character-vector listing columns of \code{tsdata} for which to estimate the mean,
+#'        which is subtracted off of \code{tsdata} prior to evaluating interactions among parameters.
+#'        The default \code{estimate_mu = NULL} estimates the mean for every column with at least one value
+#'        that is not \code{NA} (i.e., does *not* estimate the mean for latent variables).
+#'        If you want to have no \code{mu} parameters, use \code{estimate_mu = vector()}.
 #' @param covs optional: a character vector of one or more elements, with each element giving a string of variable 
 #'        names, separated by commas. Variances and covariances among all variables in each such string are 
 #'        added to the model. Warning: covs="x1, x2" and covs=c("x1", "x2") are not equivalent: 
@@ -31,14 +36,12 @@
 #'        specifies a normal prior probability
 #'        for the for the first fixed effect with mean of zero and logsd of 0.1.
 #'        NOTE:  this implementation does not work well with \code{tmbstan} and
-#'        is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
-#'        instead.  The option in \code{dsem} is mainly intended to validate its
-#'        use in \code{dsemRTMB}.  Note that the user must load RTMB using
+#'        is highly experimental.  Note that the user must load RTMB using
 #'        \code{library(RTMB)} prior to running the model.
 #' @param control Output from \code{\link{dsem_control}}, used to define user
 #'        settings, and see documentation for that function for details.
 #'
-#' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport
+#' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport config
 #' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom sem sem
@@ -154,6 +157,13 @@
 #' ecosystem dynamics constrained by ecological mechanisms.
 #' Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
 #'
+#' **Introducing moderated DSEM (e.g., nonstationarity and varying paths):**
+#'
+#' Thorson, J. T., Kristensen, K. (In press).
+#' Ecological examples of nonstationarity, nonlinearity, and
+#' statistical interactions in dynamic structural equation models.
+#' Methods in Ecology and Evolution. \url{https://ecoevorxiv.org/repository/view/11418/}
+#'
 #' @examples
 #' # Define model
 #' sem = "
@@ -192,6 +202,7 @@ function( sem,
           tsdata,
           family = rep("fixed",ncol(tsdata)),
           estimate_delta0 = FALSE,
+          estimate_mu = NULL,
           prior_negloglike = NULL,
           control = dsem_control(),
           covs = colnames(tsdata) ){
@@ -199,7 +210,7 @@ function( sem,
 
   # General error checks
   if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
-  if( isTRUE(control$gmrf_parameterization=="projection") ){
+  if( isTRUE(control$gmrf_parameterization=="project") ){
     if( isTRUE(any(family=="fixed" & colSums(!is.na(tsdata))>0)) ){
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
@@ -215,11 +226,13 @@ function( sem,
   }
 
   # (I-Rho)^-1 * Gamma * (I-Rho)^-1
-  out = make_dsem_ram( sem,
-                  times = as.numeric(time(tsdata)),
-                  variables = colnames(tsdata),
-                  covs = covs,
-                  quiet = control$quiet )
+  out = make_dsem_ram( 
+    sem,
+    times = as.numeric(time(tsdata)),
+    variables = colnames(tsdata),
+    covs = covs,
+    quiet = control$quiet 
+  )
   ram = out$ram
 
   # Error checks
@@ -237,35 +250,83 @@ function( sem,
       stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
     }
   }
+  if( any(ram$heads==0) ){
+    # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
+    # so Gamma_kk and Rho_kk are not properly applied to moderating variables
+    if( control$gmrf_parameterization %in% c("project") ){
+      stop("Cannot use gmrf_parameterization == `project` when using moderated variables")
+    }
+  }
 
   #
   options = c(
-    switch(control$gmrf_parameterization, "separable" = 0, "projection" = 1, "conditional_krig" = 2, NA),
-    switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2)
+    switch(control$gmrf_parameterization, "full" = 0, "project" = 1, "mvn_project" = 2, "gmrf_project" = 3, NA),
+    switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2),
+    ifelse( isTRUE(control$stabilize_Q), 1, 0 )
   )
   
-  #
-  Data = list( "options" = options,
-               "RAM" = as.matrix(na.omit(ram[,1:4])),
-               "RAMstart" = as.numeric(ram[,5]),
-               "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
-               "y_tj" = tsdata )
+  # define variables to project to `project_k` unless provided by user
+  if( is.null(control$project_k) ){
+    # Check vars with zero variance
+    project_k = sapply( 
+      seq_len(prod(dim(tsdata))),
+      FUN = function(k){
+        tmp = subset( ram, (ram$heads==2) & (ram$to==k) & (ram$from==k) )
+        has_zero_var = all( (tmp$parameter==0) & (tmp$start==0) )
+        return(has_zero_var)
+      } 
+    )
+  }else{
+    project_k = as.vector(control$project_k)
+  }
+
+  # Identify variables that serve as moderators
+  moderator_tj = array( FALSE, dim = dim(tsdata) )
+  moderator_tj[ as.matrix(na.omit(ram[,6:7])) ] = 1
+  moderator_k = as.vector(moderator_tj)
+
+  # Switch `gmrf_project` to `full` if no variables in `project_k`
+  # Now added simplified code to CPP instead
+  #if( (options[1] == 3) & (sum(project_k)==0) ){
+  #  options[1] = 0
+  #}
+
+  # Error check
+  if( any(subset(ram, ram$heads==2 & !is.na(ram$start))$start==0) & (options[1]==0) ){
+    stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
+  }
+  if( any(project_k & moderator_k) ){
+    # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
+    # so Gamma_kk and Rho_kk are not properly applied to moderating variables
+    if( control$gmrf_parameterization %in% c("mvn_project", "gmrf_project") ){
+      stop("Cannot use gmrf_parameterization == `project` when using moderated variables")
+    }
+  }
 
   #
-  if( options[1] == 2 ){
-    familycode_z = rep( Data$familycode_j, each = nrow(Data$y_tj) )
-    Data$obs_idx = which( familycode_z == 0 ) - 1                 # Convert to CPP indexing
-    Data$unobs_idx = which( familycode_z != 0 ) - 1               # Convert to CPP indexing
+  Data = list( 
+    "options" = options,
+    #"RAM" = as.matrix(na.omit(ram[,1:4])),
+    "RAM" = as.matrix(ram[,-5]),
+    "RAMstart" = as.numeric(ram[,5]),
+    "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
+    "y_tj" = tsdata 
+  )
+
+  # Default ... unobs_idx for fixed variables with zero variance
+  if( options[1] %in% c(2,3) ){
+    Data$obs_idx = which( !project_k ) - 1   # Convert to CPP indexing
+    Data$unobs_idx = which( project_k ) - 1  # Convert to CPP indexing
   }
 
   # Construct parameters
   if( is.null(control$parameters) ){
-    Params = list( "beta_z" = rep(0,max(ram[,4])),
+    Params = list( "beta_z" = rep(0,max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
                    "lnsigma_j" = rep(0,ncol(tsdata)),
                    "mu_j" = rep(0,ncol(tsdata)),
                    "delta0_j" = rep(0,ncol(tsdata)),
                    "x_tj" = ifelse( is.na(tsdata), 0, tsdata ) )
-    #if( control$gmrf_parameterization=="separable" ){
+    #if( control$gmrf_parameterization=="full" ){
     #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
     #}else{
     #  Params$eps_tj = ifelse( is.na(tsdata), 0, tsdata )
@@ -289,21 +350,43 @@ function( sem,
     Params = control$parameters
   }
 
+  # Process `estimate_mu`
+  if( is.null(estimate_mu) ){ # is TRUE for estimate_mu = c()
+    estimate_mu = na.omit( ifelse(colSums(!is.na(tsdata))==0, NA, colnames(tsdata)) )
+  }else{
+    if( isFALSE(control$quiet) ){
+      if( !all(estimate_mu %in% colnames(tsdata)) ){
+        warning("Some `estimate_mu` is not in the column names of `tsdata`")
+      }
+    }
+  }
+
   # Construct map
   if( is.null(control$map) ){
     Map = list()
     # Map off x_tj for fixed when data is available
-    Map$x_tj = factor(ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA ))
+    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA )
     # Map off sigma_j for fixed / bernoulli / Poisson
     Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
-    Map$mu_j = factor( ifelse(colSums(!is.na(tsdata))==0, NA, 1:ncol(tsdata)) )
+    Map$mu_j = factor( ifelse(colnames(tsdata) %in% estimate_mu, seq_len(ncol(tsdata)), NA) )
 
-    # Map off mean for family = "fixed" if using gmrf_parameterization = "conditional_krig"
+    # Map off mean for family = "fixed" if using gmrf_parameterization = "mvn_project"
     if( options[1] == 2 ){
-      Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
+    #  Map$mu_j = factor( ifelse(Data$familycode_j==0, NA, Map$mu_j) )
     }
+    # Map off unobserved if using gmrf_parameterization = "mvn_project"
+    if( options[1] == 2 ){
+      #Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
+    }
+    # Map off unobserved if using gmrf_parameterization = "gmrf_project"
+    if( (options[1] == 3) & (sum(project_k)>0) ){
+      Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
+    }
+    
+    #
+    Map$x_tj = factor(Map$x_tj)
   }else{
     Map = control$map
   }
@@ -315,14 +398,30 @@ function( sem,
     Random = "x_tj"
   }
 
+  #
+  if( control$build_model==FALSE ){
+    out = list(
+      data = Data,
+      parameters = Params,
+      random = Random,
+      map = Map
+    )
+    return( out )
+  }
+  
+  # Necessary when using variables as paths
+  TMB::config(tmbad.atomic_sparse_log_determinant = FALSE, DLL = "dsem")
+  
   # Build object
-  obj = TMB::MakeADFun( data=Data,
-                   parameters=Params,
-                   random=Random,
-                   map=Map,
-                   profile = control$profile,
-                   DLL="dsem",
-                   silent = TRUE )
+  obj = TMB::MakeADFun( 
+    data = Data,
+    parameters = Params,
+    random = Random,
+    map = Map,
+    profile = control$profile,
+    DLL = "dsem",
+    silent = TRUE 
+  )
   if(control$quiet==FALSE) list_parameters(obj)
   # bundle
   internal = list(
@@ -330,6 +429,7 @@ function( sem,
     tsdata = tsdata,
     family = family,
     estimate_delta0 = estimate_delta0,
+    estimate_mu = estimate_mu,
     control = control,
     covs = covs,
     prior_negloglike = prior_negloglike
@@ -467,12 +567,22 @@ function( sem,
 #' @param getsd Boolean indicating whether to call \code{\link[TMB]{sdreport}}
 #' @param run_model Boolean indicating whether to estimate parameters (the default), or
 #'        instead to return the model inputs and compiled TMB object without running;
+#' @param build_model Boolean indicating whether to return inputs to `MakeADFun`
 #' @param gmrf_parameterization Parameterization to use for the Gaussian Markov 
-#'        random field, where the default `separable` constructs a precision matrix
-#'        that must be full rank, and the alternative `projection` constructs
-#'        a full-rank and IID precision for variables over time, and then projects
-#'        this using the inverse-cholesky of the precision, where this projection
-#'        can be rank-deficient.
+#'        random field, where the default `full` constructs a precision matrix
+#'        that must be full rank, `project` constructs
+#'        a full-rank and IID precision for variables over time and then projects
+#'        this using the inverse-cholesky of the precision (which allows a
+#'        rank-deficient GMRF, but does not allow \code{family = "fixed"}), 
+#'        `mvn_project` uses the dense variance for the 
+#'        full-rank component of the distribution and then projects values to the rank-deficient
+#'        component (which allows \code{family = "fixed"} in any set of 
+#'        set of variables that is estimable, but is much slower), and `gmrf_project`
+#'        uses a full-rank precision for all variables that have non-zero exogenous
+#'        variance, and then projects to the remaining variables that have zero
+#'        exogenous variance (where this is fast but cannot allow \code{family = "fixed"}
+#'        combined with measurements for those variables that have zero exogenous 
+#'        variance)
 #' @param constant_variance Whether to specify a constant conditional variance 
 #'        \eqn{ \mathbf{\Gamma \Gamma}^t} using the default \code{constant_variance="conditional"}, 
 #'        which results in a changing marginal variance      
@@ -503,9 +613,18 @@ function( sem,
 #'        If unspecified, all parameters are assumed to be unconstrained.
 #' @param upper vectors of upper bounds, replicated to be as long as start and passed to \code{\link[stats]{nlminb}}.
 #'        If unspecified, all parameters are assumed to be unconstrained.
+#' @param project_k logical-vector only used when \code{gmrf_parameterization=="mvn_project"}, 
+#'        with length \code{dim(tsdata)} indicating which state-values should be projected determinstically
+#'        while ignoring measurements.  This is useful e.g., for determinstic composite variables.
+#'        If \code{project_k=NULL} (the default), then it projects any variable with zero
+#'        exogenous variance.  However, this then ignores any measurements for those variables.
+#'        Manual specification can be used to confidition upon measurements for determinstic
+#'        variables, but identifiability conditions are then hard to determine automatically.
 #' @param suppress_nlminb_warnings whether to suppress uniformative warnings
 #'        from \code{nlminb} arising when a function evaluation is NA, which
 #'        are then replaced with Inf and avoided during estimation
+#' @param stabilize_Q add \code{stability_eps = 1e-10} to stabilize precision
+#'        (experimental)
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -521,7 +640,8 @@ function( nlminb_loops = 1,
           getsd = TRUE,
           quiet = FALSE,
           run_model = TRUE,
-          gmrf_parameterization = c("separable", "projection"),       # "conditional_krig" is disabled from high-level user-interface
+          build_model = TRUE,
+          gmrf_parameterization = c("gmrf_project", "full", "project", "mvn_project"),       
           constant_variance = c("conditional", "marginal", "diagonal"),
           use_REML = TRUE,
           profile = NULL,
@@ -531,7 +651,9 @@ function( nlminb_loops = 1,
           extra_convergence_checks = TRUE,
           lower = -Inf,
           upper = Inf,
-          suppress_nlminb_warnings = TRUE ){
+          project_k = NULL,
+          suppress_nlminb_warnings = TRUE,
+          stabilize_Q = FALSE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -546,6 +668,7 @@ function( nlminb_loops = 1,
     getsd = getsd,
     quiet = quiet,
     run_model = run_model,
+    build_model = build_model,
     gmrf_parameterization = gmrf_parameterization,
     constant_variance = constant_variance,
     use_REML = use_REML,
@@ -556,7 +679,9 @@ function( nlminb_loops = 1,
     extra_convergence_checks = extra_convergence_checks,
     lower = lower,
     upper = upper,
-    suppress_nlminb_warnings = suppress_nlminb_warnings
+    project_k = project_k,
+    suppress_nlminb_warnings = suppress_nlminb_warnings,
+    stabilize_Q = stabilize_Q
   ), class = "dsem_control" )
 }
 
@@ -797,7 +922,13 @@ function( object,
       # Simulate new fields
       newrep = obj$report( par=par_zr[,r] )
       newparfull = obj$env$parList()
-      Q_kk = newrep$Q_kk
+      if( "Q_kk" %in% names(newrep) ){
+        # gmrf_parameterization = "full"
+        Q_kk = newrep$Q_kk
+      }else{
+        # gmrf_parameterization = "gmrf_project"
+        Q_kk = newrep$Q_oo
+      }
       tmp = rmvnorm_prec( as.vector(newrep$delta_tj + newrep$xhat_tj), Q_kk, nsim=1 )
       # Modify call
       #newcall = object$call
@@ -812,11 +943,14 @@ function( object,
       control$parameters = newparfull
       control$parameters$x_tj[] = tmp
       control$run_model = FALSE
-      newfit = dsem( sem = object$internal$sem,
-                     tsdata = object$internal$tsdata,
-                     family = object$internal$family,
-                     estimate_delta0 = object$internal$estimate_delta0,
-                     control = control )
+      newfit = dsem( 
+        sem = object$internal$sem,
+        tsdata = object$internal$tsdata,
+        family = object$internal$family,
+        estimate_delta0 = object$internal$estimate_delta0,
+        estimate_mu = object$internal$estimate_mu,
+        control = control 
+      )
       out[[r]] = newfit$obj$simulate()$y_tj
     }else{
       out[[r]] = obj$simulate( par_zr[,r] )$y_tj
@@ -1019,8 +1153,9 @@ function( object,
 
   #
   if( is.null(newdata) ){
-    if(type=="link") out = parfull$x_tj
+    if(type=="link") out = report$z_tj
     if(type=="response") out = report$mu_tj
+    #if(type=="x") out = parfull$x_tj
   }else{
     #newcall = object$call
     #newcall$tsdata = newdata
@@ -1047,8 +1182,9 @@ function( object,
     # Optimize random effects given original MLE and newdata
     newfit$obj$fn( object$opt$par )
     # Return predictor
-    if(type=="link") out = newfit$obj$env$parList()$x_tj
+    if(type=="link") out = newfit$obj$report()$z_tj
     if(type=="response") out = newfit$obj$report()$mu_tj
+    #if(type=="x") out = newfit$obj$env$parList()$x_tj
   }
 
   return(out)

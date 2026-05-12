@@ -1,4 +1,6 @@
 url: https://james-thorson-NOAA.github.io/dsem/
+development:
+  mode: auto
 template:
   bootstrap: 5
 
@@ -8,8 +10,11 @@ articles:
   contents:
   - model-description
   - features
-  - dynamic_factor_analysis
   - spatial_diffusion
+  - random_slopes
+  - nonlinear
+  - web_only/statistical_interactions
+  - web_only/dynamic_factor_analysis
 
 reference:
 - title: internal
@@ -19,13 +24,14 @@ reference:
   - list_parameters
   - parse_path
   - read_model
+  - dsemRTMB
+  - rk4sys
 
 - title: 'Specification and fitting'
   desc: |
     Core tools for model fitting and diagnostics.
   contents:
   - dsem
-  - dsemRTMB
   - dsem_control
   - stepwise_selection
 
@@ -70,5 +76,9 @@ reference:
   - bering_sea
   - isle_royale
   - sea_otter
+  - lake_washington
+  - paramesium_didinium
+  - hare_lynx
+  - pdo_departure_bay
 
 

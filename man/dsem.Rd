@@ -9,6 +9,7 @@ dsem(
   tsdata,
   family = rep("fixed", ncol(tsdata)),
   estimate_delta0 = FALSE,
+  estimate_mu = NULL,
   prior_negloglike = NULL,
   control = dsem_control(),
   covs = colnames(tsdata)
@@ -35,15 +36,19 @@ Other options correspond to different specifications of measurement error.}
 as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 the stationary distribution}
 
+\item{estimate_mu}{character-vector listing columns of \code{tsdata} for which to estimate the mean,
+which is subtracted off of \code{tsdata} prior to evaluating interactions among parameters.
+The default \code{estimate_mu = NULL} estimates the mean for every column with at least one value
+that is not \code{NA} (i.e., does \emph{not} estimate the mean for latent variables).
+If you want to have no \code{mu} parameters, use \code{estimate_mu = vector()}.}
+
 \item{prior_negloglike}{A user-provided function that takes as input the vector of fixed effects out$obj$par
 returns the negative log-prior probability. For example
 \code{prior_negloglike = function(obj) -1 * dnorm( obj$par[1], mean=0, sd=0.1, log=TRUE)}
 specifies a normal prior probability
 for the for the first fixed effect with mean of zero and logsd of 0.1.
 NOTE:  this implementation does not work well with \code{tmbstan} and
-is highly experimental.  If using priors, considering using \code{\link{dsemRTMB}}
-instead.  The option in \code{dsem} is mainly intended to validate its
-use in \code{dsemRTMB}.  Note that the user must load RTMB using
+is highly experimental.  Note that the user must load RTMB using
 \code{library(RTMB)} prior to running the model.}
 
 \item{control}{Output from \code{\link{dsem_control}}, used to define user
@@ -195,4 +200,11 @@ Thorson, J. T., Andrews, A., Essington, T., Large, S. (2024).
 Dynamic structural equation models synthesize
 ecosystem dynamics constrained by ecological mechanisms.
 Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
+
+\strong{Introducing moderated DSEM (e.g., nonstationarity and varying paths):}
+
+Thorson, J. T., Kristensen, K. (In press).
+Ecological examples of nonstationarity, nonlinearity, and
+statistical interactions in dynamic structural equation models.
+Methods in Ecology and Evolution. \url{https://ecoevorxiv.org/repository/view/11418/}
 }

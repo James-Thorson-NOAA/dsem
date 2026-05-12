@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Dynamic Structural Equation Models
-Version: 1.7.0
-Date: 2025-09-15
+Version: 2.0.0
+Date: 2026-05-09
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -25,7 +25,7 @@ Authors@R:
 	     comment = c("creator of ggm, from which functions are copied to avoid dependency on package graph not on CRAN"))
     )
 Imports:
-    TMB,
+    TMB (>= 1.9.18),
     Matrix,
     sem,
     igraph,
@@ -55,7 +55,7 @@ Enhances:
     rstan,
     tmbstan
 LinkingTo:
-    TMB, 
+    TMB (>= 1.9.18), 
     RcppEigen
 Description: Applies dynamic structural equation models to time-series data
 	with generic and simplified specification for simultaneous and lagged
@@ -65,8 +65,8 @@ Description: Applies dynamic structural equation models to time-series data
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 LazyData: true
 URL: https://james-thorson-noaa.github.io/dsem/
 BugReports: https://github.com/James-Thorson-NOAA/dsem/issues
+Config/roxygen2/version: 8.0.0
