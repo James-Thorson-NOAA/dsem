@@ -61,7 +61,7 @@ jobs:
 
       - name: Build package
         run: |
-          R CMD build .
+          R CMD build --no-build-vignettes .
           PKG_TGZ=$(ls *.tar.gz)
           echo "PKG_TGZ=$PKG_TGZ" >> $GITHUB_ENV
 
