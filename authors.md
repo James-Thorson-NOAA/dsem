@@ -19,7 +19,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/James-Thorson-NOAA/dsem/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/James-Thorson-NOAA/dsem/blob/2.0.0/inst/CITATION)
 
 Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024).
 Dynamic structural equation models synthesize ecosystem dynamics
