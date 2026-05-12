@@ -22,21 +22,23 @@ jobs:
         with:
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: |
-            any::rcmdcheck
-            any::knitr
-            any::rmarkdown
-          needs: check
-
-      - name: Install Matrix and TMB from source
+      - name: Install system libraries
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libgit2-dev
+
+      - name: Install R dependencies
+        run: |
+          install.packages(c("remotes", "rcmdcheck", "knitr", "rmarkdown"))
           install.packages("Matrix", type = "source")
           install.packages("TMB", type = "source")
+          remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
 
-      - uses: r-lib/actions/check-r-package@v2
+      - name: Check package
+        run: |
+          rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning")
+        shell: Rscript {0}
 
   san-check:
     runs-on: ubuntu-latest
