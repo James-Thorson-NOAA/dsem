@@ -10,7 +10,7 @@ coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/grap
 [![docs
 (main)](https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
 [![docs
-(dev)](https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/dev)
+(dev)](https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/dev/)
 
 Package *dsem* fits dynamic structural equation models, which includes
 as nested submodels:
