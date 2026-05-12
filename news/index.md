@@ -2,6 +2,8 @@
 
 ## dsem 2.0.0
 
+CRAN release: 2026-05-12
+
 - Changing `gmrf_parameterization = "gmrf_project"`, given V = t(G)\*G,
   to invert Vinv = invertSparseMatrix(V) where Vinv is then dense and
   then casting Vinv2 = asSparseMatrix( Vinv ), rather than a sparseLDLT
