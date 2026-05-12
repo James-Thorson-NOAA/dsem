@@ -26,4 +26,4 @@ jobs:
 
       - name: Run check
         run: |
-          R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes"), error_on = "warning")'
+          R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes"), build_args = c("--no-build-vignettes"), error_on = "warning")'
