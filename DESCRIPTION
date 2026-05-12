@@ -68,5 +68,5 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 LazyData: true
 URL: https://james-thorson-noaa.github.io/dsem/
-BugReports: https://github.com/James-Thorson-NOAA/dsem/issues
+BugReports: https://github.com/James-Thorson-NOAA/dsem/issues/
 Config/roxygen2/version: 8.0.0
