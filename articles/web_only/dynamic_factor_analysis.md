@@ -360,7 +360,7 @@ knitr::kable( Table, digits=3)
 
 |      |  MARSS |   DSEM | MARSS_no_pen |
 |:-----|-------:|-------:|-------------:|
-| Z.11 | -0.472 |  0.362 |        0.360 |
+| Z.11 | -0.473 |  0.362 |        0.360 |
 | Z.21 | -0.439 |  0.320 |        0.332 |
 | Z.31 | -0.465 |  0.218 |        0.356 |
 | Z.41 | -0.382 |  0.368 |        0.292 |
@@ -374,7 +374,7 @@ The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):
 
-Runtime for this vignette: 18.25 secs
+Runtime for this vignette: 15.17 secs
 
 ## Works cited
 

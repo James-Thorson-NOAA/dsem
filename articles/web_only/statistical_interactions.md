@@ -267,4 +267,4 @@ ggraph(layout) +
 
 ![](statistical_interactions_files/figure-html/plot_graph-1.png)
 
-Runtime for this vignette: 21.83 mins
+Runtime for this vignette: 56.41 mins
