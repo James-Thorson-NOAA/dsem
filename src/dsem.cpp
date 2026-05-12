@@ -303,15 +303,15 @@ Type objective_function<Type>::operator() ()
     vector<Type> dev_k = x_tj - xhat_tj - delta_tj;
     vector<Type> dev_o( obs_idx.size() );
     Eigen::SparseMatrix<Type> x_o1( obs_idx.size(), 1 );
-    for( int index = 0; index < obs_idx.size(); index ++ ){
+    for( int index = 0; index < obs_idx.size(); index++ ){
       dev_o(index) = dev_k( obs_idx(index) );
       x_o1.coeffRef(index, 0) = x_k( obs_idx(index) );
     }
     vector<Type> x_u( unobs_idx.size() );
     Eigen::SparseMatrix<Type> x_u1( unobs_idx.size(), 1 );
-    for( int index = 0; index < unobs_idx.size(); index ++ ){
-      x_u(index) = x_k( unobs_idx(index) );
-      x_u1.coeffRef(index, 0) = x_k( unobs_idx(index) );
+    for( int u = 0; u < unobs_idx.size(); u++ ){
+      x_u(u) = x_k( unobs_idx(u) );
+      x_u1.coeffRef(u, 0) = x_k( unobs_idx(u) );
     }
 
     // Project residuals
@@ -353,7 +353,7 @@ Type objective_function<Type>::operator() ()
       for(int j=0; j<n_j; j++){
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
-        if( unobs_idx(u) == k ){
+        if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
           z_tj(t,j) = mu_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j) + xprime_u1(u,0);
           u++;
         }
@@ -418,8 +418,8 @@ Type objective_function<Type>::operator() ()
     if( unobs_idx.size() > 0 ){
       // Extract sub-vectors for observed and unobserved components
       vector<Type> dev_k = x_tj - xhat_tj - delta_tj;
-      for( int index = 0; index < obs_idx.size(); index ++ ){
-        dev_o(index) = dev_k( obs_idx(index) );
+      for( int o = 0; o < obs_idx.size(); o++ ){
+        dev_o(o) = dev_k( obs_idx(o) );
       }
       // Extract V components
       Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
@@ -450,7 +450,7 @@ Type objective_function<Type>::operator() ()
       for(int j=0; j<n_j; j++){
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
-        if( unobs_idx(u) == k ){
+        if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
           z_tj(t,j) = dev_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j);
           u++;
         }

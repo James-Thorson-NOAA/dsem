@@ -1,3 +1,7 @@
+# dsem 2.0.1
+
+* Fix an indexing error identified by SAN
+
 # dsem 2.0.0
 
 * Changing `gmrf_parameterization = "gmrf_project"`, given V = t(G)*G,
