@@ -5,6 +5,7 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  workflow_dispatch:  # adds manual trigger button
 
 name: R-CMD-check
 
@@ -39,3 +40,39 @@ jobs:
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
+
+  san-check:
+    runs-on: ubuntu-latest
+    container:
+      image: wch1/r-debug  # R built with ASAN+UBSAN enabled
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+
+      - name: Install R package dependencies
+        run: |
+          RDsan -e "install.packages('remotes')"
+          RDsan -e "remotes::install_deps(dependencies = TRUE)"
+          RDsan -e "install.packages('Matrix', type = 'source')"
+          RDsan -e "install.packages('TMB', type = 'source')"
+
+      - name: Build package
+        run: |
+          R CMD build .
+          PKG_TGZ=$(ls *.tar.gz)
+          echo "PKG_TGZ=$PKG_TGZ" >> $GITHUB_ENV
+
+      - name: Run R CMD check with sanitizers
+        run: |
+          RDsan CMD check --no-manual --as-cran ${{ env.PKG_TGZ }}
+
+      - name: Show check output on failure
+        if: failure()
+        run: |
+          find . -name '*.Rout' -o -name '*.fail' | xargs cat
