@@ -275,13 +275,15 @@ function( sem,
 
   ####### Step 2 -- Make RAM
   # convert to data frame
-  model = scan( text = sem,
-                what = list(path = "", lag = 1, par = "", start = 1, dump = ""),
-                sep = ",",
-                strip.white = TRUE,
-                comment.char = "#",
-                fill = TRUE,
-                quiet = quiet)
+  model = scan(
+    text = sem,
+    what = list(path = "", lag = 1, par = "", start = 1, dump = ""),
+    sep = ",",
+    strip.white = TRUE,
+    comment.char = "#",
+    fill = TRUE,
+    quiet = quiet
+  )
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
   model <- data.frame( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
@@ -418,14 +420,21 @@ function( sem,
   # starvalue (starting value)
   # to_t (for varying path, row of tsdata)
   # to_j (for varying path, column of tsdata)
-  ram = rbind( f(P_kk, 1),
-               f(G_kk, 2),
-               f2(B_kk) )  # Ignore column names
-  ram = data.frame( ram[,1:3, drop=FALSE],
-                    as.numeric(par.nos)[ram[,4]],
-                    as.numeric(startvalues)[ram[,4]],
-                    ram[,5:6, drop=FALSE] )
-  colnames(ram) = c( "heads", "to", "from", "parameter", 
+  ram = rbind(
+    f(P_kk, 1),
+    f(G_kk, 2),
+    f2(B_kk)
+  )  # Ignore column names
+  tmp = ifelse( ram[,4] < 0, -NA, ram[,4] )
+  ram = data.frame(
+    ram[,1:3, drop=FALSE],
+    as.numeric(par.nos)[tmp],
+    as.numeric(startvalues)[tmp],
+    ram[,5:6, drop=FALSE]
+  )
+  # swap out NAs to pass to DATA_IMATRIX
+  ram[,4] = ifelse( is.na(ram[,4]), -1, ram[,4] )
+  colnames(ram) = c( "heads", "to", "from", "parameter",
                      "start", "to_t", "to_j")
 
   #
