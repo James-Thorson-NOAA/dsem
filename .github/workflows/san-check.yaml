@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/r-hub/containers/gcc13:latest
+      #image: ghcr.io/r-hub/containers/gcc13:latest       # Doesn't find error
+      image: ghcr.io/r-hub/containers/clang-asan:latest   # Same as Ripley
 
     env:
       UBSAN_OPTIONS: print_stacktrace=1
@@ -24,6 +25,7 @@ jobs:
         run: |
           R -q -e 'install.packages("pak")'
           R -q -e 'pak::pkg_install(c("local::.", "rcmdcheck", "knitr", "rmarkdown", "AER", "MARSS", "testthat"))'
+          # R -q -e 'pak::pkg_install(c("phylopath", "reshape", "dynlm", "ggpubr", "vars", "DHARMa"))'    # Oher SUGGESTS packages
 
       - name: Run check
         run: |
