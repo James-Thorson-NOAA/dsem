@@ -323,11 +323,13 @@ function( sem,
 
   # Construct parameters
   if( is.null(control$parameters) ){
-    Params = list( "beta_z" = rep(0,max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
-                   "lnsigma_j" = rep(0,ncol(tsdata)),
-                   "mu_j" = rep(0,ncol(tsdata)),
-                   "delta0_j" = rep(0,ncol(tsdata)),
-                   "x_tj" = ifelse( is.na(tsdata), 0, tsdata ) )
+    Params = list(
+      beta_z = rep(0,max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
+      lnsigma_j = rep(0,ncol(tsdata)),
+      mu_j = rep(0,ncol(tsdata)),
+      delta0_j = rep(0,ncol(tsdata)),
+      x_tj = ifelse( is.na(tsdata), 0, tsdata )
+    )
     #if( control$gmrf_parameterization=="full" ){
     #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
     #}else{
@@ -456,12 +458,14 @@ function( sem,
   }
   
   # Further bundle
-  out = list( "obj"=obj,
-              "ram"=ram,
-              "sem_full"=out$model,
-              "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map),
-              #"call" = match.call(),
-              "internal" = internal )
+  out = list(
+    obj = obj,
+    ram = ram,
+    sem_full = out$model,
+    tmb_inputs=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map),
+    #call = match.call(),
+    internal = internal
+  )
 
   # Export stuff
   if( control$run_model==FALSE ){
@@ -484,14 +488,17 @@ function( sem,
   out$opt = list( "par"=obj$par )
   for( i in seq_len(max(0,control$nlminb_loops)) ){
     if( isFALSE(control$quiet) ) message("Running nlminb_loop #", i)
-    out$opt = do_nlminb( start = out$opt$par,
-                  objective = obj$fn,
-                  gradient = obj$gr,
-                  upper = control$upper,
-                  lower = control$lower,
-                  control = list( eval.max = control$eval.max,
-                                  iter.max = control$iter.max,
-                                  trace = control$trace ) )
+    out$opt = do_nlminb(
+      start = out$opt$par,
+      objective = obj$fn,
+      gradient = obj$gr,
+      upper = control$upper,
+      lower = control$lower,
+      control = list(
+        eval.max = control$eval.max,
+        iter.max = control$iter.max,
+        trace = control$trace )
+      )
   }
 
   # Newtonsteps
@@ -534,13 +541,16 @@ function( sem,
     if( is.null(Hess_fixed) ){
       Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par)))  )
     }
-    out$sdrep = TMB::sdreport( obj,
-                          par.fixed = out$opt$par,
-                          hessian.fixed = Hess_fixed,
-                          getJointPrecision = control$getJointPrecision )
+    out$sdrep = TMB::sdreport(
+      obj,
+      par.fixed = out$opt$par,
+      hessian.fixed = Hess_fixed,
+      getJointPrecision = control$getJointPrecision
+    )
   }else{
     out$sdrep = NULL
   }
+  out$rep = obj$report()
   out$run_time = Sys.time() - start_time
 
   # output
