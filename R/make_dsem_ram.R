@@ -381,12 +381,12 @@ function( sem,
   }
   
   # Convert to triplet
-  # Output NA triggers SAN error in CRAN checks, when NA is passed to DATA_IMATRIX
+  # NA or NA_integer_ triggers SAN error in CRAN checks, when then passed to DATA_IMATRIX
+  # Seems safer to use -1 instead of NA values
   f = function( x, first_column = 1){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
-      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA_integer_, NA_integer_ )
-      #out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA, NA )
+      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, -1, -1 )
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
@@ -394,13 +394,15 @@ function( sem,
     return(out)
   }
   # Convert to triplet for spatially varying slope
+  # NA or NA_integer_ triggers SAN error in CRAN checks, when then passed to DATA_IMATRIX
+  # Seems safer to use -1 instead of NA values
   f2 = function( x ){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
       t_k = rep( seq_along(times), length(variables) )[triplet$i]
       #j_k = rep( seq_along(variables), each = length(times) )[triplet$i]
       # use NA for 4th so it keeps an NA for par.nos[ram[,4]
-      out = data.frame( 0, triplet$i, triplet$j, NA_integer_, t_k, triplet$x )      #
+      out = data.frame( 0, triplet$i, triplet$j, -1, t_k, triplet$x )      #
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }

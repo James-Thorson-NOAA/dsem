@@ -123,6 +123,7 @@ Type objective_function<Type>::operator() ()
   Rho_kk.setZero();
   I_kk.setIdentity();
   Type tmp;
+  // RAM uses R-style indices (i.e., starting at 1)
   for(int r=0; r<RAM.rows(); r++){
     // Extract estimated or fixed value
     if(RAM(r,3)>=1){
