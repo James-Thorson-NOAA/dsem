@@ -2,7 +2,7 @@
 
 ## dsem 2.0.1
 
-- Fix an indexing error identified by SAN
+- Fix an “out-of-bounds read” error identified by SAN
 
 ## dsem 2.0.0
 
