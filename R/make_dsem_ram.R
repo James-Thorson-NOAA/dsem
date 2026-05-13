@@ -385,8 +385,8 @@ function( sem,
   f = function( x, first_column = 1){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
-      #out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA_integer_, NA_integer_ )
-      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA, NA )
+      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA_integer_, NA_integer_ )
+      #out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA, NA )
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
