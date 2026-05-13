@@ -44,7 +44,6 @@
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport config
 #' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
-#' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_ graph.adjacency clusters
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
 #' @importFrom ggplot2 aes
@@ -1258,6 +1257,7 @@ function( fit,
           what = c("Estimate","Std_Error","p_value"),
           direction = 1 ){
 
+  # @importFrom sem sem
   what = match.arg(what)
   coefs = summary( fit )
   coefs = coefs[ which(coefs[,2]==lag), ]

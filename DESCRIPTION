@@ -27,7 +27,6 @@ Authors@R:
 Imports:
     TMB (>= 1.9.18),
     Matrix,
-    sem,
     igraph,
     utils,
     RTMB (>= 1.7.0),
