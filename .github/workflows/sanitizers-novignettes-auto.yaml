@@ -14,7 +14,8 @@ jobs:
       image: ghcr.io/r-hub/containers/clang-asan:latest   # Same as Ripley
 
     env:
-      UBSAN_OPTIONS: print_stacktrace=1:symbolize=1
+      #UBSAN_OPTIONS: print_stacktrace=1:symbolize=1
+      UBSAN_OPTIONS: print_stacktrace=1:symbolize=1:halt_on_error=1 # Force halt on detecting issue
       ASAN_OPTIONS: detect_leaks=0
       LLVM_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer
       _R_CHECK_FORCE_SUGGESTS_: false
