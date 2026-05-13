@@ -14,8 +14,9 @@ jobs:
       image: ghcr.io/r-hub/containers/clang-asan:latest   # Same as Ripley
 
     env:
-      UBSAN_OPTIONS: print_stacktrace=1
+      UBSAN_OPTIONS: print_stacktrace=1:symbolize=1
       ASAN_OPTIONS: detect_leaks=0
+      LLVM_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer
       _R_CHECK_FORCE_SUGGESTS_: false
 
     steps:
@@ -32,3 +33,24 @@ jobs:
           # R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes", "--no-examples", "--no-tests"), build_args = c("--no-build-vignettes", "--no-build-vignettes"), error_on = "error")'
           R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes"), build_args = c("--no-build-vignettes", "--no-build-vignettes"), error_on = "error")'
 
+      - name: Print UBSan/ASan traces from Rout files
+        if: always()
+        run: |
+          find . -name "*.Rout" | while read f; do
+            if grep -q "runtime error" "$f"; then
+              echo "========== $f =========="
+              cat "$f"
+            fi
+          done
+
+      - name: Run examples directly (live UBSan output)
+        if: always()
+        run: |
+          R -q -e 'library(dsem); example("dsem", ask=FALSE)'
+
+      - name: Upload check artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-output
+          path: "*.Rcheck/"
