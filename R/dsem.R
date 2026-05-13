@@ -449,9 +449,11 @@ function( sem,
 
     # BUild prior evaluator
     requireNamespace("RTMB")
-    priors_obj = RTMB::MakeADFun( func = prior_negloglike, 
-                                  parameters = list(par=obj$par), 
-                                  silent = TRUE )
+    priors_obj = RTMB::MakeADFun(
+      func = prior_negloglike,
+      parameters = list(par=obj$par),
+      silent = TRUE
+    )
     obj$fn = function(pars) obj$fn_orig(pars) + priors_obj$fn(pars)
     obj$gr = function(pars) obj$gr_orig(pars) + priors_obj$gr(pars)
     internal$priors_obj = priors_obj
@@ -518,7 +520,14 @@ function( sem,
       warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
     }
     # Hessian check
-    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par))) )
+    Hess_fixed = optimHess(
+      par = out$opt$par,
+      fn = obj$fn,
+      gr = obj$gr,
+      control = list(
+        ndeps = rep(0.001,length(out$opt$par))
+      )
+    )
     if( any(is.na(Hess_fixed)) ){
       stop("`Hess_fixed` has NA values, indicating a problem with convergence")
     }
