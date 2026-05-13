@@ -180,4 +180,4 @@ ggraph(layout) +
 
 ![](random_slopes_files/figure-html/plot_graph-1.png)
 
-Runtime for this vignette: 6.98 secs
+Runtime for this vignette: 7.01 secs
