@@ -353,7 +353,8 @@ Type objective_function<Type>::operator() ()
       for(int j=0; j<n_j; j++){
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
-        if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
+        //if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
+        if( (unobs_idx(u)==k) ){
           z_tj(t,j) = mu_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j) + xprime_u1(u,0);
           u++;
         }
@@ -450,7 +451,8 @@ Type objective_function<Type>::operator() ()
       for(int j=0; j<n_j; j++){
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
-        if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
+        //if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
+        if( (unobs_idx(u)==k) ){
           z_tj(t,j) = dev_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j);
           u++;
         }
