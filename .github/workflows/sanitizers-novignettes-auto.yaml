@@ -26,13 +26,13 @@ jobs:
         run: |
           R -q -e 'install.packages("pak")'
           R -q -e 'pak::pkg_install(c("local::.", "rcmdcheck", "knitr", "rmarkdown", "AER", "MARSS", "testthat"))'
-          # R -q -e 'pak::pkg_install(c("phylopath", "reshape", "dynlm", "ggpubr", "vars", "DHARMa"))'    # Oher SUGGESTS packages
+          R -q -e 'pak::pkg_install(c("phylopath", "reshape", "dynlm", "ggpubr", "vars", "DHARMa"))'    # Oher SUGGESTS packages
 
       - name: Run check
         run: |
           # R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes", "--no-examples", "--no-tests"), build_args = c("--no-build-vignettes", "--no-build-vignettes"), error_on = "error")'
           #R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes"), build_args = c("--no-build-vignettes", "--no-build-vignettes"), error_on = "warning")'
-          R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--ignore-vignettes"), error_on = "warning")'
+          R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--ignore-vignettes"), build_args = c("--no-build-vignettes"), error_on = "warning")'
 
       - name: Print UBSan/ASan traces from Rout files
         if: always()
