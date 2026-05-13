@@ -58,7 +58,7 @@ test_that("dsem example is working ", {
   print(fit)
   logLik(fit)
   total_effect(fit)
-  as_sem(fit)
+  #as_sem(fit)
   predict(fit, type="link")
   predict(fit, type="response")
   predict(fit, type="link", newdata=tsdata)

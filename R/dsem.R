@@ -1287,42 +1287,41 @@ function( fit,
 #'
 #' @return Convert output to format supplied by \code{\link[sem]{sem}}
 #'
-#' @export
-as_sem <-
-function( object,
-          lag = 0 ){
-
-  Rho = t(as_fitted_DAG( object, what="Estimate", direction=1, lag=lag )$coef)
-  Gamma = as_fitted_DAG( object, what="Estimate", direction=2, lag=lag )$coef
-  Gammainv = diag(1/diag(Gamma))
-  Linv = Gammainv %*% (diag(nrow(Rho))-Rho)
-  Sinv = t(Linv) %*% Linv
-  Sprime = solve(Sinv)
-  Sprime = 0.5*Sprime + 0.5*t(Sprime)
-
-  model = object$sem_full
-  model = model[model[,2]==0,c(1,3,4)]
-  out = sem( as.matrix(model),
-             S = Sprime,
-             N = nrow(object$internal$tsdata) )
-
-  # pass out
-  return(out)
-
-  #x = rnorm(10)
-  #y = x + rnorm(10)
-  #object = dsem( sem="x->y, 0, beta", tsdata=ts(cbind(x,y)) )
-  #mysem = as_sem(object)
-  #myplot = semPlot::semPlotModel( mysem )
-  #semPlot::semPaths( myplot,
-  #                   whatLabels = "est",
-  #                   edge.label.cex = 1.5,
-  #                   node.width = 4,
-  #                   node.height = 2,
-  #                   shapeMan = "rectangle",
-  #                   edge.width = 4,
-  #                   nodeLabels = myplot@Vars$name,
-  #                   nDigits=4 )
-}
+#as_sem <-
+#function( object,
+#          lag = 0 ){
+#
+#  Rho = t(as_fitted_DAG( object, what="Estimate", direction=1, lag=lag )$coef)
+#  Gamma = as_fitted_DAG( object, what="Estimate", direction=2, lag=lag )$coef
+#  Gammainv = diag(1/diag(Gamma))
+#  Linv = Gammainv %*% (diag(nrow(Rho))-Rho)
+#  Sinv = t(Linv) %*% Linv
+#  Sprime = solve(Sinv)
+#  Sprime = 0.5*Sprime + 0.5*t(Sprime)
+#
+#  model = object$sem_full
+#  model = model[model[,2]==0,c(1,3,4)]
+#  out = sem( as.matrix(model),
+#             S = Sprime,
+#             N = nrow(object$internal$tsdata) )
+#
+#  # pass out
+#  return(out)
+#
+#  #x = rnorm(10)
+#  #y = x + rnorm(10)
+#  #object = dsem( sem="x->y, 0, beta", tsdata=ts(cbind(x,y)) )
+#  #mysem = as_sem(object)
+#  #myplot = semPlot::semPlotModel( mysem )
+#  #semPlot::semPaths( myplot,
+#  #                   whatLabels = "est",
+#  #                   edge.label.cex = 1.5,
+#  #                   node.width = 4,
+#  #                   node.height = 2,
+#  #                   shapeMan = "rectangle",
+#  #                   edge.width = 4,
+#  #                   nodeLabels = myplot@Vars$name,
+#  #                   nDigits=4 )
+#}
 
 
