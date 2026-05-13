@@ -63,7 +63,6 @@ reference:
   - partition_variance
   - vcov.dsem
   - as_fitted_DAG
-  - as_sem
   - plot.dsem
   - predict.dsem
   - print.dsem
