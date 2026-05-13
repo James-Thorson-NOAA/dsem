@@ -53,8 +53,6 @@ Tools for interpreting output.
   : Extract Variance-Covariance Matrix
 - [`as_fitted_DAG()`](https://james-thorson-NOAA.github.io/dsem/reference/as_fitted_DAG.md)
   : Convert output from package dsem to phylopath
-- [`as_sem()`](https://james-thorson-NOAA.github.io/dsem/reference/as_sem.md)
-  : Convert dsem to sem output
 - [`plot(`*`<dsem>`*`)`](https://james-thorson-NOAA.github.io/dsem/reference/plot.dsem.md)
   : Simulate dsem
 - [`predict(`*`<dsem>`*`)`](https://james-thorson-NOAA.github.io/dsem/reference/predict.dsem.md)

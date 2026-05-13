@@ -213,13 +213,13 @@ make_dsem_ram( sem=sem, variables="X", times=1:4 )
 #> 
 #> $ram
 #>   heads to from parameter start to_t to_j
-#> 1     1  2    1         1    NA   NA   NA
-#> 2     1  3    2         1    NA   NA   NA
-#> 3     1  4    3         1    NA   NA   NA
-#> 4     2  1    1         2    NA   NA   NA
-#> 5     2  2    2         2    NA   NA   NA
-#> 6     2  3    3         2    NA   NA   NA
-#> 7     2  4    4         2    NA   NA   NA
+#> 1     1  2    1         1    NA   -1   -1
+#> 2     1  3    2         1    NA   -1   -1
+#> 3     1  4    3         1    NA   -1   -1
+#> 4     2  1    1         2    NA   -1   -1
+#> 5     2  2    2         2    NA   -1   -1
+#> 6     2  3    3         2    NA   -1   -1
+#> 7     2  4    4         2    NA   -1   -1
 #> 
 #> $variables
 #> [1] "X"
@@ -245,15 +245,15 @@ make_dsem_ram( sem=sem, variables="X", times=1:4 )
 #> 
 #> $ram
 #>   heads to from parameter start to_t to_j
-#> 1     1  2    1         1    NA   NA   NA
-#> 2     1  3    1         2    NA   NA   NA
-#> 3     1  3    2         1    NA   NA   NA
-#> 4     1  4    2         2    NA   NA   NA
-#> 5     1  4    3         1    NA   NA   NA
-#> 6     2  1    1         3    NA   NA   NA
-#> 7     2  2    2         3    NA   NA   NA
-#> 8     2  3    3         3    NA   NA   NA
-#> 9     2  4    4         3    NA   NA   NA
+#> 1     1  2    1         1    NA   -1   -1
+#> 2     1  3    1         2    NA   -1   -1
+#> 3     1  3    2         1    NA   -1   -1
+#> 4     1  4    2         2    NA   -1   -1
+#> 5     1  4    3         1    NA   -1   -1
+#> 6     2  1    1         3    NA   -1   -1
+#> 7     2  2    2         3    NA   -1   -1
+#> 8     2  3    3         3    NA   -1   -1
+#> 9     2  4    4         3    NA   -1   -1
 #> 
 #> $variables
 #> [1] "X"
@@ -285,26 +285,26 @@ make_dsem_ram( sem=sem, variables=c("X","Y"), times=1:4 )
 #> 
 #> $ram
 #>    heads to from parameter start to_t to_j
-#> 1      1  2    1         1    NA   NA   NA
-#> 2      1  6    1         2    NA   NA   NA
-#> 3      1  3    2         1    NA   NA   NA
-#> 4      1  7    2         2    NA   NA   NA
-#> 5      1  4    3         1    NA   NA   NA
-#> 6      1  8    3         2    NA   NA   NA
-#> 7      1  2    5         3    NA   NA   NA
-#> 8      1  6    5         4    NA   NA   NA
-#> 9      1  3    6         3    NA   NA   NA
-#> 10     1  7    6         4    NA   NA   NA
-#> 11     1  4    7         3    NA   NA   NA
-#> 12     1  8    7         4    NA   NA   NA
-#> 13     2  1    1         5    NA   NA   NA
-#> 14     2  2    2         5    NA   NA   NA
-#> 15     2  3    3         5    NA   NA   NA
-#> 16     2  4    4         5    NA   NA   NA
-#> 17     2  5    5         6    NA   NA   NA
-#> 18     2  6    6         6    NA   NA   NA
-#> 19     2  7    7         6    NA   NA   NA
-#> 20     2  8    8         6    NA   NA   NA
+#> 1      1  2    1         1    NA   -1   -1
+#> 2      1  6    1         2    NA   -1   -1
+#> 3      1  3    2         1    NA   -1   -1
+#> 4      1  7    2         2    NA   -1   -1
+#> 5      1  4    3         1    NA   -1   -1
+#> 6      1  8    3         2    NA   -1   -1
+#> 7      1  2    5         3    NA   -1   -1
+#> 8      1  6    5         4    NA   -1   -1
+#> 9      1  3    6         3    NA   -1   -1
+#> 10     1  7    6         4    NA   -1   -1
+#> 11     1  4    7         3    NA   -1   -1
+#> 12     1  8    7         4    NA   -1   -1
+#> 13     2  1    1         5    NA   -1   -1
+#> 14     2  2    2         5    NA   -1   -1
+#> 15     2  3    3         5    NA   -1   -1
+#> 16     2  4    4         5    NA   -1   -1
+#> 17     2  5    5         6    NA   -1   -1
+#> 18     2  6    6         6    NA   -1   -1
+#> 19     2  7    7         6    NA   -1   -1
+#> 20     2  8    8         6    NA   -1   -1
 #> 
 #> $variables
 #> [1] "X" "Y"
@@ -336,29 +336,29 @@ make_dsem_ram( sem=sem, variables=c("X","Y","factor"), times=1:4 )
 #> 
 #> $ram
 #>    heads to from parameter start to_t to_j
-#> 1      1  1    9         1    NA   NA   NA
-#> 2      1  5    9         2    NA   NA   NA
-#> 3      1 10    9         0  1.00   NA   NA
-#> 4      1  2   10         1    NA   NA   NA
-#> 5      1  6   10         2    NA   NA   NA
-#> 6      1 11   10         0  1.00   NA   NA
-#> 7      1  3   11         1    NA   NA   NA
-#> 8      1  7   11         2    NA   NA   NA
-#> 9      1 12   11         0  1.00   NA   NA
-#> 10     1  4   12         1    NA   NA   NA
-#> 11     1  8   12         2    NA   NA   NA
-#> 12     2  1    1         0  0.01   NA   NA
-#> 13     2  2    2         0  0.01   NA   NA
-#> 14     2  3    3         0  0.01   NA   NA
-#> 15     2  4    4         0  0.01   NA   NA
-#> 16     2  5    5         0  0.01   NA   NA
-#> 17     2  6    6         0  0.01   NA   NA
-#> 18     2  7    7         0  0.01   NA   NA
-#> 19     2  8    8         0  0.01   NA   NA
-#> 20     2  9    9         3    NA   NA   NA
-#> 21     2 10   10         3    NA   NA   NA
-#> 22     2 11   11         3    NA   NA   NA
-#> 23     2 12   12         3    NA   NA   NA
+#> 1      1  1    9         1    NA   -1   -1
+#> 2      1  5    9         2    NA   -1   -1
+#> 3      1 10    9         0  1.00   -1   -1
+#> 4      1  2   10         1    NA   -1   -1
+#> 5      1  6   10         2    NA   -1   -1
+#> 6      1 11   10         0  1.00   -1   -1
+#> 7      1  3   11         1    NA   -1   -1
+#> 8      1  7   11         2    NA   -1   -1
+#> 9      1 12   11         0  1.00   -1   -1
+#> 10     1  4   12         1    NA   -1   -1
+#> 11     1  8   12         2    NA   -1   -1
+#> 12     2  1    1         0  0.01   -1   -1
+#> 13     2  2    2         0  0.01   -1   -1
+#> 14     2  3    3         0  0.01   -1   -1
+#> 15     2  4    4         0  0.01   -1   -1
+#> 16     2  5    5         0  0.01   -1   -1
+#> 17     2  6    6         0  0.01   -1   -1
+#> 18     2  7    7         0  0.01   -1   -1
+#> 19     2  8    8         0  0.01   -1   -1
+#> 20     2  9    9         3    NA   -1   -1
+#> 21     2 10   10         3    NA   -1   -1
+#> 22     2 11   11         3    NA   -1   -1
+#> 23     2 12   12         3    NA   -1   -1
 #> 
 #> $variables
 #> [1] "X"      "Y"      "factor"
@@ -387,24 +387,24 @@ make_dsem_ram( sem=sem, variables=c("X","factor"), times=1:4 )
 #> 
 #> $ram
 #>    heads to from parameter start to_t to_j
-#> 1      1  2    1         0  1.00   NA   NA
-#> 2      1  3    2         0  1.00   NA   NA
-#> 3      1  4    3         0  1.00   NA   NA
-#> 4      1  1    5         0  1.00   NA   NA
-#> 5      1  6    5         1    NA   NA   NA
-#> 6      1  2    6         0  1.00   NA   NA
-#> 7      1  7    6         1    NA   NA   NA
-#> 8      1  3    7         0  1.00   NA   NA
-#> 9      1  8    7         1    NA   NA   NA
-#> 10     1  4    8         0  1.00   NA   NA
-#> 11     2  1    1         0  0.01   NA   NA
-#> 12     2  2    2         0  0.01   NA   NA
-#> 13     2  3    3         0  0.01   NA   NA
-#> 14     2  4    4         0  0.01   NA   NA
-#> 15     2  5    5         2    NA   NA   NA
-#> 16     2  6    6         2    NA   NA   NA
-#> 17     2  7    7         2    NA   NA   NA
-#> 18     2  8    8         2    NA   NA   NA
+#> 1      1  2    1         0  1.00   -1   -1
+#> 2      1  3    2         0  1.00   -1   -1
+#> 3      1  4    3         0  1.00   -1   -1
+#> 4      1  1    5         0  1.00   -1   -1
+#> 5      1  6    5         1    NA   -1   -1
+#> 6      1  2    6         0  1.00   -1   -1
+#> 7      1  7    6         1    NA   -1   -1
+#> 8      1  3    7         0  1.00   -1   -1
+#> 9      1  8    7         1    NA   -1   -1
+#> 10     1  4    8         0  1.00   -1   -1
+#> 11     2  1    1         0  0.01   -1   -1
+#> 12     2  2    2         0  0.01   -1   -1
+#> 13     2  3    3         0  0.01   -1   -1
+#> 14     2  4    4         0  0.01   -1   -1
+#> 15     2  5    5         2    NA   -1   -1
+#> 16     2  6    6         2    NA   -1   -1
+#> 17     2  7    7         2    NA   -1   -1
+#> 18     2  8    8         2    NA   -1   -1
 #> 
 #> $variables
 #> [1] "X"      "factor"
@@ -431,21 +431,21 @@ make_dsem_ram( sem=sem, variables=c("X","factor"), times=1:4 )
 #> 
 #> $ram
 #>    heads to from parameter start to_t to_j
-#> 1      1  1    5         0  1.00   NA   NA
-#> 2      1  2    5         1    NA   NA   NA
-#> 3      1  2    6         0  1.00   NA   NA
-#> 4      1  3    6         1    NA   NA   NA
-#> 5      1  3    7         0  1.00   NA   NA
-#> 6      1  4    7         1    NA   NA   NA
-#> 7      1  4    8         0  1.00   NA   NA
-#> 8      2  1    1         0  0.01   NA   NA
-#> 9      2  2    2         0  0.01   NA   NA
-#> 10     2  3    3         0  0.01   NA   NA
-#> 11     2  4    4         0  0.01   NA   NA
-#> 12     2  5    5         2    NA   NA   NA
-#> 13     2  6    6         2    NA   NA   NA
-#> 14     2  7    7         2    NA   NA   NA
-#> 15     2  8    8         2    NA   NA   NA
+#> 1      1  1    5         0  1.00   -1   -1
+#> 2      1  2    5         1    NA   -1   -1
+#> 3      1  2    6         0  1.00   -1   -1
+#> 4      1  3    6         1    NA   -1   -1
+#> 5      1  3    7         0  1.00   -1   -1
+#> 6      1  4    7         1    NA   -1   -1
+#> 7      1  4    8         0  1.00   -1   -1
+#> 8      2  1    1         0  0.01   -1   -1
+#> 9      2  2    2         0  0.01   -1   -1
+#> 10     2  3    3         0  0.01   -1   -1
+#> 11     2  4    4         0  0.01   -1   -1
+#> 12     2  5    5         2    NA   -1   -1
+#> 13     2  6    6         2    NA   -1   -1
+#> 14     2  7    7         2    NA   -1   -1
+#> 15     2  8    8         2    NA   -1   -1
 #> 
 #> $variables
 #> [1] "X"      "factor"
