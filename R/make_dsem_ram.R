@@ -381,10 +381,11 @@ function( sem,
   }
   
   # Convert to triplet
+  # Output NA triggers SAN error in CRAN checks, when NA is passed to DATA_IMATRIX
   f = function( x, first_column = 1){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
-      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA, NA )
+      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA_integer_, NA_integer_ )
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
@@ -398,7 +399,7 @@ function( sem,
       t_k = rep( seq_along(times), length(variables) )[triplet$i]
       #j_k = rep( seq_along(variables), each = length(times) )[triplet$i]
       # use NA for 4th so it keeps an NA for par.nos[ram[,4]
-      out = data.frame( 0, triplet$i, triplet$j, NA, t_k, triplet$x )
+      out = data.frame( 0, triplet$i, triplet$j, NA_integer_, t_k, triplet$x )      #
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
