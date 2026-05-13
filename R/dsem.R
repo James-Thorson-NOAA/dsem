@@ -282,7 +282,9 @@ function( sem,
 
   # Identify variables that serve as moderators
   moderator_tj = array( FALSE, dim = dim(tsdata) )
-  moderator_tj[ as.matrix(na.omit(ram[,6:7])) ] = 1
+  tmp = ram[ which(ram[,1] %in% c(0)), 6:7]
+  moderator_tj[ tmp ] = 1
+  #moderator_tj[ as.matrix(na.omit(ram)) ] = 1
   moderator_k = as.vector(moderator_tj)
 
   # Switch `gmrf_project` to `full` if no variables in `project_k`
