@@ -501,7 +501,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 1 :  normal
     if( familycode_j(j)==1 ){
       mu_tj(t,j) = z_tj(t,j);
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
       }
       SIMULATE{
@@ -512,7 +512,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 2 :  Bernoulli
     if( familycode_j(j)==2 ){
       mu_tj(t,j) = invlogit(z_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
       }
       SIMULATE{
@@ -523,7 +523,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 3 :  Poisson
     if( familycode_j(j)==3 ){
       mu_tj(t,j) = exp(z_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
       }
       SIMULATE{
@@ -534,7 +534,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
     if( familycode_j(j)==4 ){
       mu_tj(t,j) = exp(z_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
       }
       SIMULATE{
