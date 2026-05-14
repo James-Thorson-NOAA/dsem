@@ -1,3 +1,12 @@
+# dsem 2.0.1
+
+* Fix an "out-of-bounds read" error identified by SAN
+* Change NA to -1 for RAM passed as DATA_IMATRIX, because NA or NA_integer_ triggered a clang-ASAN
+  WARNING "/TMB/include/convert.hpp:139:23: runtime error: nan is outside the range of representable values of type 'int'"
+* Added a GitHub Action ./github/workflows/sanitizers-novignettes-auto.yaml that uses `error_on = "warning"` to 
+  detect either "out-of-bounds" or "nan is outside the range" issues
+* Remove `as_sem(.)` because `sem::sem(.)` appears to cause a UBSAN warning, and removing `sem` from IMPORTS
+
 # dsem 2.0.0
 
 * Changing `gmrf_parameterization = "gmrf_project"`, given V = t(G)*G,

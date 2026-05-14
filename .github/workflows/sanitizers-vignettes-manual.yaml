@@ -1,0 +1,36 @@
+name: sanitizers-with-vignettes
+on:
+  workflow_dispatch:    # ONLY manual, never automatic
+
+jobs:
+  san-check-vignettes:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/r-hub/containers/clang-asan:latest
+    env:
+      UBSAN_OPTIONS: print_stacktrace=1:symbolize=1
+      ASAN_OPTIONS: detect_leaks=0
+      LLVM_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer
+      _R_CHECK_FORCE_SUGGESTS_: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          R -q -e 'install.packages("pak")'
+          R -q -e 'pak::pkg_install(c("local::.", "rcmdcheck", "knitr",
+            "rmarkdown", "AER", "MARSS", "testthat",
+            "phylopath", "reshape", "dynlm", "ggpubr", "vars", "DHARMa"))'
+      - name: Run check with vignettes
+        run: |
+          R -q -e 'rcmdcheck::rcmdcheck(
+            args = c("--no-manual"),
+            error_on = "warning"
+          )'
+      - name: Print Rout files
+        if: always()
+        run: |
+          find . -name "*.Rout" -o -name "build_vignettes.log" | \
+            while read f; do
+              echo "========== $f =========="
+              cat "$f"
+            done

@@ -275,13 +275,15 @@ function( sem,
 
   ####### Step 2 -- Make RAM
   # convert to data frame
-  model = scan( text = sem,
-                what = list(path = "", lag = 1, par = "", start = 1, dump = ""),
-                sep = ",",
-                strip.white = TRUE,
-                comment.char = "#",
-                fill = TRUE,
-                quiet = quiet)
+  model = scan(
+    text = sem,
+    what = list(path = "", lag = 1, par = "", start = 1, dump = ""),
+    sep = ",",
+    strip.white = TRUE,
+    comment.char = "#",
+    fill = TRUE,
+    quiet = quiet
+  )
   model$path <- gsub("\\t", " ", model$path)
   model$par[model$par == ""] <- NA
   model <- data.frame( "path"=model$path, "lag"=model$lag, "name"=model$par, "start"=model$start)
@@ -381,10 +383,12 @@ function( sem,
   }
   
   # Convert to triplet
+  # NA or NA_integer_ triggers SAN error in CRAN checks, when then passed to DATA_IMATRIX
+  # Seems safer to use -1 instead of NA values
   f = function( x, first_column = 1){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
-      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, NA, NA )
+      out = data.frame( first_column, triplet$i, triplet$j, triplet$x, -1, -1 )
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
@@ -392,13 +396,15 @@ function( sem,
     return(out)
   }
   # Convert to triplet for spatially varying slope
+  # NA or NA_integer_ triggers SAN error in CRAN checks, when then passed to DATA_IMATRIX
+  # Seems safer to use -1 instead of NA values
   f2 = function( x ){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
       t_k = rep( seq_along(times), length(variables) )[triplet$i]
       #j_k = rep( seq_along(variables), each = length(times) )[triplet$i]
       # use NA for 4th so it keeps an NA for par.nos[ram[,4]
-      out = data.frame( 0, triplet$i, triplet$j, NA, t_k, triplet$x )
+      out = data.frame( 0, triplet$i, triplet$j, -1, t_k, triplet$x )      #
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
@@ -414,14 +420,21 @@ function( sem,
   # starvalue (starting value)
   # to_t (for varying path, row of tsdata)
   # to_j (for varying path, column of tsdata)
-  ram = rbind( f(P_kk, 1),
-               f(G_kk, 2),
-               f2(B_kk) )  # Ignore column names
-  ram = data.frame( ram[,1:3, drop=FALSE],
-                    as.numeric(par.nos)[ram[,4]],
-                    as.numeric(startvalues)[ram[,4]],
-                    ram[,5:6, drop=FALSE] )
-  colnames(ram) = c( "heads", "to", "from", "parameter", 
+  ram = rbind(
+    f(P_kk, 1),
+    f(G_kk, 2),
+    f2(B_kk)
+  )  # Ignore column names
+  tmp = ifelse( ram[,4] < 0, -NA, ram[,4] )
+  ram = data.frame(
+    ram[,1:3, drop=FALSE],
+    as.numeric(par.nos)[tmp],
+    as.numeric(startvalues)[tmp],
+    ram[,5:6, drop=FALSE]
+  )
+  # swap out NAs to pass to DATA_IMATRIX
+  ram[,4] = ifelse( is.na(ram[,4]), -1, ram[,4] )
+  colnames(ram) = c( "heads", "to", "from", "parameter",
                      "start", "to_t", "to_j")
 
   #

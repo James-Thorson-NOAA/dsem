@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Dynamic Structural Equation Models
-Version: 2.0.0
-Date: 2026-05-09
+Version: 2.0.1
+Date: 2026-05-12
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -27,7 +27,6 @@ Authors@R:
 Imports:
     TMB (>= 1.9.18),
     Matrix,
-    sem,
     igraph,
     utils,
     RTMB (>= 1.7.0),
@@ -68,5 +67,5 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 LazyData: true
 URL: https://james-thorson-noaa.github.io/dsem/
-BugReports: https://github.com/James-Thorson-NOAA/dsem/issues
+BugReports: https://github.com/James-Thorson-NOAA/dsem/issues/
 Config/roxygen2/version: 8.0.0

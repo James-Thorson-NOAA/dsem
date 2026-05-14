@@ -123,6 +123,7 @@ Type objective_function<Type>::operator() ()
   Rho_kk.setZero();
   I_kk.setIdentity();
   Type tmp;
+  // RAM uses R-style indices (i.e., starting at 1)
   for(int r=0; r<RAM.rows(); r++){
     // Extract estimated or fixed value
     if(RAM(r,3)>=1){
@@ -303,15 +304,15 @@ Type objective_function<Type>::operator() ()
     vector<Type> dev_k = x_tj - xhat_tj - delta_tj;
     vector<Type> dev_o( obs_idx.size() );
     Eigen::SparseMatrix<Type> x_o1( obs_idx.size(), 1 );
-    for( int index = 0; index < obs_idx.size(); index ++ ){
+    for( int index = 0; index < obs_idx.size(); index++ ){
       dev_o(index) = dev_k( obs_idx(index) );
       x_o1.coeffRef(index, 0) = x_k( obs_idx(index) );
     }
     vector<Type> x_u( unobs_idx.size() );
     Eigen::SparseMatrix<Type> x_u1( unobs_idx.size(), 1 );
-    for( int index = 0; index < unobs_idx.size(); index ++ ){
-      x_u(index) = x_k( unobs_idx(index) );
-      x_u1.coeffRef(index, 0) = x_k( unobs_idx(index) );
+    for( int u = 0; u < unobs_idx.size(); u++ ){
+      x_u(u) = x_k( unobs_idx(u) );
+      x_u1.coeffRef(u, 0) = x_k( unobs_idx(u) );
     }
 
     // Project residuals
@@ -353,7 +354,8 @@ Type objective_function<Type>::operator() ()
       for(int j=0; j<n_j; j++){
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
-        if( unobs_idx(u) == k ){
+        if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
+        //if( (unobs_idx(u)==k) ){
           z_tj(t,j) = mu_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j) + xprime_u1(u,0);
           u++;
         }
@@ -418,8 +420,8 @@ Type objective_function<Type>::operator() ()
     if( unobs_idx.size() > 0 ){
       // Extract sub-vectors for observed and unobserved components
       vector<Type> dev_k = x_tj - xhat_tj - delta_tj;
-      for( int index = 0; index < obs_idx.size(); index ++ ){
-        dev_o(index) = dev_k( obs_idx(index) );
+      for( int o = 0; o < obs_idx.size(); o++ ){
+        dev_o(o) = dev_k( obs_idx(o) );
       }
       // Extract V components
       Eigen::SparseMatrix<Type> V_kk = Gamma_kk.transpose() * Gamma_kk;
@@ -450,7 +452,8 @@ Type objective_function<Type>::operator() ()
       for(int j=0; j<n_j; j++){
       for(int t=0; t<n_t; t++){
         k = j*n_t + t;
-        if( unobs_idx(u) == k ){
+        if( (u < unobs_idx.size()) && (unobs_idx(u)==k) ){
+        //if( (unobs_idx(u)==k) ){
           z_tj(t,j) = dev_u1(u,0) + xhat_tj(t,j) + delta_tj(t,j);
           u++;
         }
@@ -499,7 +502,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 1 :  normal
     if( familycode_j(j)==1 ){
       mu_tj(t,j) = z_tj(t,j);
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
       }
       SIMULATE{
@@ -510,7 +513,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 2 :  Bernoulli
     if( familycode_j(j)==2 ){
       mu_tj(t,j) = invlogit(z_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
       }
       SIMULATE{
@@ -521,7 +524,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 3 :  Poisson
     if( familycode_j(j)==3 ){
       mu_tj(t,j) = exp(z_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
       }
       SIMULATE{
@@ -532,7 +535,7 @@ Type objective_function<Type>::operator() ()
     // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
     if( familycode_j(j)==4 ){
       mu_tj(t,j) = exp(z_tj(t,j));
-      if(!R_IsNA(asDouble(y_tj(t,j)))){
+      if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
       }
       SIMULATE{

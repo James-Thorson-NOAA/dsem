@@ -1,0 +1,58 @@
+name: sanitizers
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, dev]
+
+jobs:
+  san-check:
+    runs-on: ubuntu-latest
+
+    container:
+      #image: ghcr.io/r-hub/containers/gcc13:latest       # Doesn't find error
+      image: ghcr.io/r-hub/containers/clang-asan:latest   # Same as Ripley
+
+    env:
+      #UBSAN_OPTIONS: print_stacktrace=1:symbolize=1
+      UBSAN_OPTIONS: print_stacktrace=1:symbolize=1:halt_on_error=1 # Force halt on detecting issue
+      ASAN_OPTIONS: detect_leaks=0
+      LLVM_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer
+      _R_CHECK_FORCE_SUGGESTS_: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          R -q -e 'install.packages("pak")'
+          R -q -e 'pak::pkg_install(c("local::.", "rcmdcheck", "knitr", "rmarkdown", "AER", "MARSS", "testthat"))'
+          R -q -e 'pak::pkg_install(c("phylopath", "reshape", "dynlm", "ggpubr", "vars", "DHARMa"))'    # Oher SUGGESTS packages
+
+      - name: Run check
+        run: |
+          # R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes", "--no-examples", "--no-tests"), build_args = c("--no-build-vignettes", "--no-build-vignettes"), error_on = "error")'
+          #R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-vignettes", "--no-build-vignettes"), build_args = c("--no-build-vignettes", "--no-build-vignettes"), error_on = "warning")'
+          R -q -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--ignore-vignettes"), build_args = c("--no-build-vignettes"), error_on = "warning")'
+
+      - name: Print UBSan/ASan traces from Rout files
+        if: always()
+        run: |
+          find . -name "*.Rout" | while read f; do
+            if grep -q "runtime error" "$f"; then
+              echo "========== $f =========="
+              cat "$f"
+            fi
+          done
+
+      - name: Run examples directly (live UBSan output)
+        if: always()
+        run: |
+          R -q -e 'library(dsem); example("dsem", ask=FALSE)'
+
+      - name: Upload check artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-output
+          path: "*.Rcheck/"
