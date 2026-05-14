@@ -9,7 +9,7 @@ articles:
   random_slopes: random_slopes.html
   spatial_diffusion: spatial_diffusion.html
   web_only/statistical_interactions: web_only/statistical_interactions.html
-last_built: 2026-05-14T21:11Z
+last_built: 2026-05-14T21:12Z
 urls:
   reference: https://james-thorson-NOAA.github.io/dsem/reference
   article: https://james-thorson-NOAA.github.io/dsem/articles
