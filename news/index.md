@@ -2,6 +2,8 @@
 
 ## dsem 2.0.1
 
+CRAN release: 2026-05-14
+
 - Fix an “out-of-bounds read” error identified by SAN
 - Change NA to -1 for RAM passed as DATA_IMATRIX, because NA or
   NA_integer\_ triggered a clang-ASAN WARNING

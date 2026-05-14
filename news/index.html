@@ -38,11 +38,11 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/dev/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="2.0.1" id="dsem-201">dsem 2.0.1<a class="anchor" aria-label="anchor" href="#dsem-201"></a></h2>
+<h2 class="pkg-version" data-toc-text="2.0.1" id="dsem-201">dsem 2.0.1<a class="anchor" aria-label="anchor" href="#dsem-201"></a></h2><p class="text-muted">CRAN release: 2026-05-14</p>
 <ul><li>Fix an “out-of-bounds read” error identified by SAN</li>
 <li>Change NA to -1 for RAM passed as DATA_IMATRIX, because NA or NA_integer_ triggered a clang-ASAN WARNING “/TMB/include/convert.hpp:139:23: runtime error: nan is outside the range of representable values of type ‘int’”</li>
 <li>Added a GitHub Action ./github/workflows/sanitizers-novignettes-auto.yaml that uses <code>error_on = "warning"</code> to detect either “out-of-bounds” or “nan is outside the range” issues</li>
