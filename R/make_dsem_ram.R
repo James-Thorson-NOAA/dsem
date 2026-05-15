@@ -443,7 +443,8 @@ function( sem,
     as.numeric(startvalues)[tmp],
     ram[,5:6, drop=FALSE]
   )
-  colnames(ram) = c( "heads", "to", "from", "parameter", 
+  ram[,4] = ifelse( is.na(ram[,4]), -1, ram[,4] )
+  colnames(ram) = c( "heads", "to", "from", "parameter",
                      "start", "to_t", "to_j")
 
   #
