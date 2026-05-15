@@ -35,12 +35,22 @@ reference:
   - dsem_control
   - stepwise_selection
 
+- title: 'Families'
+  desc: |
+    Additional families beyond the standard R families.
+  contents:
+  - fixed
+  - gaussian_fixed_sd
+  - lognormal
+  - tweedie
+
 - title: 'Specifying the DSEM'
   desc: |
     Tools to specify interactions among variables and over time.
   contents:
   - make_dsem_ram
   - make_dfa
+  - make_msv
   - convert_equations
 
 - title: 'Predicting and residuals'
