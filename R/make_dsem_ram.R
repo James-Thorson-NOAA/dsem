@@ -408,7 +408,7 @@ function( sem,
   # Convert to triplet for spatially varying slope
   # NA or NA_integer_ triggers SAN error in CRAN checks, when then passed to DATA_IMATRIX
   # Seems safer to use -1 instead of NA values
-  f2 = function( x ){
+  f2 = function( x, first_column ){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
       t_k = rep( seq_along(times), length(variables) )[triplet$i]
