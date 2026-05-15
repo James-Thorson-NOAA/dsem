@@ -37,3 +37,16 @@ constrained by ecological mechanisms. Methods in Ecology and Evolution
       url = {https://doi.org/10.1111/2041-210X.14289},
       author = {J. T. Thorson and A. G. Andrews and T. Essington and S. Large},
     }
+
+Thorson JT, Kristensen K (In press). “Ecological examples of
+nonstationarity, nonlinearity, and statistical interactions in dynamic
+structural equation models.” *Methods in Ecology and Evolution*.
+<https://ecoevorxiv.org/repository/view/11418/>.
+
+    @Article{,
+      title = {Ecological examples of nonstationarity, nonlinearity, and statistical interactions in dynamic structural equation models},
+      author = {James T. Thorson and Kasper Kristensen},
+      year = {In press},
+      journal = {Methods in Ecology and Evolution},
+      url = {https://ecoevorxiv.org/repository/view/11418/},
+    }

@@ -1,4 +1,5 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://james-thorson-NOAA.github.io/dsem/dev/articles/MGARCH.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/articles/features.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/articles/index.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/articles/model-description.html</loc></url>
@@ -12,7 +13,6 @@
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/news/index.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/TMBAIC.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/as_fitted_DAG.html</loc></url>
-<url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/as_sem.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/bering_sea.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/cAIC.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/classify_variables.html</loc></url>
@@ -20,16 +20,20 @@
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/dsem.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/dsemRTMB.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/dsem_control.html</loc></url>
+<url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/fixed.html</loc></url>
+<url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/gaussian_fixed_sd.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/hare_lynx.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/index.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/isle_royale.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/lake_washington.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/list_parameters.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/logLik.dsem.html</loc></url>
+<url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/lognormal.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/loo_residuals.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/make_dfa.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/make_dsem_ram.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/make_matrices.html</loc></url>
+<url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/make_msv.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/paramesium_didinium.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/parse_path.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/partition_variance.html</loc></url>
@@ -46,6 +50,7 @@
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/summary.dsem.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/test_dsep.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/total_effect.html</loc></url>
+<url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/tweedie.html</loc></url>
 <url><loc>https://james-thorson-NOAA.github.io/dsem/dev/reference/vcov.dsem.html</loc></url>
 </urlset>
 

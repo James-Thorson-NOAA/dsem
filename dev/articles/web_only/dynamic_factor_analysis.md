@@ -144,7 +144,7 @@ sem = "
 mydsem0 = dsem( 
   tsdata = tsdata,
   sem = sem,
-  family = rep("normal", 5),
+  family = family,
   control = dsem_control( 
     run_model = FALSE,
     gmrf_parameterization = "full", 
@@ -160,7 +160,7 @@ map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
 mydsem_full = dsem( 
   tsdata = tsdata,
   sem = sem,
-  family = rep("normal", 5),
+  family = Map(function(.) gaussian(), colnames(tsdata)),
   control = dsem_control( 
     quiet = TRUE,
     map = map,
@@ -220,11 +220,17 @@ equations = "
 "
 sem = convert_equations(equations)
 
+# Define normal distribution for measurements
+# and turn off measurement errors for latent factors
+family = Map(function(.) gaussian(), colnames(tsdata))
+family$F1 = fixed()
+family$F2 = fixed()
+
 # Initial fit
 mydsem0 = dsem( 
   tsdata = tsdata,
   sem = sem,
-  family = c( rep("normal",5), rep("fixed",n_factors) ),
+  family = family,
   estimate_delta0 = TRUE,
   estimate_mu = vector(),
   control = dsem_control( 
@@ -236,7 +242,7 @@ mydsem0 = dsem(
 
 # fix all measurement errors at diagonal and equal
 map = mydsem0$tmb_inputs$map
-map$lnsigma_j = factor( rep(1,ncol(tsdata)) )
+map$lnsigma_z = factor( rep(1,length(mydsem0$tmb_inputs$parameters$lnsigma_z)) )
 
 # Fix factors to have initial value, and variables to not
 map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
@@ -245,7 +251,7 @@ map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
 mydfa = dsem( 
   tsdata = tsdata,
   sem = sem,
-  family = c( rep("normal",5), rep("fixed",n_factors) ),
+  family = family,
   estimate_delta0 = TRUE,
   estimate_mu = vector(),
   control = dsem_control( 
@@ -360,7 +366,7 @@ knitr::kable( Table, digits=3)
 
 |      |  MARSS |   DSEM | MARSS_no_pen |
 |:-----|-------:|-------:|-------------:|
-| Z.11 | -0.473 |  0.362 |        0.360 |
+| Z.11 | -0.472 |  0.362 |        0.360 |
 | Z.21 | -0.439 |  0.320 |        0.332 |
 | Z.31 | -0.465 |  0.218 |        0.356 |
 | Z.41 | -0.382 |  0.368 |        0.292 |
@@ -374,7 +380,7 @@ The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):
 
-Runtime for this vignette: 15.13 secs
+Runtime for this vignette: 18.44 secs
 
 ## Works cited
 

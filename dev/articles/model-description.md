@@ -242,13 +242,13 @@ and
 ### Measurement errors
 
 DSEM includes multiple distribution for measurement errors. For example,
-if the user specifies `family[j] = "fixed"` then:
+if the user specifies `family[[j] = fixed()` then:
 
 ``` math
 y_{tj} = x_{tj} + d_{tj}
 ```
 for all years. Alternatively, if the user specifies
-`family[j] = "normal"` then:
+`family[[j]] = gaussian()` then:
 ``` math
 y_{tj} \sim \mathrm{Normal}( x_{tj} + d_{tj}, {\sigma_j}^2)
 ```
@@ -443,11 +443,10 @@ data = data.frame(
 out = dsem(
   tsdata = ts(data),
   sem = dsem,
-  family = c("normal","normal","fixed"),
+  family = list(x = gaussian(), y = gaussian(), F = fixed()),
   control = dsem_control(
     run_model = FALSE, 
-    quiet = TRUE,
-    gmrf_parameterization = "project"
+    quiet = TRUE
   )
 )
 ```

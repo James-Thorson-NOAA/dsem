@@ -11,7 +11,7 @@ dsem"><meta property="og:image" content="https://james-thorson-NOAA.github.io/ds
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.7.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,6 +29,7 @@ dsem"><meta property="og:image" content="https://james-thorson-NOAA.github.io/ds
     <li><a class="dropdown-item" href="../articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/MGARCH.html">MGARCH</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -76,7 +77,8 @@ the format of this input is likely to change more rapidly than that of
 <span>  upper <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  project_k <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  suppress_nlminb_warnings <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  stabilize_Q <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  stabilize_Q <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  logscale_moderating_variance <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -220,6 +222,12 @@ are then replaced with Inf and avoided during estimation</p></dd>
 <dt id="arg-stabilize-q">stabilize_Q<a class="anchor" aria-label="anchor" href="#arg-stabilize-q"></a></dt>
 <dd><p>add <code>stability_eps = 1e-10</code> to stabilize precision
 (experimental)</p></dd>
+
+
+<dt id="arg-logscale-moderating-variance">logscale_moderating_variance<a class="anchor" aria-label="anchor" href="#arg-logscale-moderating-variance"></a></dt>
+<dd><p>When users supply a moderating variable
+for an exogenous variance (i.e., double-headed arrow), whether to
+exponentiate the variable prior to</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -11,6 +11,19 @@ Core tools for model fitting and diagnostics.
 - [`stepwise_selection()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/stepwise_selection.md)
   : Simulate dsem
 
+## Families
+
+Additional families beyond the standard R families.
+
+- [`fixed()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/fixed.md)
+  : Family for data that are known without error
+- [`gaussian_fixed_sd()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/gaussian_fixed_sd.md)
+  : Gaussian with known standard deviation for measurement errors
+- [`lognormal()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/lognormal.md)
+  : Lognormal distribution
+- [`tweedie()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/tweedie.md)
+  : Tweedie distribution
+
 ## Specifying the DSEM
 
 Tools to specify interactions among variables and over time.
@@ -19,6 +32,8 @@ Tools to specify interactions among variables and over time.
   : Make a RAM (Reticular Action Model)
 - [`make_dfa()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/make_dfa.md)
   : Make text for dynamic factor analysis
+- [`make_msv()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/make_msv.md)
+  : Make text for multivariate stochastic volatility model
 - [`convert_equations()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/convert_equations.md)
   : Convert equations notation
 
@@ -53,8 +68,6 @@ Tools for interpreting output.
   : Extract Variance-Covariance Matrix
 - [`as_fitted_DAG()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/as_fitted_DAG.md)
   : Convert output from package dsem to phylopath
-- [`as_sem()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/as_sem.md)
-  : Convert dsem to sem output
 - [`plot(`*`<dsem>`*`)`](https://james-thorson-NOAA.github.io/dsem/dev/reference/plot.dsem.md)
   : Simulate dsem
 - [`predict(`*`<dsem>`*`)`](https://james-thorson-NOAA.github.io/dsem/dev/reference/predict.dsem.md)

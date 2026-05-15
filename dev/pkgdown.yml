@@ -4,12 +4,13 @@ pkgdown_sha: ~
 articles:
   web_only/dynamic_factor_analysis: web_only/dynamic_factor_analysis.html
   features: features.html
+  MGARCH: MGARCH.html
   model-description: model-description.html
   nonlinear: nonlinear.html
   random_slopes: random_slopes.html
   spatial_diffusion: spatial_diffusion.html
   web_only/statistical_interactions: web_only/statistical_interactions.html
-last_built: 2026-05-09T15:35Z
+last_built: 2026-05-15T22:30Z
 urls:
   reference: https://james-thorson-NOAA.github.io/dsem/reference
   article: https://james-thorson-NOAA.github.io/dsem/articles

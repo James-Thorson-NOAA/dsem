@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.7.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,7 @@
     <li><a class="dropdown-item" href="../articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/MGARCH.html">MGARCH</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -42,8 +43,26 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.7.0.9000" id="dsem-1709000">dsem 1.7.0.9000<a class="anchor" aria-label="anchor" href="#dsem-1709000"></a></h2>
-<ul><li>Add option to specify a path based fixed at another variable</li>
+<h2 class="pkg-version" data-toc-text="2.0.1.9000" id="dsem-2019000">dsem 2.0.1.9000<a class="anchor" aria-label="anchor" href="#dsem-2019000"></a></h2>
+<ul><li>Change to requiring <code>family</code> options that agree with <code>glm</code>
+</li>
+<li>Adding <code>family = gaussian_fixed_sd()</code> option to pre-specify a known standard deviation</li>
+<li>Adding <code>family = lognormal()</code> option (e.g., for linearized Beverton-Holt stock recruit analysis)</li>
+<li>Add <code>family = tweedie()</code> option (e.g., for paleo Lake cores)</li>
+<li>Adding option for moderator variables affecting exogenous variance in Gamma (not just paths in Rho)</li>
+<li>adding <code>make_msv</code> for helping multivariate stochastic volatility models</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.0.1" id="dsem-201">dsem 2.0.1<a class="anchor" aria-label="anchor" href="#dsem-201"></a></h2><p class="text-muted">CRAN release: 2026-05-14</p>
+<ul><li>Fix an “out-of-bounds read” error identified by SAN</li>
+<li>Change NA to -1 for RAM passed as DATA_IMATRIX, because NA or NA_integer_ triggered a clang-ASAN WARNING “/TMB/include/convert.hpp:139:23: runtime error: nan is outside the range of representable values of type ‘int’”</li>
+<li>Added a GitHub Action ./github/workflows/sanitizers-novignettes-auto.yaml that uses <code>error_on = "warning"</code> to detect either “out-of-bounds” or “nan is outside the range” issues</li>
+<li>Remove <code>as_sem(.)</code> because <code>sem::sem(.)</code> appears to cause a UBSAN warning, and removing <code>sem</code> from IMPORTS</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.0.0" id="dsem-200">dsem 2.0.0<a class="anchor" aria-label="anchor" href="#dsem-200"></a></h2><p class="text-muted">CRAN release: 2026-05-12</p>
+<ul><li>Changing <code>gmrf_parameterization = "gmrf_project"</code>, given V = t(G)*G, to invert Vinv = invertSparseMatrix(V) where Vinv is then dense and then casting Vinv2 = asSparseMatrix( Vinv ), rather than a sparseLDLT for solve( V, I-P ), because the latter seems numerically unstable when P has a high condition number (e.g., the moose-wolf vignette in tinyVAST)</li>
+<li>Add option to specify a path based fixed at another variable</li>
 <li>Renamed <code>gmrf_parameterization = "conditional_krig"</code> as <code>gmrf_parameterization = "mvn_project"</code> and confirmed it in simple case</li>
 <li>Renamed <code>gmrf_parameterization = "separable"</code> as <code>full</code> and <code>projection</code> as <code>project</code>
 </li>

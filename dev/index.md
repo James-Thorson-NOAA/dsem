@@ -7,21 +7,27 @@
 [![](https://cranlogs.r-pkg.org/badges/grand-total/dsem)](https://cran.r-project.org/package=dsem)
 [![Codecov test
 coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
-[![Documentation](https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
+[![docs
+(main)](https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
+[![docs
+(dev)](https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/dev/)
 
 Package *dsem* fits dynamic structural equation models, which includes
 as nested submodels:
 
-1.  structural equation models
-2.  vector autoregressive models
+1.  structural equation models, including moderated variables
+2.  structural vector autoregressive models
 3.  dynamic factor analysis
 4.  state-space autoregressive integrated moving average (ARIMA) models
+5.  random-slope time-series models
 
 The model has several advantages:
 
 - It estimates direct, indirect, and total effects among system
-  variables, including simultaneous and lagged effects and recursive
-  (cyclic) dependencies
+  variables, including simultaneous and lagged effects, recursive
+  (cyclic) dependencies, latent variables, moderated variables, and a
+  variety of parametric families including variables without measurement
+  error
 - It can estimate the cumulative outcome from press or pulse experiments
   or initial conditions that differ from the stationary distribution of
   system dynamics
@@ -29,7 +35,9 @@ The model has several advantages:
   imputing missing values and/or measurement errors
 - It is rapidly fitted as a Gaussian Markov random field (GMRF) in a
   Generalized Linear Mixed Model (GLMM), with speed and asymptotics
-  associated with each
+  associated with each, including (where identifiable) in models with
+  any combination of cyclic dependencies, missing data, and variables
+  without measurement error
 - It allows granular control over the number of parameters (and
   restrictions on parameters) used to structure the covariance among
   variables and over time,
@@ -41,6 +49,8 @@ standard packages to simplify input/output formatting:
   values
 - Input: structural trade-offs specified using syntax defined by package
   *sem*
+- Input: distributions for data specified using `family` arguments,
+  e.g., as used in `glm(.)`
 - Output: visualizing estimated trade-offs using *igraph*
 - Output: access model output using standard S3-generic functions
   including `summary`, `predict`, `residuals`, `simulate`, and `AIC`
@@ -50,10 +60,27 @@ features.
 
 ### Citation
 
+*For description of dynamic structural equation models and path-lag
+interface*
+
 Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024).
 Dynamic structural equation models synthesize ecosystem dynamics
 constrained by ecological mechanisms. Methods in Ecology and Evolution
 15(4): 744-755. <https://doi.org/10.1111/2041-210X.14289>
+
+*For description of generalized graphical mixed models in general*
+
+Thorson, J. T. (2026). Generalized graphical mixed models connect
+ecological theory with widely used statistical models. Methods in
+Ecology and Evolution, 17(4), 1290–1302.
+<https://doi.org/10.1111/2041-210x.70272>
+
+*For description of moderated DSEM and varying path coefficients*
+
+Thorson, J. T., & Kristensen, K. (In press). Ecological examples of
+nonstationarity, nonlinearity, and statistical interactions in dynamic
+structural equation models. Methods in Ecology and Evolution.
+<https://ecoevorxiv.org/repository/view/11418/>
 
 This repository is a scientific product and is not official
 communication of the National Oceanic and Atmospheric Administration, or

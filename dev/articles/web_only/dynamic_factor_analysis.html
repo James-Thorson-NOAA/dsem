@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../../index.html">dsem</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.7.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,7 @@
     <li><a class="dropdown-item" href="../../articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../../articles/MGARCH.html">MGARCH</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../../news/index.html">Changelog</a></li>
@@ -199,7 +200,7 @@ However, we turn this off for vignette stability:</p>
 <span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
 <span>    run_model <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    gmrf_parameterization <span class="op">=</span> <span class="st">"full"</span>, </span>
@@ -215,7 +216,7 @@ However, we turn this off for vignette stability:</p>
 <span><span class="va">mydsem_full</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Map</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
 <span>    quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    map <span class="op">=</span> <span class="va">map</span>,</span>
@@ -273,11 +274,17 @@ rank-deficient Gaussian Markov random field, which we do using
 <span><span class="st">"</span></span>
 <span><span class="va">sem</span> <span class="op">=</span> <span class="fu"><a href="../../reference/convert_equations.html">convert_equations</a></span><span class="op">(</span><span class="va">equations</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Define normal distribution for measurements</span></span>
+<span><span class="co"># and turn off measurement errors for latent factors</span></span>
+<span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Map</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">family</span><span class="op">$</span><span class="va">F1</span> <span class="op">=</span> <span class="fu"><a href="../../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">family</span><span class="op">$</span><span class="va">F2</span> <span class="op">=</span> <span class="fu"><a href="../../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Initial fit</span></span>
 <span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>,<span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"fixed"</span>,<span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>  estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  estimate_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
@@ -289,7 +296,7 @@ rank-deficient Gaussian Markov random field, which we do using
 <span></span>
 <span><span class="co"># fix all measurement errors at diagonal and equal</span></span>
 <span><span class="va">map</span> <span class="op">=</span> <span class="va">mydsem0</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">map</span></span>
-<span><span class="va">map</span><span class="op">$</span><span class="va">lnsigma_j</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
+<span><span class="va">map</span><span class="op">$</span><span class="va">lnsigma_z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mydsem0</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">parameters</span><span class="op">$</span><span class="va">lnsigma_z</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Fix factors to have initial value, and variables to not</span></span>
 <span><span class="va">map</span><span class="op">$</span><span class="va">delta0_j</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">harborSealWA</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span></span>
@@ -298,7 +305,7 @@ rank-deficient Gaussian Markov random field, which we do using
 <span><span class="va">mydfa</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>,<span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"fixed"</span>,<span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>  estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  estimate_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
@@ -407,7 +414,7 @@ compare the three options in terms of estimated loadings:</p>
 <tbody>
 <tr class="odd">
 <td align="left">Z.11</td>
-<td align="right">-0.473</td>
+<td align="right">-0.472</td>
 <td align="right">0.362</td>
 <td align="right">0.360</td>
 </tr>
@@ -464,7 +471,7 @@ compare the three options in terms of estimated loadings:</p>
 <p>The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):</p>
-<p>Runtime for this vignette: 15.13 secs</p>
+<p>Runtime for this vignette: 18.44 secs</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="works-cited">Works cited<a class="anchor" aria-label="anchor" href="#works-cited"></a>

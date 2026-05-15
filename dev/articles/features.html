@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.7.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,7 @@
     <li><a class="dropdown-item" href="../articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/MGARCH.html">MGARCH</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -186,7 +187,7 @@ by fixing the exogenous variation for a given variable at zero (e.g.,
 <code>X &lt;-&gt; X, 0, NA, 0</code> fixes the exogenous variation for
 variable X at zero);</li>
 <li>Process-error model, by turning off measurement errors by using
-<code>family = "fixed"</code>).</li>
+<code>family = fixed()</code>).</li>
 </ul>
 <p>A generalized linear mixed model is then equivalent to a state-space
 model where:</p>
@@ -218,7 +219,7 @@ Poisson GLM, and fitting it using <code>dsem</code> and
 <span><span class="va">fit</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
 <span>  tsdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixed"</span>,<span class="st">"poisson"</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span> x <span class="op">=</span> <span class="fu"><a href="../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="st">"log"</span><span class="op">)</span> <span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> </span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -463,14 +464,14 @@ Manual for the R-package MARSS <span class="citation">(Holmes et al.
 <span>  U <span class="op">=</span> <span class="st">"zero"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">kem.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://atsa-es.github.io/MARSS/reference/MARSS.html" class="external-link">MARSS</a></span><span class="op">(</span><span class="va">z.royale.dat</span>, model <span class="op">=</span> <span class="va">royale.model.1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Success! algorithm run for 15 iterations. abstol and log-log tests passed.</span></span>
+<span><span class="co">#&gt; Success! abstol and log-log tests passed at 19 iterations.</span></span>
 <span><span class="co">#&gt; Alert: conv.test.slope.tol is 0.5.</span></span>
 <span><span class="co">#&gt; Test with smaller values (&lt;0.1) to ensure convergence.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; MARSS fit is</span></span>
 <span><span class="co">#&gt; Estimation method: kem </span></span>
 <span><span class="co">#&gt; Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001</span></span>
-<span><span class="co">#&gt; Algorithm ran 15 (=minit) iterations and convergence was reached. </span></span>
+<span><span class="co">#&gt; Estimation converged in 19 iterations. </span></span>
 <span><span class="co">#&gt; Log-likelihood: -3.21765 </span></span>
 <span><span class="co">#&gt; AIC: 22.4353   AICc: 23.70964   </span></span>
 <span><span class="co">#&gt;  </span></span>
@@ -559,7 +560,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span></span>
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="va">bering_sea</span> <span class="op">)</span></span>
-<span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">'fixed'</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Map</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="fu"><a href="../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Specify model</span></span>
 <span><span class="va">sem</span> <span class="op">=</span> <span class="st">"</span></span>
@@ -814,7 +815,7 @@ producers.</p>
 <p><img src="features_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="480"></p>
 <p>Again, these results are further discussed in the paper describing
 dsem.</p>
-<p>Runtime for this vignette: 27.3 secs</p>
+<p>Runtime for this vignette: 32.79 secs</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="works-cited">Works cited<a class="anchor" aria-label="anchor" href="#works-cited"></a>

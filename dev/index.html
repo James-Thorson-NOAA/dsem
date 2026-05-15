@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">dsem</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.7.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,7 @@
     <li><a class="dropdown-item" href="articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="articles/MGARCH.html">MGARCH</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -64,26 +65,29 @@
 <h2 id="dynamic-structural-equation-models-">Dynamic structural equation models <a href="https://github.com/James-Thorson-NOAA/dsem" class="external-link"><img src="reference/figures/logo.png" align="right" style="height:139px;"></a>
 <a class="anchor" aria-label="anchor" href="#dynamic-structural-equation-models-"></a>
 </h2>
-<p><a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://www.r-pkg.org/badges/version/dsem"></a> <a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/dsem"></a> <a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/dsem"></a> <a href="https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov" class="external-link"><img src="https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg" alt="Codecov test coverage"></a> <a href="https://james-thorson-noaa.github.io/dsem/" class="external-link"><img src="https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63" alt="Documentation"></a></p>
+<p><a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://www.r-pkg.org/badges/version/dsem"></a> <a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/dsem"></a> <a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/dsem"></a> <a href="https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov" class="external-link"><img src="https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg" alt="Codecov test coverage"></a> <a href="https://james-thorson-noaa.github.io/dsem/" class="external-link"><img src="https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63" alt="docs (main)"></a> <a href="https://james-thorson-noaa.github.io/dsem/dev/" class="external-link"><img src="https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63" alt="docs (dev)"></a></p>
 <p>Package <em>dsem</em> fits dynamic structural equation models, which includes as nested submodels:</p>
 <ol style="list-style-type: decimal">
-<li>structural equation models</li>
-<li>vector autoregressive models</li>
+<li>structural equation models, including moderated variables</li>
+<li>structural vector autoregressive models</li>
 <li>dynamic factor analysis</li>
 <li>state-space autoregressive integrated moving average (ARIMA) models</li>
+<li>random-slope time-series models</li>
 </ol>
 <p>The model has several advantages:</p>
 <ul>
-<li>It estimates direct, indirect, and total effects among system variables, including simultaneous and lagged effects and recursive (cyclic) dependencies</li>
+<li>It estimates direct, indirect, and total effects among system variables, including simultaneous and lagged effects, recursive (cyclic) dependencies, latent variables, moderated variables, and a variety of parametric families including variables without measurement error</li>
 <li>It can estimate the cumulative outcome from press or pulse experiments or initial conditions that differ from the stationary distribution of system dynamics</li>
 <li>It estimates structural linkages as regression slopes while jointly imputing missing values and/or measurement errors</li>
-<li>It is rapidly fitted as a Gaussian Markov random field (GMRF) in a Generalized Linear Mixed Model (GLMM), with speed and asymptotics associated with each</li>
+<li>It is rapidly fitted as a Gaussian Markov random field (GMRF) in a Generalized Linear Mixed Model (GLMM), with speed and asymptotics associated with each, including (where identifiable) in models with any combination of cyclic dependencies, missing data, and variables without measurement error</li>
 <li>It allows granular control over the number of parameters (and restrictions on parameters) used to structure the covariance among variables and over time,</li>
 </ul>
 <p><em>dsem</em> is specifically intended as a minimal implementation, and uses standard packages to simplify input/output formatting:</p>
 <ul>
 <li>Input: time-series defined using class <em>ts</em>, with <code>NA</code> for missing values</li>
 <li>Input: structural trade-offs specified using syntax defined by package <em>sem</em>
+</li>
+<li>Input: distributions for data specified using <code>family</code> arguments, e.g., as used in <code>glm(.)</code>
 </li>
 <li>Output: visualizing estimated trade-offs using <em>igraph</em>
 </li>
@@ -94,7 +98,12 @@
 <div class="section level3">
 <h3 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h3>
+<p><em>For description of dynamic structural equation models and path-lag interface</em></p>
 <p>Thorson, J. T., Andrews, A. G., Essington, T., &amp; Large, S. (2024). Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms. Methods in Ecology and Evolution 15(4): 744-755. <a href="https://doi.org/10.1111/2041-210X.14289" class="external-link uri">https://doi.org/10.1111/2041-210X.14289</a></p>
+<p><em>For description of generalized graphical mixed models in general</em></p>
+<p>Thorson, J. T. (2026). Generalized graphical mixed models connect ecological theory with widely used statistical models. Methods in Ecology and Evolution, 17(4), 1290–1302. <a href="https://doi.org/10.1111/2041-210x.70272" class="external-link uri">https://doi.org/10.1111/2041-210x.70272</a></p>
+<p><em>For description of moderated DSEM and varying path coefficients</em></p>
+<p>Thorson, J. T., &amp; Kristensen, K. (In press). Ecological examples of nonstationarity, nonlinearity, and statistical interactions in dynamic structural equation models. Methods in Ecology and Evolution. <a href="https://ecoevorxiv.org/repository/view/11418/" class="external-link uri">https://ecoevorxiv.org/repository/view/11418/</a></p>
 </div>
 </div>
 <div class="section level1">
@@ -110,7 +119,7 @@
 <ul class="list-unstyled">
 <li><a href="https://cloud.r-project.org/package=dsem" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/James-Thorson-NOAA/dsem/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/James-Thorson-NOAA/dsem/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/James-Thorson-NOAA/dsem/issues/" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

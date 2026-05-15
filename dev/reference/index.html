@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.7.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,7 @@
     <li><a class="dropdown-item" href="../articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/MGARCH.html">MGARCH</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -71,6 +72,43 @@
         </dt>
         <dd>Simulate dsem</dd>
       </dl></div><div class="section level2">
+      <h2 id="families">Families<a class="anchor" aria-label="anchor" href="#families"></a></h2>
+
+      <div class="section-desc"><p>Additional families beyond the standard R families.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fixed.html">fixed()</a></code>
+
+        </dt>
+        <dd>Family for data that are known without error</dd>
+
+        <dt>
+
+          <code><a href="gaussian_fixed_sd.html">gaussian_fixed_sd()</a></code>
+
+        </dt>
+        <dd>Gaussian with known standard deviation for measurement errors</dd>
+
+        <dt>
+
+          <code><a href="lognormal.html">lognormal()</a></code>
+
+        </dt>
+        <dd>Lognormal distribution</dd>
+
+        <dt>
+
+          <code><a href="tweedie.html">tweedie()</a></code>
+
+        </dt>
+        <dd>Tweedie distribution</dd>
+      </dl></div><div class="section level2">
       <h2 id="specifying-the-dsem">Specifying the DSEM<a class="anchor" aria-label="anchor" href="#specifying-the-dsem"></a></h2>
 
       <div class="section-desc"><p>Tools to specify interactions among variables and over time.</p></div>
@@ -93,6 +131,13 @@
 
         </dt>
         <dd>Make text for dynamic factor analysis</dd>
+
+        <dt>
+
+          <code><a href="make_msv.html">make_msv()</a></code>
+
+        </dt>
+        <dd>Make text for multivariate stochastic volatility model</dd>
 
         <dt>
 
@@ -195,13 +240,6 @@
 
         </dt>
         <dd>Convert output from package dsem to phylopath</dd>
-
-        <dt>
-
-          <code><a href="as_sem.html">as_sem()</a></code>
-
-        </dt>
-        <dd>Convert dsem to sem output</dd>
 
         <dt>
 

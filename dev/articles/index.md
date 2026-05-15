@@ -16,3 +16,4 @@
   interactions](https://james-thorson-NOAA.github.io/dsem/dev/articles/web_only/statistical_interactions.md):
 - [Dynamic factor
   analysis](https://james-thorson-NOAA.github.io/dsem/dev/articles/web_only/dynamic_factor_analysis.md):
+- [MGARCH](https://james-thorson-NOAA.github.io/dsem/dev/articles/MGARCH.md):

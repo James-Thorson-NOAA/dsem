@@ -115,7 +115,7 @@ However, DSEM can then collapse this state-space model to:
   `X <-> X, 0, NA, 0` fixes the exogenous variation for variable X at
   zero);
 - Process-error model, by turning off measurement errors by using
-  `family = "fixed"`).
+  `family = fixed()`).
 
 A generalized linear mixed model is then equivalent to a state-space
 model where:
@@ -148,7 +148,7 @@ sem = "
 fit = dsem( 
   sem = sem,
   tsdata = ts(data),
-  family = c("fixed","poisson"),
+  family = list( x = fixed(), y = poisson("log") ),
   control = dsem_control(quiet=TRUE) 
 )
 
@@ -407,14 +407,14 @@ royale.model.1 <- list(
   U = "zero"
 )
 kem.1 <- MARSS(z.royale.dat, model = royale.model.1)
-#> Success! algorithm run for 15 iterations. abstol and log-log tests passed.
+#> Success! abstol and log-log tests passed at 19 iterations.
 #> Alert: conv.test.slope.tol is 0.5.
 #> Test with smaller values (<0.1) to ensure convergence.
 #> 
 #> MARSS fit is
 #> Estimation method: kem 
 #> Convergence test: conv.test.slope.tol = 0.5, abstol = 0.001
-#> Algorithm ran 15 (=minit) iterations and convergence was reached. 
+#> Estimation converged in 19 iterations. 
 #> Log-likelihood: -3.21765 
 #> AIC: 22.4353   AICc: 23.70964   
 #>  
@@ -510,7 +510,7 @@ contents, and recruitment of a predatory fish.
 
 data(bering_sea)
 Z = ts( bering_sea )
-family = rep('fixed', ncol(bering_sea))
+family = Map(function(.) fixed(), colnames(Z))
 
 # Specify model
 sem = "
@@ -778,7 +778,7 @@ ggarrange(p1 + scale_x_continuous(expand = c(0.3, 0)),
 
 Again, these results are further discussed in the paper describing dsem.
 
-Runtime for this vignette: 27.3 secs
+Runtime for this vignette: 32.79 secs
 
 ## Works cited
 

@@ -1,7 +1,44 @@
 # Changelog
 
-## dsem 1.7.0.9000
+## dsem 2.0.1.9000
 
+- Change to requiring `family` options that agree with `glm`
+- Adding `family = gaussian_fixed_sd()` option to pre-specify a known
+  standard deviation
+- Adding `family = lognormal()` option (e.g., for linearized
+  Beverton-Holt stock recruit analysis)
+- Add `family = tweedie()` option (e.g., for paleo Lake cores)
+- Adding option for moderator variables affecting exogenous variance in
+  Gamma (not just paths in Rho)
+- adding `make_msv` for helping multivariate stochastic volatility
+  models
+
+## dsem 2.0.1
+
+CRAN release: 2026-05-14
+
+- Fix an “out-of-bounds read” error identified by SAN
+- Change NA to -1 for RAM passed as DATA_IMATRIX, because NA or
+  NA_integer\_ triggered a clang-ASAN WARNING
+  “/TMB/include/convert.hpp:139:23: runtime error: nan is outside the
+  range of representable values of type ‘int’”
+- Added a GitHub Action
+  ./github/workflows/sanitizers-novignettes-auto.yaml that uses
+  `error_on = "warning"` to detect either “out-of-bounds” or “nan is
+  outside the range” issues
+- Remove `as_sem(.)` because `sem::sem(.)` appears to cause a UBSAN
+  warning, and removing `sem` from IMPORTS
+
+## dsem 2.0.0
+
+CRAN release: 2026-05-12
+
+- Changing `gmrf_parameterization = "gmrf_project"`, given V = t(G)\*G,
+  to invert Vinv = invertSparseMatrix(V) where Vinv is then dense and
+  then casting Vinv2 = asSparseMatrix( Vinv ), rather than a sparseLDLT
+  for solve( V, I-P ), because the latter seems numerically unstable
+  when P has a high condition number (e.g., the moose-wolf vignette in
+  tinyVAST)
 - Add option to specify a path based fixed at another variable
 - Renamed `gmrf_parameterization = "conditional_krig"` as
   `gmrf_parameterization = "mvn_project"` and confirmed it in simple

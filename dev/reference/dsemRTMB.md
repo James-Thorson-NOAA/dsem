@@ -32,15 +32,28 @@ dsemRTMB(
 
 - family:
 
-  Character-vector listing the distribution used for each column of
-  `tsdata`, where each element must be `fixed` (for no measurement
-  error), `normal` for normal measurement error using an identity link,
-  `gamma` for a gamma measurement error using a fixed CV and log-link,
-  `bernoulli` for a Bernoulli measurement error using a logit-link, or
-  `poisson` for a Poisson measurement error using a log-link.
-  `family="fixed"` is default behavior and assumes that a given variable
-  is measured exactly. Other options correspond to different
-  specifications of measurement error.
+  A named list of families, each returning a class `family`, including
+  [`fixed()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/fixed.md),
+  [`gaussian()`](https://rdrr.io/r/stats/family.html),
+  [`binomial()`](https://rdrr.io/r/stats/family.html),
+  [`Gamma()`](https://rdrr.io/r/stats/family.html),
+  [`poisson()`](https://rdrr.io/r/stats/family.html),
+  [`lognormal()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/lognormal.md),
+  [`tweedie()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/tweedie.md),
+  or
+  [`gaussian_fixed_sd()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/gaussian_fixed_sd.md)
+  with names that match levels of `colnames(tsdata)` to allow different
+  families by variable. Family
+  [`fixed()`](https://james-thorson-NOAA.github.io/dsem/dev/reference/fixed.md)
+  specifies that states are known (i.e., measurements for that variable
+  have no error). Other families allow users to supply a link function
+  including `identity`, `log`, `logit`, or `cloglog`. For example
+  `family = list(y = binomial("logit"), x = fixed())` would specify
+  logit-linked Bernoulli distribution for variable `tsdata$y` and a
+  fixed (no measurement error) distribution for `tsdata$x`. For many
+  variables, it is convenient to do e.g.,
+  `family = Map(function(.) gaussian(), colnames(tsdata))` rather than
+  writing them all manually.
 
 - estimate_delta0:
 
