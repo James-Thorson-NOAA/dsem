@@ -15,6 +15,7 @@ articles:
   - nonlinear
   - web_only/statistical_interactions
   - web_only/dynamic_factor_analysis
+  - MGARCH
 
 reference:
 - title: internal
