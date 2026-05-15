@@ -1,4 +1,4 @@
-# dsem 2.1.0
+# dsem 2.0.1.9000
 
 * Change to requiring `family` options that agree with `glm`
 * Adding `family = gaussian_fixed_sd()` option to pre-specify a known standard deviation
