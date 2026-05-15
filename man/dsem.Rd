@@ -208,4 +208,11 @@ Thorson, J. T., Andrews, A., Essington, T., Large, S. (2024).
 Dynamic structural equation models synthesize
 ecosystem dynamics constrained by ecological mechanisms.
 Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
+
+\strong{Introducing moderated DSEM (e.g., nonstationarity and varying paths):}
+
+Thorson, J. T., Kristensen, K. (In press).
+Ecological examples of nonstationarity, nonlinearity, and
+statistical interactions in dynamic structural equation models.
+Methods in Ecology and Evolution. \url{https://ecoevorxiv.org/repository/view/11418/}
 }

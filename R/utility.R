@@ -418,6 +418,3 @@ function( f,
   y <- rbind(y0, y)
   return(list(x = x, y = y))
 }
-
-
-

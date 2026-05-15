@@ -1,4 +1,6 @@
 url: https://james-thorson-NOAA.github.io/dsem/
+development:
+  mode: auto
 template:
   bootstrap: 5
 
@@ -23,6 +25,7 @@ reference:
   - parse_path
   - read_model
   - dsemRTMB
+  - rk4sys
 
 - title: 'Specification and fitting'
   desc: |
@@ -60,7 +63,6 @@ reference:
   - partition_variance
   - vcov.dsem
   - as_fitted_DAG
-  - as_sem
   - plot.dsem
   - predict.dsem
   - print.dsem

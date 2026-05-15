@@ -52,7 +52,6 @@
 #'             rgamma rpois rnorm simulate time tsp<- plogis pchisq
 #'             gaussian poisson Gamma binomial
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
-#' @importFrom sem sem
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_ graph.adjacency clusters
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
 #' @importFrom ggplot2 aes
@@ -164,6 +163,13 @@
 #' Dynamic structural equation models synthesize
 #' ecosystem dynamics constrained by ecological mechanisms.
 #' Methods in Ecology and Evolution. \doi{10.1111/2041-210X.14289}
+#'
+#' **Introducing moderated DSEM (e.g., nonstationarity and varying paths):**
+#'
+#' Thorson, J. T., Kristensen, K. (In press).
+#' Ecological examples of nonstationarity, nonlinearity, and
+#' statistical interactions in dynamic structural equation models.
+#' Methods in Ecology and Evolution. \url{https://ecoevorxiv.org/repository/view/11418/}
 #'
 #' @examples
 #' # Define model
@@ -286,7 +292,9 @@ function( sem,
 
   # Identify variables that serve as moderators
   moderator_tj = array( FALSE, dim = dim(tsdata) )
-  moderator_tj[ as.matrix(na.omit(ram[,6:7])) ] = 1
+  tmp = ram[ which(ram[,1] %in% c(0)), 6:7]
+  moderator_tj[ as.matrix(tmp) ] = 1
+  #moderator_tj[ as.matrix(na.omit(ram)) ] = 1
   moderator_k = as.vector(moderator_tj)
 
   # Switch `gmrf_project` to `full` if no variables in `project_k`
@@ -299,7 +307,6 @@ function( sem,
   if( any(subset(ram, ram$heads==2 & !is.na(ram$start))$start==0) & (options[1]==0) ){
     stop("Cannot use exogenous variance of zero using gmrf_parameterization=`full`")
   }
-
   if( any(project_k & moderator_k) ){
     # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
     # so Gamma_kk and Rho_kk are not properly applied to moderating variables
@@ -402,11 +409,11 @@ function( sem,
   # Construct parameters
   if( is.null(control$parameters) ){
     Params = list(
-      "beta_z" = rep(0, max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
-      "lnsigma_z" = rep(0, sum(distributions$Nsigma_j)),
-      "mu_j" = rep(0, ncol(tsdata)),
-      "delta0_j" = rep(0, ncol(tsdata)),
-      "x_tj" = ifelse( is.na(tsdata), 0, tsdata )
+      beta_z = rep(0, max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
+      lnsigma_z = rep(0, sum(distributions$Nsigma_j)),
+      mu_j = rep(0, ncol(tsdata)),
+      delta0_j = rep(0, ncol(tsdata)),
+      x_tj = ifelse( is.na(tsdata), 0, tsdata )
     )
     #if( control$gmrf_parameterization=="full" ){
     #  Params$x_tj = ifelse( is.na(tsdata), 0, tsdata )
@@ -527,21 +534,25 @@ function( sem,
 
     # BUild prior evaluator
     requireNamespace("RTMB")
-    priors_obj = RTMB::MakeADFun( func = prior_negloglike, 
-                                  parameters = list(par=obj$par), 
-                                  silent = TRUE )
+    priors_obj = RTMB::MakeADFun(
+      func = prior_negloglike,
+      parameters = list(par=obj$par),
+      silent = TRUE
+    )
     obj$fn = function(pars) obj$fn_orig(pars) + priors_obj$fn(pars)
     obj$gr = function(pars) obj$gr_orig(pars) + priors_obj$gr(pars)
     internal$priors_obj = priors_obj
   }
   
   # Further bundle
-  out = list( "obj"=obj,
-              "ram"=ram,
-              "sem_full"=out$model,
-              "tmb_inputs"=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map),
-              #"call" = match.call(),
-              "internal" = internal )
+  out = list(
+    obj = obj,
+    ram = ram,
+    sem_full = out$model,
+    tmb_inputs=list("data"=Data, "parameters"=Params, "random"=Random, "map"=Map),
+    #call = match.call(),
+    internal = internal
+  )
 
   # Export stuff
   if( control$run_model==FALSE ){
@@ -564,14 +575,17 @@ function( sem,
   out$opt = list( "par"=obj$par )
   for( i in seq_len(max(0,control$nlminb_loops)) ){
     if( isFALSE(control$quiet) ) message("Running nlminb_loop #", i)
-    out$opt = do_nlminb( start = out$opt$par,
-                  objective = obj$fn,
-                  gradient = obj$gr,
-                  upper = control$upper,
-                  lower = control$lower,
-                  control = list( eval.max = control$eval.max,
-                                  iter.max = control$iter.max,
-                                  trace = control$trace ) )
+    out$opt = do_nlminb(
+      start = out$opt$par,
+      objective = obj$fn,
+      gradient = obj$gr,
+      upper = control$upper,
+      lower = control$lower,
+      control = list(
+        eval.max = control$eval.max,
+        iter.max = control$iter.max,
+        trace = control$trace )
+      )
   }
 
   # Newtonsteps
@@ -591,7 +605,14 @@ function( sem,
       warning("Some gradients are higher than 0.01. Some parameters might not be converged.  Consider increasing `control$newton_loops`")
     }
     # Hessian check
-    Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par))) )
+    Hess_fixed = optimHess(
+      par = out$opt$par,
+      fn = obj$fn,
+      gr = obj$gr,
+      control = list(
+        ndeps = rep(0.001,length(out$opt$par))
+      )
+    )
     if( any(is.na(Hess_fixed)) ){
       stop("`Hess_fixed` has NA values, indicating a problem with convergence")
     }
@@ -614,13 +635,16 @@ function( sem,
     if( is.null(Hess_fixed) ){
       Hess_fixed = optimHess( par=out$opt$par, fn=obj$fn, gr=obj$gr, control=list(ndeps=rep(0.001,length(out$opt$par)))  )
     }
-    out$sdrep = TMB::sdreport( obj,
-                          par.fixed = out$opt$par,
-                          hessian.fixed = Hess_fixed,
-                          getJointPrecision = control$getJointPrecision )
+    out$sdrep = TMB::sdreport(
+      obj,
+      par.fixed = out$opt$par,
+      hessian.fixed = Hess_fixed,
+      getJointPrecision = control$getJointPrecision
+    )
   }else{
     out$sdrep = NULL
   }
+  out$rep = obj$report()
   out$run_time = Sys.time() - start_time
 
   # output
@@ -1324,6 +1348,7 @@ function( fit,
           what = c("Estimate","Std_Error","p_value"),
           direction = 1 ){
 
+  # @importFrom sem sem
   what = match.arg(what)
   coefs = summary( fit )
   coefs = coefs[ which(coefs[,2]==lag), ]
@@ -1353,42 +1378,41 @@ function( fit,
 #'
 #' @return Convert output to format supplied by \code{\link[sem]{sem}}
 #'
-#' @export
-as_sem <-
-function( object,
-          lag = 0 ){
-
-  Rho = t(as_fitted_DAG( object, what="Estimate", direction=1, lag=lag )$coef)
-  Gamma = as_fitted_DAG( object, what="Estimate", direction=2, lag=lag )$coef
-  Gammainv = diag(1/diag(Gamma))
-  Linv = Gammainv %*% (diag(nrow(Rho))-Rho)
-  Sinv = t(Linv) %*% Linv
-  Sprime = solve(Sinv)
-  Sprime = 0.5*Sprime + 0.5*t(Sprime)
-
-  model = object$sem_full
-  model = model[model[,2]==0,c(1,3,4)]
-  out = sem( as.matrix(model),
-             S = Sprime,
-             N = nrow(object$internal$tsdata) )
-
-  # pass out
-  return(out)
-
-  #x = rnorm(10)
-  #y = x + rnorm(10)
-  #object = dsem( sem="x->y, 0, beta", tsdata=ts(cbind(x,y)) )
-  #mysem = as_sem(object)
-  #myplot = semPlot::semPlotModel( mysem )
-  #semPlot::semPaths( myplot,
-  #                   whatLabels = "est",
-  #                   edge.label.cex = 1.5,
-  #                   node.width = 4,
-  #                   node.height = 2,
-  #                   shapeMan = "rectangle",
-  #                   edge.width = 4,
-  #                   nodeLabels = myplot@Vars$name,
-  #                   nDigits=4 )
-}
+#as_sem <-
+#function( object,
+#          lag = 0 ){
+#
+#  Rho = t(as_fitted_DAG( object, what="Estimate", direction=1, lag=lag )$coef)
+#  Gamma = as_fitted_DAG( object, what="Estimate", direction=2, lag=lag )$coef
+#  Gammainv = diag(1/diag(Gamma))
+#  Linv = Gammainv %*% (diag(nrow(Rho))-Rho)
+#  Sinv = t(Linv) %*% Linv
+#  Sprime = solve(Sinv)
+#  Sprime = 0.5*Sprime + 0.5*t(Sprime)
+#
+#  model = object$sem_full
+#  model = model[model[,2]==0,c(1,3,4)]
+#  out = sem( as.matrix(model),
+#             S = Sprime,
+#             N = nrow(object$internal$tsdata) )
+#
+#  # pass out
+#  return(out)
+#
+#  #x = rnorm(10)
+#  #y = x + rnorm(10)
+#  #object = dsem( sem="x->y, 0, beta", tsdata=ts(cbind(x,y)) )
+#  #mysem = as_sem(object)
+#  #myplot = semPlot::semPlotModel( mysem )
+#  #semPlot::semPaths( myplot,
+#  #                   whatLabels = "est",
+#  #                   edge.label.cex = 1.5,
+#  #                   node.width = 4,
+#  #                   node.height = 2,
+#  #                   shapeMan = "rectangle",
+#  #                   edge.width = 4,
+#  #                   nodeLabels = myplot@Vars$name,
+#  #                   nDigits=4 )
+#}
 
 

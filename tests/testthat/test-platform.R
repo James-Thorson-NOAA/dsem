@@ -58,7 +58,7 @@ test_that("dsem example is working ", {
   print(fit)
   logLik(fit)
   total_effect(fit)
-  as_sem(fit)
+  #as_sem(fit)
   predict(fit, type="link")
   predict(fit, type="response")
   predict(fit, type="link", newdata=tsdata)
@@ -318,7 +318,7 @@ test_that("dfa example is working ", {
   # fix all measurement errors at diagonal and equal
   map = mydsem0$tmb_inputs$map
   map$lnsigma_z = factor( rep(1,length(mydsem0$tmb_inputs$parameters$lnsigma_z)) )
-  
+
   # Fix factors to have initial value, and variables to not
   map$delta0_j = factor( c(rep(NA,ncol(harborSealWA)-1), 1:n_factors) )
   

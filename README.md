@@ -5,7 +5,8 @@
 [![](https://cranlogs.r-pkg.org/badges/dsem)](https://cran.r-project.org/package=dsem)
 [![](https://cranlogs.r-pkg.org/badges/grand-total/dsem)](https://cran.r-project.org/package=dsem)
 [![Codecov test coverage](https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg)](https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov)
-[![Documentation](https://img.shields.io/badge/documentation-dsem-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
+[![docs (main)](https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/)
+[![docs (dev)](https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63)](https://james-thorson-noaa.github.io/dsem/dev/)
 
 
 Package _dsem_ fits dynamic structural equation models, which includes as nested submodels:
@@ -36,9 +37,17 @@ Please see package vignettes for more details regarding syntax and features.
 
 ### Citation
 
+_For description of dynamic structural equation models and path-lag interface_
+
 Thorson, J. T., Andrews, A. G., Essington, T., & Large, S. (2024). Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms. Methods in Ecology and Evolution 15(4): 744-755. https://doi.org/10.1111/2041-210X.14289
 
-Thorson, J. T., & Kristensen, K. (In revisions). Ecological examples of nonstationarity, nonlinearity, and statistical interactions in dynamic structural equation models. https://ecoevorxiv.org/repository/view/11418/
+_For description of generalized graphical mixed models in general_
+
+Thorson, J. T. (2026). Generalized graphical mixed models connect ecological theory with widely used statistical models. Methods in Ecology and Evolution, 17(4), 1290–1302. https://doi.org/10.1111/2041-210x.70272
+
+_For description of moderated DSEM and varying path coefficients_
+
+Thorson, J. T., & Kristensen, K. (In press). Ecological examples of nonstationarity, nonlinearity, and statistical interactions in dynamic structural equation models. Methods in Ecology and Evolution. https://ecoevorxiv.org/repository/view/11418/
 
 
 # NOAA Enterprise GitHub disclaimer

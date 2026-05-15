@@ -26,7 +26,6 @@ test_that("random slopes example is working ", {
     estimate_delta0 = FALSE,
     control = dsem_control(
       quiet = TRUE,
-      #run_model = FALSE,
       use_REML = FALSE,
       gmrf_parameterization = "full"
     )
