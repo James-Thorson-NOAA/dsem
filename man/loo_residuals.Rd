@@ -15,7 +15,7 @@ loo_residuals(
 \arguments{
 \item{object}{Output from \code{\link{dsem}}}
 
-\item{nsim}{Number of simulations to use if \code{family!="fixed"} for some variable,
+\item{nsim}{Number of simulations to use if \code{family!=fixed()} for some variable,
 such that simulation residuals are required.}
 
 \item{what}{whether to return quantile residuals, or samples from the leave-one-out predictive
@@ -35,12 +35,12 @@ Calculates quantile residuals using the predictive distribution from
 a jacknife (i.e., leave-one-out predictive distribution)
 }
 \details{
-Conditional quantile residuals cannot be calculated when using \code{family = "fixed"}, because
+Conditional quantile residuals cannot be calculated when using \code{family = fixed()}, because
 state-variables are fixed at available measurements and hence the conditional distribution is a Dirac
 delta function.  One alternative is to use leave-one-out residuals, where we calculate the predictive distribution
 for each state value when dropping the associated observation, and then either use that as the
 predictive distribution, or sample from that predictive distribution and then calculate
 a standard quantile distribution for a given non-fixed family.  This appraoch is followed here.
-It is currently only implemented when  all variables follow \code{family = "fixed"}, but
+It is currently only implemented when  all variables follow \code{family = fixed()}, but
 could be generalized to a mix of families upon request.
 }
