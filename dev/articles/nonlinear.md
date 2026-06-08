@@ -6,9 +6,6 @@
 demonstrate an approximation to the exponential function using
 Lotka-Volterra dynamics.
 
-To show this, we predict sea surface temperature from Departure Bay
-based upon the Pacific Decadal Oscillation:
-
 ``` r
 
 library(dsem)
@@ -216,4 +213,4 @@ ggraph(layout) +
 
 ![](nonlinear_files/figure-html/plot_graph-1.png)
 
-Runtime for this vignette: 3.38 secs
+Runtime for this vignette: 3.63 secs

@@ -80,8 +80,6 @@ Thorson</h4>
 <p><code>dsem</code> can be specified to estimate some types of
 nonlinearity. Here, we demonstrate an approximation to the exponential
 function using Lotka-Volterra dynamics.</p>
-<p>To show this, we predict sea surface temperature from Departure Bay
-based upon the Pacific Decadal Oscillation:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://james-thorson-noaa.github.io/dsem/" class="external-link">dsem</a></span><span class="op">)</span></span>
 <span><span class="va">dataset</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hare_lynx"</span>, <span class="st">"paramesium_didinium"</span> <span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
@@ -274,7 +272,7 @@ parameters:</p>
 <span>  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/scale_edge_colour.html" class="external-link">scale_edge_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"black"</span> <span class="op">=</span> <span class="st">"black"</span>, <span class="st">"grey"</span> <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span>, guide <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_size.html" class="external-link">scale_size</a></span><span class="op">(</span> range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">15</span><span class="op">)</span>, guide <span class="op">=</span> <span class="st">"none"</span> <span class="op">)</span></span></code></pre></div>
 <p><img src="nonlinear_files/figure-html/plot_graph-1.png" class="r-plt" alt="" width="700"></p>
-<p>Runtime for this vignette: 3.38 secs</p>
+<p>Runtime for this vignette: 3.63 secs</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

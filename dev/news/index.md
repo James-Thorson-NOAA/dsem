@@ -134,9 +134,8 @@ CRAN release: 2025-01-13
 - Adding `stepwise_selection` for automated stepwise model selection
 - Adding `plot` option to use `ggraph` as alternative to previous
   `igraph` option
-- Adding `convert_equations` to extend
-  [`sem::specifyEquations`](https://rdrr.io/pkg/sem/man/specifyModel.html)
-  and simplify specification for large models
+- Adding `convert_equations` to extend `sem::specifyEquations` and
+  simplify specification for large models
 - Adding argument `prior_negloglike` as interface to specify Bayesian
   priors and/or likelihood penalties in `dsem`
 - Adding `dsemRTMB` using RTMB as interchangeable alternative to `dsem`
