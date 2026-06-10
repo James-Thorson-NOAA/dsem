@@ -58,6 +58,7 @@
 #' @importFrom grid arrow
 #' @importFrom methods is
 #' @importFrom utils combn
+#' @importFrom checkmate assertList assertClass assertNames assertLogical
 #'
 #' @details
 #' A DSEM involves (at a minimum):
@@ -217,14 +218,24 @@ function( sem,
           covs = colnames(tsdata) ){
   start_time = Sys.time()
 
+  # Temporary warning
+  if( isTRUE(is(family, "character")) ){
+    stop("starting with release 3.0.0, `family` must be a named list of ")
+  }
+
   # General error checks
-  if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
+  #if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
   if( isTRUE(control$gmrf_parameterization=="project") ){
     if( isTRUE(any(family=="fixed" & colSums(!is.na(tsdata))>0)) ){
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
   }
-  if( isFALSE(is(tsdata,"ts")) ) stop("`tsdata` must be a `ts` object")
+  #if( isFALSE(is(tsdata,"ts")) ) stop("`tsdata` must be a `ts` object")
+  assertClass(control, classes = "dsem_control")
+  assertClass(tsdata, classes = "ts")
+  assertNames( names(family), must.include = colnames(tsdata))
+  assertList(family, types = "family")
+  assertLogical(estimate_delta0, len = 1)
 
   # General warnings
   if( isFALSE(control$quiet) ){
