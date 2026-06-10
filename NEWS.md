@@ -6,6 +6,7 @@
 * Add `family = tweedie()` option (e.g., for paleo Lake cores)
 * Adding option for moderator variables affecting exogenous variance in Gamma (not just paths in Rho)
 * adding `make_msv` for helping multivariate stochastic volatility models
+* Adding MGARCH vignette
 
 # dsem 2.0.1
 
