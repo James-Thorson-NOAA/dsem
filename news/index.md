@@ -1,6 +1,6 @@
 # Changelog
 
-## dsem 2.1.0
+## dsem 3.0.0
 
 - Change to requiring `family` options that agree with `glm`
 - Adding `family = gaussian_fixed_sd()` option to pre-specify a known
@@ -13,6 +13,7 @@
 - adding `make_msv` for helping multivariate stochastic volatility
   models
 - Adding MGARCH vignette
+- Adding `checkmate` assertions for user inputs
 
 ## dsem 2.0.1
 
