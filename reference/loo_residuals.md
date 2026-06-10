@@ -24,7 +24,7 @@ loo_residuals(
 
 - nsim:
 
-  Number of simulations to use if `family!="fixed"` for some variable,
+  Number of simulations to use if `family!=fixed()` for some variable,
   such that simulation residuals are required.
 
 - what:
@@ -49,13 +49,13 @@ A matrix of residuals, with same order and dimensions as argument
 ## Details
 
 Conditional quantile residuals cannot be calculated when using
-`family = "fixed"`, because state-variables are fixed at available
+`family = fixed()`, because state-variables are fixed at available
 measurements and hence the conditional distribution is a Dirac delta
 function. One alternative is to use leave-one-out residuals, where we
 calculate the predictive distribution for each state value when dropping
 the associated observation, and then either use that as the predictive
 distribution, or sample from that predictive distribution and then
 calculate a standard quantile distribution for a given non-fixed family.
-This appraoch is followed here. It is currently only implemented when
-all variables follow `family = "fixed"`, but could be generalized to a
+This approach is followed here. It is currently only implemented when
+all variables follow `family = fixed()`, but could be generalized to a
 mix of families upon request.

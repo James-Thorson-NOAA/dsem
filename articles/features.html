@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Demonstration of selected features • dsem</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Demonstration of selected features">
 </head>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,7 @@
     <li><a class="dropdown-item" href="../articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/MGARCH.html">MGARCH</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -66,7 +67,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/2.0.1/vignettes/features.Rmd" class="external-link"><code>vignettes/features.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/dev/vignettes/features.Rmd" class="external-link"><code>vignettes/features.Rmd</code></a></small>
       <div class="d-none name"><code>features.Rmd</code></div>
     </div>
 
@@ -185,7 +186,7 @@ by fixing the exogenous variation for a given variable at zero (e.g.,
 <code>X &lt;-&gt; X, 0, NA, 0</code> fixes the exogenous variation for
 variable X at zero);</li>
 <li>Process-error model, by turning off measurement errors by using
-<code>family = "fixed"</code>).</li>
+<code>family = fixed()</code>).</li>
 </ul>
 <p>A generalized linear mixed model is then equivalent to a state-space
 model where:</p>
@@ -217,7 +218,7 @@ Poisson GLM, and fitting it using <code>dsem</code> and
 <span><span class="va">fit</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
 <span>  tsdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixed"</span>,<span class="st">"poisson"</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span> x <span class="op">=</span> <span class="fu"><a href="../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="st">"log"</span><span class="op">)</span> <span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> </span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -558,7 +559,7 @@ stomach contents, and recruitment of a predatory fish.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span></span>
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span> <span class="va">bering_sea</span> <span class="op">)</span></span>
-<span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">'fixed'</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">bering_sea</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Map</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="fu"><a href="../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Specify model</span></span>
 <span><span class="va">sem</span> <span class="op">=</span> <span class="st">"</span></span>
@@ -813,7 +814,7 @@ producers.</p>
 <p><img src="features_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="480"></p>
 <p>Again, these results are further discussed in the paper describing
 dsem.</p>
-<p>Runtime for this vignette: 26.9 secs</p>
+<p>Runtime for this vignette: 34.75 secs</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="works-cited">Works cited<a class="anchor" aria-label="anchor" href="#works-cited"></a>

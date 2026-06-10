@@ -11,6 +11,19 @@ Core tools for model fitting and diagnostics.
 - [`stepwise_selection()`](https://james-thorson-NOAA.github.io/dsem/reference/stepwise_selection.md)
   : Simulate dsem
 
+## Families
+
+Additional families beyond the standard R families.
+
+- [`fixed()`](https://james-thorson-NOAA.github.io/dsem/reference/fixed.md)
+  : Family for data that are known without error
+- [`gaussian_fixed_sd()`](https://james-thorson-NOAA.github.io/dsem/reference/gaussian_fixed_sd.md)
+  : Gaussian with known standard deviation for measurement errors
+- [`lognormal()`](https://james-thorson-NOAA.github.io/dsem/reference/lognormal.md)
+  : Lognormal distribution
+- [`tweedie()`](https://james-thorson-NOAA.github.io/dsem/reference/tweedie.md)
+  : Tweedie distribution
+
 ## Specifying the DSEM
 
 Tools to specify interactions among variables and over time.
@@ -19,6 +32,8 @@ Tools to specify interactions among variables and over time.
   : Make a RAM (Reticular Action Model)
 - [`make_dfa()`](https://james-thorson-NOAA.github.io/dsem/reference/make_dfa.md)
   : Make text for dynamic factor analysis
+- [`make_msv()`](https://james-thorson-NOAA.github.io/dsem/reference/make_msv.md)
+  : Make text for multivariate stochastic volatility model
 - [`convert_equations()`](https://james-thorson-NOAA.github.io/dsem/reference/convert_equations.md)
   : Convert equations notation
 

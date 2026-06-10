@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Dynamic factor analysis • dsem</title>
 <script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../../deps/headroom-0.11.0/headroom.min.js"></script><script src="../../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../../deps/search-1.0.0/fuse.min.js"></script><script src="../../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../../pkgdown.js"></script><meta property="og:title" content="Dynamic factor analysis">
 </head>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../../index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,7 @@
     <li><a class="dropdown-item" href="../../articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="../../articles/MGARCH.html">MGARCH</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../../news/index.html">Changelog</a></li>
@@ -66,7 +67,7 @@
 Thorson</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/2.0.1/vignettes/web_only/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/web_only/dynamic_factor_analysis.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/James-Thorson-NOAA/dsem/blob/dev/vignettes/web_only/dynamic_factor_analysis.Rmd" class="external-link"><code>vignettes/web_only/dynamic_factor_analysis.Rmd</code></a></small>
       <div class="d-none name"><code>dynamic_factor_analysis.Rmd</code></div>
     </div>
 
@@ -198,7 +199,7 @@ However, we turn this off for vignette stability:</p>
 <span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
 <span>    run_model <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    gmrf_parameterization <span class="op">=</span> <span class="st">"full"</span>, </span>
@@ -214,7 +215,7 @@ However, we turn this off for vignette stability:</p>
 <span><span class="va">mydsem_full</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Map</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
 <span>    quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    map <span class="op">=</span> <span class="va">map</span>,</span>
@@ -272,11 +273,17 @@ rank-deficient Gaussian Markov random field, which we do using
 <span><span class="st">"</span></span>
 <span><span class="va">sem</span> <span class="op">=</span> <span class="fu"><a href="../../reference/convert_equations.html">convert_equations</a></span><span class="op">(</span><span class="va">equations</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Define normal distribution for measurements</span></span>
+<span><span class="co"># and turn off measurement errors for latent factors</span></span>
+<span><span class="va">family</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Map</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">family</span><span class="op">$</span><span class="va">F1</span> <span class="op">=</span> <span class="fu"><a href="../../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">family</span><span class="op">$</span><span class="va">F2</span> <span class="op">=</span> <span class="fu"><a href="../../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Initial fit</span></span>
 <span><span class="va">mydsem0</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>,<span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"fixed"</span>,<span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>  estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  estimate_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
@@ -288,7 +295,7 @@ rank-deficient Gaussian Markov random field, which we do using
 <span></span>
 <span><span class="co"># fix all measurement errors at diagonal and equal</span></span>
 <span><span class="va">map</span> <span class="op">=</span> <span class="va">mydsem0</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">map</span></span>
-<span><span class="va">map</span><span class="op">$</span><span class="va">lnsigma_j</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">tsdata</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
+<span><span class="va">map</span><span class="op">$</span><span class="va">lnsigma_z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mydsem0</span><span class="op">$</span><span class="va">tmb_inputs</span><span class="op">$</span><span class="va">parameters</span><span class="op">$</span><span class="va">lnsigma_z</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Fix factors to have initial value, and variables to not</span></span>
 <span><span class="va">map</span><span class="op">$</span><span class="va">delta0_j</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">harborSealWA</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span></span>
@@ -297,7 +304,7 @@ rank-deficient Gaussian Markov random field, which we do using
 <span><span class="va">mydfa</span> <span class="op">=</span> <span class="fu"><a href="../../reference/dsem.html">dsem</a></span><span class="op">(</span> </span>
 <span>  tsdata <span class="op">=</span> <span class="va">tsdata</span>,</span>
 <span>  sem <span class="op">=</span> <span class="va">sem</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"normal"</span>,<span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"fixed"</span>,<span class="va">n_factors</span><span class="op">)</span> <span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="va">family</span>,</span>
 <span>  estimate_delta0 <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  estimate_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span> </span>
@@ -463,7 +470,7 @@ compare the three options in terms of estimated loadings:</p>
 <p>The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):</p>
-<p>Runtime for this vignette: 15.01 secs</p>
+<p>Runtime for this vignette: 14.28 secs</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="works-cited">Works cited<a class="anchor" aria-label="anchor" href="#works-cited"></a>

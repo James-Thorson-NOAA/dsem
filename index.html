@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Dynamic Structural Equation Models • dsem</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Dynamic Structural Equation Models">
 <meta name="description" content='Applies dynamic structural equation models to time-series data with generic and simplified specification for simultaneous and lagged effects. Methods are described in Thorson et al. (2024) "Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms."'>
@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">dsem</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="articles/nonlinear.html">Nonlinear dynamics</a></li>
     <li><a class="dropdown-item" href="articles/web_only/statistical_interactions.html">Statistical interactions</a></li>
     <li><a class="dropdown-item" href="articles/web_only/dynamic_factor_analysis.html">Dynamic factor analysis</a></li>
+    <li><a class="dropdown-item" href="articles/MGARCH.html">MGARCH</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -66,23 +67,26 @@
 <p><a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://www.r-pkg.org/badges/version/dsem"></a> <a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/dsem"></a> <a href="https://cran.r-project.org/package=dsem" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/dsem"></a> <a href="https://app.codecov.io/gh/James-Thorson-NOAA/dsem?branch=test_codecov" class="external-link"><img src="https://codecov.io/gh/James-Thorson-NOAA/dsem/branch/test_codecov/graph/badge.svg" alt="Codecov test coverage"></a> <a href="https://james-thorson-noaa.github.io/dsem/" class="external-link"><img src="https://img.shields.io/badge/docs-dsem@main-orange.svg?colorB=E91E63" alt="docs (main)"></a> <a href="https://james-thorson-noaa.github.io/dsem/dev/" class="external-link"><img src="https://img.shields.io/badge/docs-dsem@dev-orange.svg?colorB=E91E63" alt="docs (dev)"></a></p>
 <p>Package <em>dsem</em> fits dynamic structural equation models, which includes as nested submodels:</p>
 <ol style="list-style-type: decimal">
-<li>structural equation models</li>
-<li>vector autoregressive models</li>
+<li>structural equation models, including moderated variables</li>
+<li>structural vector autoregressive models</li>
 <li>dynamic factor analysis</li>
 <li>state-space autoregressive integrated moving average (ARIMA) models</li>
+<li>random-slope time-series models</li>
 </ol>
 <p>The model has several advantages:</p>
 <ul>
-<li>It estimates direct, indirect, and total effects among system variables, including simultaneous and lagged effects and recursive (cyclic) dependencies</li>
+<li>It estimates direct, indirect, and total effects among system variables, including simultaneous and lagged effects, recursive (cyclic) dependencies, latent variables, moderated variables, and a variety of parametric families including variables without measurement error</li>
 <li>It can estimate the cumulative outcome from press or pulse experiments or initial conditions that differ from the stationary distribution of system dynamics</li>
 <li>It estimates structural linkages as regression slopes while jointly imputing missing values and/or measurement errors</li>
-<li>It is rapidly fitted as a Gaussian Markov random field (GMRF) in a Generalized Linear Mixed Model (GLMM), with speed and asymptotics associated with each</li>
+<li>It is rapidly fitted as a Gaussian Markov random field (GMRF) in a Generalized Linear Mixed Model (GLMM), with speed and asymptotics associated with each, including (where identifiable) in models with any combination of cyclic dependencies, missing data, and variables without measurement error</li>
 <li>It allows granular control over the number of parameters (and restrictions on parameters) used to structure the covariance among variables and over time,</li>
 </ul>
 <p><em>dsem</em> is specifically intended as a minimal implementation, and uses standard packages to simplify input/output formatting:</p>
 <ul>
 <li>Input: time-series defined using class <em>ts</em>, with <code>NA</code> for missing values</li>
 <li>Input: structural trade-offs specified using syntax defined by package <em>sem</em>
+</li>
+<li>Input: distributions for data specified using <code>family</code> arguments, e.g., as used in <code>glm(.)</code>
 </li>
 <li>Output: visualizing estimated trade-offs using <em>igraph</em>
 </li>

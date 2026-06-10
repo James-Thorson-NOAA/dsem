@@ -1,5 +1,19 @@
 # Changelog
 
+## dsem 2.1.0
+
+- Change to requiring `family` options that agree with `glm`
+- Adding `family = gaussian_fixed_sd()` option to pre-specify a known
+  standard deviation
+- Adding `family = lognormal()` option (e.g., for linearized
+  Beverton-Holt stock recruit analysis)
+- Add `family = tweedie()` option (e.g., for paleo Lake cores)
+- Adding option for moderator variables affecting exogenous variance in
+  Gamma (not just paths in Rho)
+- adding `make_msv` for helping multivariate stochastic volatility
+  models
+- Adding MGARCH vignette
+
 ## dsem 2.0.1
 
 CRAN release: 2026-05-14
@@ -121,9 +135,8 @@ CRAN release: 2025-01-13
 - Adding `stepwise_selection` for automated stepwise model selection
 - Adding `plot` option to use `ggraph` as alternative to previous
   `igraph` option
-- Adding `convert_equations` to extend
-  [`sem::specifyEquations`](https://rdrr.io/pkg/sem/man/specifyModel.html)
-  and simplify specification for large models
+- Adding `convert_equations` to extend `sem::specifyEquations` and
+  simplify specification for large models
 - Adding argument `prior_negloglike` as interface to specify Bayesian
   priors and/or likelihood penalties in `dsem`
 - Adding `dsemRTMB` using RTMB as interchangeable alternative to `dsem`
