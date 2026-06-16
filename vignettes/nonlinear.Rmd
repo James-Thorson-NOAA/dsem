@@ -26,8 +26,6 @@ start_time = Sys.time()
 
 `dsem` can be specified to estimate some types of nonlinearity.  Here, we demonstrate an approximation to the exponential function using Lotka-Volterra dynamics.  
 
-To show this, we predict sea surface temperature from Departure Bay based upon the Pacific Decadal Oscillation: 
-
 ```{r simulate, echo=TRUE, message=FALSE}
 library(dsem)
 dataset = c("hare_lynx", "paramesium_didinium" )[2]

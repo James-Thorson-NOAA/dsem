@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Dynamic Structural Equation Models
-Version: 2.0.1
-Date: 2026-05-12
+Version: 3.0.0
+Date: 2026-06-10
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -34,7 +34,8 @@ Imports:
     ggplot2,
     grid,
     methods,
-    stats
+    stats,
+    checkmate
 Depends:
     R (>= 4.0.0),
 Suggests:

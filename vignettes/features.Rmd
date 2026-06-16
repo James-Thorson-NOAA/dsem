@@ -106,7 +106,7 @@ In particular, DSEM is capable of fitting a state-space model that incorporates 
 However, DSEM can then collapse this state-space model to:
 
 - Measurement error model, by turning off process errors.  This is done by fixing the exogenous variation for a given variable at zero (e.g., `X <-> X, 0, NA, 0` fixes the exogenous variation for variable X at zero);
-- Process-error model, by turning off measurement errors by using `family = "fixed"`).  
+- Process-error model, by turning off measurement errors by using `family = fixed()`).  
 
 A generalized linear mixed model is then equivalent to a state-space model where:
 
@@ -135,7 +135,7 @@ sem = "
 fit = dsem( 
   sem = sem,
   tsdata = ts(data),
-  family = c("fixed","poisson"),
+  family = list( x = fixed(), y = poisson("log") ),
   control = dsem_control(quiet=TRUE) 
 )
 
@@ -416,7 +416,7 @@ We next replicate an analysis involving climate, forage fishes, stomach contents
 ```{r, echo=TRUE, message=FALSE, fig.width=7, fig.height=7}
 data(bering_sea)
 Z = ts( bering_sea )
-family = rep('fixed', ncol(bering_sea))
+family = Map(function(.) fixed(), colnames(Z))
 
 # Specify model
 sem = "

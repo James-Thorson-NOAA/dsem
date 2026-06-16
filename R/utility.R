@@ -5,7 +5,7 @@
 #'              a jacknife (i.e., leave-one-out predictive distribution)
 #'
 #' @param object Output from \code{\link{dsem}}
-#' @param nsim Number of simulations to use if \code{family!="fixed"} for some variable,
+#' @param nsim Number of simulations to use if \code{family!=fixed()} for some variable,
 #'        such that simulation residuals are required.
 #' @param what whether to return quantile residuals, or samples from the leave-one-out predictive
 #'        distribution of data, or a table of leave-one-out predictions and standard errors for the
@@ -14,13 +14,13 @@
 #' @param ... Not used
 #'
 #' @details
-#' Conditional quantile residuals cannot be calculated when using \code{family = "fixed"}, because
+#' Conditional quantile residuals cannot be calculated when using \code{family = fixed()}, because
 #' state-variables are fixed at available measurements and hence the conditional distribution is a Dirac
 #' delta function.  One alternative is to use leave-one-out residuals, where we calculate the predictive distribution
 #' for each state value when dropping the associated observation, and then either use that as the
 #' predictive distribution, or sample from that predictive distribution and then calculate
-#' a standard quantile distribution for a given non-fixed family.  This appraoch is followed here.
-#' It is currently only implemented when  all variables follow \code{family = "fixed"}, but
+#' a standard quantile distribution for a given non-fixed family.  This approach is followed here.
+#' It is currently only implemented when  all variables follow \code{family = fixed()}, but
 #' could be generalized to a mix of families upon request.
 #'
 #' @return
@@ -70,8 +70,8 @@ function( object,
     # Modify inputs
     map = fit_r$tmb_inputs$map
     parameters = fit_r$tmb_inputs$parameters
-    parameters[c("beta_z","lnsigma_j","mu_j","delta0_j")] = parlist[c("beta_z","lnsigma_j","mu_j","delta0_j")]
-    for( v in c("beta_z","lnsigma_j","mu_j","delta0_j") ){
+    parameters[c("beta_z","lnsigma_z","mu_j","delta0_j")] = parlist[c("beta_z","lnsigma_z","mu_j","delta0_j")]
+    for( v in c("beta_z","lnsigma_z","mu_j","delta0_j") ){
       map[[v]] = factor( rep(NA,length(as.vector(parameters[[v]]))))
     }
 

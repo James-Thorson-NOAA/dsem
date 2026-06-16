@@ -26,7 +26,8 @@ dsem_control(
   upper = Inf,
   project_k = NULL,
   suppress_nlminb_warnings = TRUE,
-  stabilize_Q = FALSE
+  stabilize_Q = FALSE,
+  logscale_moderating_variance = FALSE
 )
 }
 \arguments{
@@ -123,6 +124,10 @@ are then replaced with Inf and avoided during estimation}
 
 \item{stabilize_Q}{add \code{stability_eps = 1e-10} to stabilize precision
 (experimental)}
+
+\item{logscale_moderating_variance}{When users supply a moderating variable
+for an exogenous variance (i.e., double-headed arrow), whether to
+exponentiate the variable prior to}
 }
 \value{
 An S3 object of class "dsem_control" that specifies detailed model settings,

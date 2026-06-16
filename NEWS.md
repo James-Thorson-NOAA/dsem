@@ -1,3 +1,14 @@
+# dsem 3.0.0
+
+* Change to requiring `family` options that agree with `glm`
+* Adding `family = gaussian_fixed_sd()` option to pre-specify a known standard deviation
+* Adding `family = lognormal()` option (e.g., for linearized Beverton-Holt stock recruit analysis)
+* Add `family = tweedie()` option (e.g., for paleo Lake cores)
+* Adding option for moderator variables affecting exogenous variance in Gamma (not just paths in Rho)
+* adding `make_msv` for helping multivariate stochastic volatility models
+* Adding MGARCH vignette
+* Adding `checkmate` assertions for user inputs
+
 # dsem 2.0.1
 
 * Fix an "out-of-bounds read" error identified by SAN

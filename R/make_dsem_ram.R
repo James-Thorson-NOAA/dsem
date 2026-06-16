@@ -340,14 +340,20 @@ function( sem,
     model[i,c('first','second','direction')] = unlist( path[c('first','second','direction')] )
   }
 
-  # ADD LOGIC FOR PATHS
+  # ADD LOGIC FOR MODERATOR VARIABLES
   which_rows = model[,'name'] %in% variables
   if( any(which_rows) ){
-    model[which_rows,'direction'] = 0  
+    model[which_rows,'direction'] = ifelse( model[which_rows,'direction'] == "1", "3", model[which_rows,'direction'] )
+    model[which_rows,'direction'] = ifelse( model[which_rows,'direction'] == "2", "4", model[which_rows,'direction'] )
   }
   
+  which_missing = setdiff(c(model$first,model$second), variables)
+  if( length(which_missing) > 0 ){
+    stop( "variables in `sem` missing from tsdata: ", paste0(which_missing,collapse = ", ") )
+  }
+
   # Loop through paths
-  B_kk = G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
+  Gmoderator_kk = Pmoderator_kk = G_kk = P_kk = drop0(sparseMatrix( i=1, j=1, x=0, dims=rep(length(variables)*length(times),2) ))   # Make with a zero
   #P_kk = new("dgCMatrix")
   #P_kk = Matrix()
   #P_kk@Dim <- as.integer(rep(length(variables)*length(times),2))
@@ -371,17 +377,20 @@ function( sem,
 
     # Combine them 
     tmp_kk = kronecker(P_jj, L_tt)
-    if( abs(as.numeric(model[i,'direction'])) == 0 ){
-      B_kk = B_kk + tmp_kk * match(model[i,'name'],variables)
-    }
     if( abs(as.numeric(model[i,'direction'])) == 1 ){
       P_kk = P_kk + tmp_kk * i
     }
     if( abs(as.numeric(model[i,'direction'])) == 2 ){
       G_kk = G_kk + tmp_kk * i
     }
+    if( abs(as.numeric(model[i,'direction'])) == 3 ){
+      Pmoderator_kk = Pmoderator_kk + tmp_kk * match(model[i,'name'],variables)
+    }
+    if( abs(as.numeric(model[i,'direction'])) == 4 ){
+      Gmoderator_kk = Gmoderator_kk + tmp_kk * match(model[i,'name'],variables)
+    }
   }
-  
+
   # Convert to triplet
   # NA or NA_integer_ triggers SAN error in CRAN checks, when then passed to DATA_IMATRIX
   # Seems safer to use -1 instead of NA values
@@ -395,16 +404,17 @@ function( sem,
     names(out) = seq_len(ncol(out))
     return(out)
   }
+
   # Convert to triplet for spatially varying slope
   # NA or NA_integer_ triggers SAN error in CRAN checks, when then passed to DATA_IMATRIX
   # Seems safer to use -1 instead of NA values
-  f2 = function( x ){
+  f2 = function( x, first_column ){
     triplet = mat2triplet(x)
     if( length(triplet$x)>0 ){
       t_k = rep( seq_along(times), length(variables) )[triplet$i]
       #j_k = rep( seq_along(variables), each = length(times) )[triplet$i]
       # use NA for 4th so it keeps an NA for par.nos[ram[,4]
-      out = data.frame( 0, triplet$i, triplet$j, -1, t_k, triplet$x )      #
+      out = data.frame( first_column, triplet$i, triplet$j, -1, t_k, triplet$x )      #
     }else{
       out = data.frame( numeric(0), numeric(0), numeric(0), numeric(0), numeric(0), numeric(0) )
     }
@@ -423,7 +433,8 @@ function( sem,
   ram = rbind(
     f(P_kk, 1),
     f(G_kk, 2),
-    f2(B_kk)
+    f2(Pmoderator_kk, 3),
+    f2(Gmoderator_kk, 4)
   )  # Ignore column names
   tmp = ifelse( ram[,4] < 0, -NA, ram[,4] )
   ram = data.frame(
@@ -432,7 +443,6 @@ function( sem,
     as.numeric(startvalues)[tmp],
     ram[,5:6, drop=FALSE]
   )
-  # swap out NAs to pass to DATA_IMATRIX
   ram[,4] = ifelse( is.na(ram[,4]), -1, ram[,4] )
   colnames(ram) = c( "heads", "to", "from", "parameter",
                      "start", "to_t", "to_j")

@@ -8,6 +8,33 @@ Type sign(Type x){
   return x / pow(pow(x,2),0.5);
 }
 
+// Deviance for the Tweedie
+// https://en.wikipedia.org/wiki/Tweedie_distribution#Properties
+template<class Type>
+Type devresid_tweedie( Type y,
+                       Type mu,
+                       Type p ){
+
+  Type c1 = pow( y, 2.0-p ) / (1.0-p) / (2.0-p);
+  Type c2 = y * pow( mu, 1.0-p ) / (1.0-p);
+  Type c3 = pow( mu, 2.0-p ) / (2.0-p);
+  Type deviance = 2 * (c1 - c2 + c3 );
+  Type devresid = sign( y - mu ) * pow( deviance, 0.5 );
+  return devresid;
+}
+
+// dlnorm
+template<class Type>
+Type dlnorm( Type x,
+             Type meanlog,
+             Type sdlog,
+             int give_log=0){
+
+  //return 1/(sqrt(2*M_PI)*sd) * exp(-.5*pow((x-mean)/sd,2));
+  Type logres = dnorm( log(x), meanlog, sdlog, true) - log(x);
+  if(give_log) return logres; else return exp(logres);
+}
+
 // Get sparse submatrix, for use in dgmrf_conditional
 // Modified from chatGPT-5
 template<class Type>
@@ -89,14 +116,18 @@ Type objective_function<Type>::operator() ()
   // options(0) -> 0: full rank;  1: rank-reduced GMRF;  2: conditional krigging
   // options(1) -> 0: constant conditional variance;  1: constant marginal variance
   // options(2) -> 0: use GMRF(Q);  1: use GMRF(Q + 1e-14 \times I)
+  // options(3) -> 0: natural-scale moderating variance;  1: log-scale moderating variance
   DATA_IMATRIX( RAM );
   DATA_VECTOR( RAMstart );
   DATA_IVECTOR( familycode_j );
+  DATA_IVECTOR( linkcode_j );
+  DATA_IVECTOR( sigmastart_j );
+  DATA_ARRAY( eps_tj );
   DATA_ARRAY( y_tj );
 
   // Parameters
   PARAMETER_VECTOR( beta_z );
-  PARAMETER_VECTOR( lnsigma_j );
+  PARAMETER_VECTOR( lnsigma_z );
   PARAMETER_VECTOR( mu_j );
   PARAMETER_VECTOR( delta0_j );
   PARAMETER_ARRAY( x_tj );
@@ -112,8 +143,7 @@ Type objective_function<Type>::operator() ()
   Type jnll_gmrf = 0;
   matrix<Type> loglik_tj( n_t, n_j );
   loglik_tj.setZero();
-  vector<Type> sigma_j( n_j );
-  sigma_j = exp( lnsigma_j );
+  vector<Type> sigma_z = exp( lnsigma_z );
 
   // Assemble precision
   // SEM
@@ -131,14 +161,19 @@ Type objective_function<Type>::operator() ()
     }else{
       tmp = RAMstart(r);
     }
-    if(RAM(r,0)==0){
-      Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = x_tj( RAM(r,4)-1, RAM(r,5)-1 );
-    }
-    if(RAM(r,0)==1){
+    if(RAM(r,0) == 1){
       Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp;
     }
-    if(RAM(r,0)==2){
+    if(RAM(r,0) == 2){
       Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = tmp; // Cholesky of covariance, so -Inf to Inf;
+    }
+    if(RAM(r,0) == 3){
+      Rho_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = x_tj( RAM(r,4)-1, RAM(r,5)-1 );
+    }
+    if(RAM(r,0) == 4){
+      // Trying to decide whether to use log or natural-space
+      if( options(3) == 0) Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = x_tj( RAM(r,4)-1, RAM(r,5)-1 );
+      if( options(3) == 1) Gamma_kk.coeffRef( RAM(r,1)-1, RAM(r,2)-1 ) = exp(x_tj( RAM(r,4)-1, RAM(r,5)-1 ));
     }
   }
   Eigen::SparseMatrix<Type> IminusRho_kk = I_kk - Rho_kk;
@@ -491,28 +526,44 @@ Type objective_function<Type>::operator() ()
   array<Type> mu_tj( n_t, n_j );
   for(int t=0; t<n_t; t++){
   for(int j=0; j<n_j; j++){
-    // familycode = 0 :  don't include likelihood
-    if( familycode_j(j)==0 ){
+    // Link function
+    if( linkcode_j(j)==0 ){
+      // identity link
       mu_tj(t,j) = z_tj(t,j);
+    }
+    if( linkcode_j(j)==1 ){
+      // log link
+      mu_tj(t,j) = exp(z_tj(t,j));
+    }
+    if( linkcode_j(j)==2 ){
+      // logit link
+      mu_tj(t,j) = invlogit(z_tj(t,j));
+    }
+    if( linkcode_j(j)==3 ){
+      // cloglog link
+      mu_tj(t,j) = Type(1.0) - exp( -1.0 * exp(z_tj(t,j)) );
+    }
+
+    // Likelihood
+    if( familycode_j(j)==0 ){
+      // familycode = 0 :  don't include likelihood
       SIMULATE{
         y_tj(t,j) = mu_tj(t,j);
       }
       devresid_tj(t,j) = 0;
     }
-    // familycode = 1 :  normal
     if( familycode_j(j)==1 ){
-      mu_tj(t,j) = z_tj(t,j);
+      // familycode = 1 :  normal
       if(R_FINITE(asDouble(y_tj(t,j)))){
-        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_j(j), true );
+        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), sigma_z(sigmastart_j(j)), true );
       }
       SIMULATE{
-        y_tj(t,j) = rnorm( mu_tj(t,j), sigma_j(j) );
+        y_tj(t,j) = rnorm( mu_tj(t,j), sigma_z(sigmastart_j(j)) );
       }
       devresid_tj(t,j) = y_tj(t,j) - mu_tj(t,j);
     }
-    // familycode = 2 :  Bernoulli
     if( familycode_j(j)==2 ){
-      mu_tj(t,j) = invlogit(z_tj(t,j));
+      // familycode = 2 :  Bernoulli
       if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dbinom( y_tj(t,j), Type(1.0), mu_tj(t,j), true );
       }
@@ -521,9 +572,8 @@ Type objective_function<Type>::operator() ()
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(-2*(((1-y_tj(t,j))*log(1-mu_tj(t,j)) + y_tj(t,j)*log(mu_tj(t,j)))), 0.5);
     }
-    // familycode = 3 :  Poisson
     if( familycode_j(j)==3 ){
-      mu_tj(t,j) = exp(z_tj(t,j));
+      // familycode = 3 :  Poisson
       if(R_FINITE(asDouble(y_tj(t,j)))){
         loglik_tj(t,j) = dpois( y_tj(t,j), mu_tj(t,j), true );
       }
@@ -532,16 +582,45 @@ Type objective_function<Type>::operator() ()
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2*(y_tj(t,j)*log((Type(1e-10) + y_tj(t,j))/mu_tj(t,j)) - (y_tj(t,j)-mu_tj(t,j))), 0.5);
     }
-    // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
     if( familycode_j(j)==4 ){
-      mu_tj(t,j) = exp(z_tj(t,j));
+      // familycode = 4 :  Gamma:   shape = 1/CV^2; scale = mean*CV^2
       if(R_FINITE(asDouble(y_tj(t,j)))){
-        loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2), true );
+        loglik_tj(t,j) = dgamma( y_tj(t,j), pow(sigma_z(sigmastart_j(j)),-2), mu_tj(t,j)*pow(sigma_z(sigmastart_j(j)),2), true );
       }
       SIMULATE{
-        y_tj(t,j) = rgamma( pow(sigma_j(j),-2), mu_tj(t,j)*pow(sigma_j(j),2) );
+        y_tj(t,j) = rgamma( pow(sigma_z(sigmastart_j(j)),-2), mu_tj(t,j)*pow(sigma_z(sigmastart_j(j)),2) );
       }
       devresid_tj(t,j) = sign(y_tj(t,j) - mu_tj(t,j)) * pow(2 * ( (y_tj(t,j)-mu_tj(t,j))/mu_tj(t,j) - log(y_tj(t,j)/mu_tj(t,j)) ), 0.5);
+    }
+    if( familycode_j(j)==5 ){
+      // familycode = 5 :  normal with known standard deviation
+      if(R_FINITE(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dnorm( y_tj(t,j), mu_tj(t,j), eps_tj(t,j), true );
+      }
+      SIMULATE{
+        y_tj(t,j) = rnorm( mu_tj(t,j), eps_tj(t,j) );
+      }
+      devresid_tj(t,j) = NAN;
+    }
+    if( familycode_j(j)==6 ){
+      // familycode = 6 :  lognormal
+      if(R_FINITE(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dlnorm( y_tj(t,j), log(mu_tj(t,j)), sigma_z(sigmastart_j(j)), true );
+      }
+      SIMULATE{
+        y_tj(t,j) = exp(rnorm( log(mu_tj(t,j)), sigma_z(sigmastart_j(j)) ));
+      }
+      devresid_tj(t,j) = log(y_tj(t,j)) - log(mu_tj(t,j));
+    }
+    if( familycode_j(j)==7 ){
+      // familycode = 7 :  tweedie
+      if(R_FINITE(asDouble(y_tj(t,j)))){
+        loglik_tj(t,j) = dtweedie( y_tj(t,j), mu_tj(t,j), exp(sigma_z(sigmastart_j(j))), 1.0 + invlogit(sigma_z(sigmastart_j(j)+1)), true );
+      }
+      SIMULATE{
+        y_tj(t,j) = rtweedie( mu_tj(t,j), exp(sigma_z(sigmastart_j(j))), 1.0 + invlogit(sigma_z(sigmastart_j(j)+1)) );
+      }
+      devresid_tj(t,j) = devresid_tweedie( y_tj(t,j), mu_tj(t,j), 1.0 + invlogit(sigma_z(sigmastart_j(j)+1)) );
     }
   }}
   jnll -= loglik_tj.sum();

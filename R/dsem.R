@@ -7,14 +7,20 @@
 #'        \code{\link[dsem]{make_dsem_ram}} for more description
 #' @param tsdata time-series data, as outputted using \code{\link[stats]{ts}}, with \code{NA}
 #'        for missing values.
-#' @param family Character-vector listing the distribution used for each column of \code{tsdata}, where
-#'        each element must be \code{fixed} (for no measurement error), 
-#'        \code{normal} for normal measurement error using an identity link,
-#'        \code{gamma} for a gamma measurement error using a fixed CV and log-link, 
-#'        \code{bernoulli} for a Bernoulli measurement error using a logit-link, or
-#'        \code{poisson} for a Poisson measurement error using a log-link.
-#'        \code{family="fixed"} is default behavior and assumes that a given variable is measured exactly.
-#'        Other options correspond to different specifications of measurement error.
+#' @param family A named list of families, each returning a class \code{family},
+#'        including [fixed()], [gaussian()], [binomial()],  [Gamma()], [poisson()],
+#'        [lognormal()], [tweedie()], or [gaussian_fixed_sd()] with names that match levels of
+#'        \code{colnames(tsdata)} to allow different
+#'        families by variable.  Family [fixed()] specifies that states
+#'        are known (i.e., measurements for that variable have no error).
+#'        Other families allow users to supply a link function including `identity`,
+#'        `log`, `logit`, or `cloglog`.  For example
+#'        \code{family = list(y = binomial("logit"), x = fixed())}
+#'        would specify logit-linked Bernoulli distribution for variable `tsdata$y`
+#'        and a fixed (no measurement error) distribution for `tsdata$x`.
+#'        For many variables, it is convenient to do e.g.,
+#'        \code{family = Map(function(.) gaussian(), colnames(tsdata))} rather than writing
+#'        them all manually.
 #' @param estimate_delta0 Boolean indicating whether to estimate deviations from equilibrium in initial year
 #'        as fixed effects, or alternatively to assume that dynamics start at some stochastic draw away from
 #'        the stationary distribution
@@ -42,7 +48,9 @@
 #'        settings, and see documentation for that function for details.
 #'
 #' @importFrom TMB compile dynlib MakeADFun sdreport summary.sdreport config
-#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom rgamma rpois rnorm simulate time tsp<- plogis pchisq
+#' @importFrom stats AIC sd .preformat.ts na.omit nlminb optimHess pnorm rbinom
+#' @importFrom stats rgamma rpois rnorm simulate time tsp<- plogis pchisq
+#' @importFrom stats gaussian poisson Gamma binomial
 #' @importFrom Matrix solve Cholesky sparseMatrix mat2triplet drop0 t
 #' @importFrom igraph plot.igraph graph_from_data_frame with_sugiyama layout_ graph.adjacency clusters
 #' @importFrom ggraph ggraph geom_edge_arc create_layout rectangle geom_node_text theme_graph
@@ -50,6 +58,7 @@
 #' @importFrom grid arrow
 #' @importFrom methods is
 #' @importFrom utils combn
+#' @importFrom checkmate assertList assertClass assertNames assertLogical
 #'
 #' @details
 #' A DSEM involves (at a minimum):
@@ -186,10 +195,12 @@
 #'                "gwage","invest","capital")]
 #'
 #' # Fit model
-#' fit = dsem( sem=sem,
-#'             tsdata = tsdata,
-#'             estimate_delta0 = TRUE,
-#'             control = dsem_control(quiet=TRUE) )
+#' fit = dsem(
+#'   sem = sem,
+#'   tsdata = tsdata,
+#'   estimate_delta0 = TRUE,
+#'   control = dsem_control(quiet=TRUE)
+#' )
 #' summary( fit )
 #' plot( fit )
 #' plot( fit, edge_label="value" )
@@ -199,7 +210,7 @@
 dsem <-
 function( sem,
           tsdata,
-          family = rep("fixed",ncol(tsdata)),
+          family = Map(function(.) fixed(), colnames(tsdata)),
           estimate_delta0 = FALSE,
           estimate_mu = NULL,
           prior_negloglike = NULL,
@@ -207,14 +218,24 @@ function( sem,
           covs = colnames(tsdata) ){
   start_time = Sys.time()
 
+  # Temporary warning
+  if( isTRUE(is(family, "character")) ){
+    stop("starting with release 3.0.0, `family` must be a named list of ")
+  }
+
   # General error checks
-  if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
+  #if( isFALSE(is(control, "dsem_control")) ) stop("`control` must be made by `dsem_control()`")
   if( isTRUE(control$gmrf_parameterization=="project") ){
     if( isTRUE(any(family=="fixed" & colSums(!is.na(tsdata))>0)) ){
       stop("`family` cannot be `fixed` using `gmrf_parameterization=projection` for any variable with data")
     }
   }
-  if( isFALSE(is(tsdata,"ts")) ) stop("`tsdata` must be a `ts` object")
+  #if( isFALSE(is(tsdata,"ts")) ) stop("`tsdata` must be a `ts` object")
+  assertClass(control, classes = "dsem_control")
+  assertClass(tsdata, classes = "ts")
+  assertNames( names(family), must.include = colnames(tsdata))
+  assertList(family, types = "family")
+  assertLogical(estimate_delta0, len = 1)
 
   # General warnings
   if( isFALSE(control$quiet) ){
@@ -249,7 +270,7 @@ function( sem,
       stop("If specifying `lower` or `upper`, please set `dsem_control('newton_loops'=0)`")
     }
   }
-  if( any(ram$heads==0) ){
+  if( any(ram$heads %in% c(3,4)) ){
     # Using moderating variables, their raw values are used to construct Rho_kk and raw values follow standard-normal distribution
     # so Gamma_kk and Rho_kk are not properly applied to moderating variables
     if( control$gmrf_parameterization %in% c("project") ){
@@ -261,7 +282,8 @@ function( sem,
   options = c(
     switch(control$gmrf_parameterization, "full" = 0, "project" = 1, "mvn_project" = 2, "gmrf_project" = 3, NA),
     switch(control$constant_variance, "conditional"=0, "marginal"=1, "diagonal"=2),
-    ifelse( isTRUE(control$stabilize_Q), 1, 0 )
+    ifelse( isTRUE(control$stabilize_Q), 1, 0 ),
+    ifelse( isTRUE(control$logscale_moderating_variance), 1, 0)
   )
   
   # define variables to project to `project_k` unless provided by user
@@ -304,14 +326,89 @@ function( sem,
     }
   }
 
+  # Check for errors
+  if( !all(colnames(tsdata) %in% names(family)) ){
+    stop("some variable in `colnames(tsdata)` not found in `names(family)`")
+  }
+
+  # distribution/link
+  build_distributions <-
+  function( variables ){
+
+    # Construct log_sigma based on family
+    remove_last = function(x) x[-length(x)]
+
+    # Fixed values
+    sigma_j = lapply( family, FUN=function(x){
+                       switch( x$family[length(x$family)],
+                         "fixed" = c(),
+                         "gaussian" = NA,
+                         "poisson" = c(),
+                         "binomial" = c(),
+                         "bernoulli" = c(),
+                         "Gamma" = NA,
+                         "gaussian_fixed_sd" = c(),
+                         "lognormal" = NA,
+                         "tweedie" = c(NA, NA)
+                       )} )
+    Nsigma_j = sapply(sigma_j, length)
+    sigmastart_j = remove_last(cumsum(c(0,Nsigma_j)))
+    names(sigmastart_j) = variables
+
+    # Extract known SDs
+    sd_tj = sapply( family,
+      FUN = function(x){
+        if(length(x$fixed_sd)==0){
+          return(rep(0, nrow(tsdata)))
+        }else{
+          sd = rep(0, nrow(tsdata))
+          sd[] = x$fixed_sd
+          return(sd)
+        }
+      }
+    )
+
+    #
+    family_code = sapply( family, FUN=function(x){
+                       c("fixed" = 0,
+                         "gaussian" = 1,
+                         "binomial" = 2,
+                         "bernoulli" = 2,
+                         "poisson" = 3,
+                         "Gamma" = 4,
+                         "gaussian_fixed_sd" = 5,
+                         "lognormal" = 6,
+                         "tweedie" = 7
+                       )[x$family]} )
+    link_code = sapply( family, FUN=function(x){
+                       c("identity" = 0,
+                         "log" = 1,
+                         "logit" = 2,
+                         "cloglog" = 3
+                       )[x$link]} )
+    out = list(
+      family_code = family_code,
+      link_code = link_code,
+      Nsigma_j = Nsigma_j,
+      sigmastart_j = sigmastart_j,
+      sigma_j = sigma_j,
+      sd_tj = sd_tj
+    )
+    return(out)
+  }
+  family = family[match(colnames(tsdata), names(family))]
+  distributions = build_distributions( colnames(tsdata) )
+
   #
   Data = list( 
-    "options" = options,
-    #"RAM" = as.matrix(na.omit(ram[,1:4])),
-    "RAM" = as.matrix(ram[,-5]),
-    "RAMstart" = as.numeric(ram[,5]),
-    "familycode_j" = sapply(family, FUN=switch, "fixed"=0, "normal"=1, "bernoulli"=2, "poisson"=3, "gamma"=4 ),
-    "y_tj" = tsdata 
+    options = options,
+    RAM = as.matrix(ram[,-5]),
+    RAMstart = as.numeric(ram[,5]),
+    familycode_j = distributions$family_code,
+    linkcode_j = distributions$link_code,
+    sigmastart_j = distributions$sigmastart_j,
+    eps_tj = distributions$sd_tj,
+    y_tj = tsdata
   )
 
   # Default ... unobs_idx for fixed variables with zero variance
@@ -323,10 +420,10 @@ function( sem,
   # Construct parameters
   if( is.null(control$parameters) ){
     Params = list(
-      beta_z = rep(0,max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
-      lnsigma_j = rep(0,ncol(tsdata)),
-      mu_j = rep(0,ncol(tsdata)),
-      delta0_j = rep(0,ncol(tsdata)),
+      beta_z = rep(0, max(ram[,4],na.rm=TRUE)),  # NA for spatially-varying paths in ram
+      lnsigma_z = rep(0, sum(distributions$Nsigma_j)),
+      mu_j = rep(0, ncol(tsdata)),
+      delta0_j = rep(0, ncol(tsdata)),
       x_tj = ifelse( is.na(tsdata), 0, tsdata )
     )
     #if( control$gmrf_parameterization=="full" ){
@@ -368,9 +465,9 @@ function( sem,
   if( is.null(control$map) ){
     Map = list()
     # Map off x_tj for fixed when data is available
-    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4)), seq_len(prod(dim(tsdata))), NA )
+    Map$x_tj = ifelse( is.na(as.vector(tsdata)) | (Data$familycode_j[col(tsdata)] %in% c(1,2,3,4,5,6,7)), seq_len(prod(dim(tsdata))), NA )
     # Map off sigma_j for fixed / bernoulli / Poisson
-    Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
+    # Map$lnsigma_j = factor( ifelse(Data$familycode_j %in% c(0,2,3), NA, seq_along(Params$lnsigma_j)) )
 
     # Map off mean for latent variables
     Map$mu_j = factor( ifelse(colnames(tsdata) %in% estimate_mu, seq_len(ncol(tsdata)), NA) )
@@ -645,6 +742,9 @@ function( sem,
 #'        are then replaced with Inf and avoided during estimation
 #' @param stabilize_Q add \code{stability_eps = 1e-10} to stabilize precision
 #'        (experimental)
+#' @param logscale_moderating_variance When users supply a moderating variable
+#'        for an exogenous variance (i.e., double-headed arrow), whether to
+#'        exponentiate the variable prior to
 #'
 #' @return
 #' An S3 object of class "dsem_control" that specifies detailed model settings,
@@ -673,7 +773,8 @@ function( nlminb_loops = 1,
           upper = Inf,
           project_k = NULL,
           suppress_nlminb_warnings = TRUE,
-          stabilize_Q = FALSE ){
+          stabilize_Q = FALSE,
+          logscale_moderating_variance = FALSE ){
 
   gmrf_parameterization = match.arg(gmrf_parameterization)
   constant_variance = match.arg(constant_variance)
@@ -701,7 +802,8 @@ function( nlminb_loops = 1,
     upper = upper,
     project_k = project_k,
     suppress_nlminb_warnings = suppress_nlminb_warnings,
-    stabilize_Q = stabilize_Q
+    stabilize_Q = stabilize_Q,
+    logscale_moderating_variance = logscale_moderating_variance
   ), class = "dsem_control" )
 }
 
