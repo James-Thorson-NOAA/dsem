@@ -2,6 +2,8 @@
 
 ## dsem 3.0.0
 
+CRAN release: 2026-06-16
+
 - Change to requiring `family` options that agree with `glm`
 - Adding `family = gaussian_fixed_sd()` option to pre-specify a known
   standard deviation
