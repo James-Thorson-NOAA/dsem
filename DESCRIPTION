@@ -1,8 +1,8 @@
 Package: dsem
 Type: Package
 Title: Dynamic Structural Equation Models
-Version: 3.0.0
-Date: 2026-06-10
+Version: 3.0.0.9000
+Date: 2026-06-17
 Authors@R: 
     c(person(given = "James",
              family = "Thorson",
@@ -59,9 +59,13 @@ LinkingTo:
     RcppEigen
 Description: Applies dynamic structural equation models to time-series data
 	with generic and simplified specification for simultaneous and lagged
-	effects. Methods are described in Thorson et al. (2024)
+	effects, including latent and moderating variables, missing data,
+	and various distributional families for variables, fitted using
+	Gaussian Markov random fields. Methods are described in Thorson et al. (2024)
 	"Dynamic structural equation models synthesize ecosystem dynamics 
-	constrained by ecological mechanisms."  
+	constrained by ecological mechanisms" and Thorson and Kristensen (2026)
+	"Ecological examples of nonstationarity, nonlinearity and statistical 
+	interactions in dynamic structural equation models"
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
