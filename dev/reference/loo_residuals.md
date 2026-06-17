@@ -56,6 +56,6 @@ calculate the predictive distribution for each state value when dropping
 the associated observation, and then either use that as the predictive
 distribution, or sample from that predictive distribution and then
 calculate a standard quantile distribution for a given non-fixed family.
-This appraoch is followed here. It is currently only implemented when
+This approach is followed here. It is currently only implemented when
 all variables follow `family = fixed()`, but could be generalized to a
 mix of families upon request.

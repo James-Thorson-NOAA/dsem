@@ -9,7 +9,7 @@ a jacknife (i.e., leave-one-out predictive distribution)"><meta property="og:ima
 
     <a class="navbar-brand me-2" href="../index.html">dsem</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.1.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">3.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,7 +100,7 @@ state-variables are fixed at available measurements and hence the conditional di
 delta function.  One alternative is to use leave-one-out residuals, where we calculate the predictive distribution
 for each state value when dropping the associated observation, and then either use that as the
 predictive distribution, or sample from that predictive distribution and then calculate
-a standard quantile distribution for a given non-fixed family.  This appraoch is followed here.
+a standard quantile distribution for a given non-fixed family.  This approach is followed here.
 It is currently only implemented when  all variables follow <code>family = fixed()</code>, but
 could be generalized to a mix of families upon request.</p>
     </div>

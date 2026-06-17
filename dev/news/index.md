@@ -1,6 +1,8 @@
 # Changelog
 
-## dsem 2.0.1.9000
+## dsem 3.0.0
+
+CRAN release: 2026-06-16
 
 - Change to requiring `family` options that agree with `glm`
 - Adding `family = gaussian_fixed_sd()` option to pre-specify a known
@@ -12,6 +14,8 @@
   Gamma (not just paths in Rho)
 - adding `make_msv` for helping multivariate stochastic volatility
   models
+- Adding MGARCH vignette
+- Adding `checkmate` assertions for user inputs
 
 ## dsem 2.0.1
 
