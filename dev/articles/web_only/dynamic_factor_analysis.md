@@ -380,7 +380,7 @@ The estimating loadings are similar using DSEM and the MARSS model
 without initial penalty, except with label switching (where some factors
 and loadings can be multiplied by -1 with no change in the model):
 
-Runtime for this vignette: 14.52 secs
+Runtime for this vignette: 15.69 secs
 
 ## Works cited
 
