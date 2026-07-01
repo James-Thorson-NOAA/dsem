@@ -1,6 +1,7 @@
 # dsem 3.0.0.9000
 
-* Replace array<Type> with tmbutils::array<Type> in CPP, to disambiguate new array typedef in RcppEigen
+* Replace array<Type> with tmbutils::array<Type> in CPP, to disambiguate new array typedef in RcppEigen,
+  following andrjohns in dsem#63
 
 # dsem 3.0.0
 
