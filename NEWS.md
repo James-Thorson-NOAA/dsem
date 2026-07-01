@@ -1,3 +1,7 @@
+# dsem 3.0.0.9000
+
+* Replace array<Type> with tmbutils::array<Type> in CPP, to disambiguate new array typedef in RcppEigen
+
 # dsem 3.0.0
 
 * Change to requiring `family` options that agree with `glm`
