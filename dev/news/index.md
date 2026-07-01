@@ -1,5 +1,10 @@
 # Changelog
 
+## dsem 3.0.0.9000
+
+- Replace array with tmbutils::array in CPP, to disambiguate new array
+  typedef in RcppEigen, following andrjohns in dsem#63
+
 ## dsem 3.0.0
 
 CRAN release: 2026-06-16
