@@ -257,8 +257,8 @@ Type objective_function<Type>::operator() ()
   REPORT( delta_k );
 
   // Format mu_j
-  array<Type> xhat_tj( n_t, n_j );
-  array<Type> delta_tj( n_t, n_j );
+  tmbutils::array<Type> xhat_tj( n_t, n_j );
+  tmbutils::array<Type> delta_tj( n_t, n_j );
   for(int j=0; j<n_j; j++){
   for(int t=0; t<n_t; t++){
     k = j*n_t + t;
@@ -274,7 +274,7 @@ Type objective_function<Type>::operator() ()
   //delta_tj = tmp_tj.array();
 
   // Apply GMRF
-  array<Type> z_tj( n_t, n_j );
+  tmbutils::array<Type> z_tj( n_t, n_j );
   // Option-1:  use full-rank GMRF
   if( options(0)==0 ){
     // Only compute Vinv_kk if Gamma_kk is full rank
@@ -522,8 +522,8 @@ Type objective_function<Type>::operator() ()
 
   // Distribution for data
   // Simulates new data even for NA values, which can then be excluded during simulate.dsem
-  array<Type> devresid_tj( n_t, n_j );
-  array<Type> mu_tj( n_t, n_j );
+  tmbutils::array<Type> devresid_tj( n_t, n_j );
+  tmbutils::array<Type> mu_tj( n_t, n_j );
   for(int t=0; t<n_t; t++){
   for(int j=0; j<n_j; j++){
     // Link function
