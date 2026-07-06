@@ -187,4 +187,4 @@ legend( "topleft", fill = c("black","red","blue"), bty = "n",
 As expected, using a covariate improves the estimated heteroskedasticity
 even in the presence of missing data.
 
-Runtime for this vignette: 3.67 secs
+Runtime for this vignette: 3.5 secs
