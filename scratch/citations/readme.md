@@ -12,8 +12,8 @@ Ma, S., Bogstad, B., Dalpadado, P., Strand, E., dos Santos Schmidt, T. C., Bagø
 
 Reum, J. C., Thorson, J. T., & Fedewa, E. J. (n.d.). Joint spatiotemporal models for the estimation of prey consumption and predator-prey overlap: Dynamics of Pacific Cod predation on Snow and Tanner Crab in the Eastern Bering Sea. Fisheries Oceanography, In press.
 
+Robinson, M., Szulczewski, M. L., & Thorson, J. T. (2025). Analyzing the topological structure of composite dynamical systems (arXiv:2511.04603). arXiv. https://doi.org/10.48550/arXiv.2511.04603
+
 Thorson, J. T., Andrews III, A. G., Essington, T. E., & Large, S. I. (2024). Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms. Methods in Ecology and Evolution, 15(4), 744–755. https://doi.org/10.1111/2041-210X.14289
 
 Thorson, J. T., & Kristensen, K. (n.d.). Ecological examples of nonstationarity, nonlinearity and statistical interactions in dynamic structural equation models. Methods in Ecology and Evolution, n/a(n/a). https://doi.org/10.1111/2041-210x.70334
-
-
