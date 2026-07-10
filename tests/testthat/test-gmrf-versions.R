@@ -13,51 +13,57 @@ test_that("dsem gmrf-parameterization options ", {
     moose <-> wolves, 0, crosscor
   "
   # initial build of object
-  fit0 = dsem( 
+  fit1 = dsem(
     sem = sem,
     tsdata = data,
-    family = list( wolves = gaussian(), moose = gaussian() ),
+    family = list(
+      wolves = gaussian_fixed_sd( sd = 0.1 ),
+      moose = gaussian_fixed_sd( sd = 0.1 )
+    ),
     estimate_delta0 = TRUE,
     control = dsem_control(
-      nlminb_loops = 0,
-      newton_loops = 0,
-      getsd = FALSE,
-      extra = FALSE
+      #nlminb_loops = 1,
+      #newton_loops = 0,
+      #getsd = TRUE,
+      #extra = FALSE
     ) 
   )
 
   #
-  params = fit0$tmb_inputs$parameters
-  params$lnsigma_z = log( c(0.1,0.1) )
-  map = fit0$tmb_inputs$map
-  map$lnsigma_z = factor( c(NA,NA) )
+  #params = fit0$tmb_inputs$parameters
+  #params$lnsigma_z = log( c(0.1,0.1) )
+  #map = fit0$tmb_inputs$map
+  #map$lnsigma_z = factor( c(NA,NA) )
   
   # gmrf_parameterization = "full"
-  fit1 = dsem( 
-    sem = sem,
-    tsdata = data,
-    family = list( wolves = gaussian(), moose = gaussian() ),
-    estimate_delta0 = TRUE,
-    control = dsem_control(
-      map = map,
-      parameters = params,
-      nlminb_loops = 1,
-      newton_loops = 0,
-      getsd = TRUE,
-      extra = FALSE,
-      gmrf_parameterization = "full"
-    ) 
-  )
+  #fit1 = dsem(
+  #  sem = sem,
+  #  tsdata = data,
+  #  family = list( wolves = gaussian(), moose = gaussian() ),
+  #  estimate_delta0 = TRUE,
+  #  control = dsem_control(
+  #    map = map,
+  #    parameters = params,
+  #    nlminb_loops = 1,
+  #    newton_loops = 0,
+  #    getsd = TRUE,
+  #    extra = FALSE,
+  #    gmrf_parameterization = "full"
+  #  )
+  #)
   
   # gmrf_parameterization = "projection"
   fit2 = dsem(
     sem = sem,
     tsdata = data,
-    family = list( wolves = gaussian(), moose = gaussian() ),
+    family = list(
+      wolves = gaussian_fixed_sd( sd = 0.1 ),
+      moose = gaussian_fixed_sd( sd = 0.1 )
+    ),
     estimate_delta0 = TRUE,
     control = dsem_control(
-      map = map,
-      parameters = fit1$obj$env$parList(),
+      #map = map,
+      #parameters = fit1$obj$env$parList(),
       gmrf_parameterization = "project"
     )
   )
