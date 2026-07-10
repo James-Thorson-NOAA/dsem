@@ -10,9 +10,10 @@ Ianniello, C. F., Large, S. I., Grace, J. B., Hyde, K. J. W., McManus, M. C., Sm
 
 Ma, S., Bogstad, B., Dalpadado, P., Strand, E., dos Santos Schmidt, T. C., Bagøien, E., Ono, K., Alix, M., Grøsvik, B. E., Slotte, A., Huse, G., & Kjesbu, O. S. (2026). Leveraging the Highly Data-Rich Northeast Arctic Cod (Gadus morhua, Gadidae) to Identify Key Biophysical Factors Behind Recruitment Success. Fish and Fisheries, 27(4), 1006–1027. https://doi.org/10.1111/faf.70098
 
+Reum, J. C., Thorson, J. T., & Fedewa, E. J. (n.d.). Joint spatiotemporal models for the estimation of prey consumption and predator-prey overlap: Dynamics of Pacific Cod predation on Snow and Tanner Crab in the Eastern Bering Sea. Fisheries Oceanography, In press.
+
 Thorson, J. T., Andrews III, A. G., Essington, T. E., & Large, S. I. (2024). Dynamic structural equation models synthesize ecosystem dynamics constrained by ecological mechanisms. Methods in Ecology and Evolution, 15(4), 744–755. https://doi.org/10.1111/2041-210X.14289
 
 Thorson, J. T., & Kristensen, K. (n.d.). Ecological examples of nonstationarity, nonlinearity and statistical interactions in dynamic structural equation models. Methods in Ecology and Evolution, n/a(n/a). https://doi.org/10.1111/2041-210x.70334
-
 
 
