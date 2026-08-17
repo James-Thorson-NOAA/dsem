@@ -283,7 +283,7 @@ Type objective_function<Type>::operator() ()
     if( options(2) == 1 ){
       V_kk += I_kk * 1e-10;
     }
-    matrix<Type> Vinv_kk = invertSparseMatrix( V_kk );
+    matrix<Type> Vinv_kk = tmbutils::invertSparseMatrix( V_kk );
     Eigen::SparseMatrix<Type> Vinv2_kk = asSparseMatrix( Vinv_kk );
     Eigen::SparseMatrix<Type> Q_kk = IminusRho_kk.transpose() * Vinv2_kk * IminusRho_kk;
     
@@ -376,8 +376,8 @@ Type objective_function<Type>::operator() ()
       Vprime_uu += 1e-12 * I_uu;      // 1e-16 crashes
       
       // CONTINUE
-      Eigen::SimplicialLLT< SparseMatrix<Type> > chol(Vprime_uu);
-      SparseMatrix<Type> Lprime_uu = chol.matrixL();
+      Eigen::SimplicialLLT< Eigen::SparseMatrix<Type> > chol(Vprime_uu);
+      Eigen::SparseMatrix<Type> Lprime_uu = chol.matrixL();
       xprime_u1 = Lprime_uu * x_u1;
       REPORT( Lprime_uu );
     }
@@ -510,7 +510,7 @@ Type objective_function<Type>::operator() ()
     //Eigen::SparseMatrix<Type> Q_oo = Mtilda_oo.transpose() * inverseVtilda_oo.solve(Mtilda_oo);
 
     // Same way as option(0) = 0
-    matrix<Type> inverseVtilda_oo = invertSparseMatrix( Vtilda_oo );
+    matrix<Type> inverseVtilda_oo = tmbutils::invertSparseMatrix( Vtilda_oo );
     Eigen::SparseMatrix<Type> inverseVtilda2_oo = asSparseMatrix( inverseVtilda_oo );
     Eigen::SparseMatrix<Type> Q_oo = Mtilda_oo.transpose() * inverseVtilda2_oo * Mtilda_oo;
 
