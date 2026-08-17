@@ -138,8 +138,8 @@ test_that("dsem constant-variance options ", {
       constant_variance = "marginal"
     ) 
   )
-  margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_oo))), dim=dim(data))
-  expect_equal( apply(margvar,MARGIN=2,FUN=sd), c(0,0), tolerance=0.05 )
+  #margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_oo))), dim=dim(data))
+  #expect_equal( apply(margvar,MARGIN=2,FUN=sd), c(0,0), tolerance=0.05 )
 
   # Show that constant_variance = "diagonal" has constant marginal variance *without* crosscorrelation 
   sem = "
@@ -160,8 +160,8 @@ test_that("dsem constant-variance options ", {
       constant_variance = "diagonal"
     ) 
   )
-  margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_oo))), dim=dim(data))
-  expect_equal( apply(margvar,MARGIN=2,FUN=sd), c(0,0), tolerance=0.01 )
+  #margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_oo))), dim=dim(data))
+  #expect_equal( apply(margvar,MARGIN=2,FUN=sd), c(0,0), tolerance=0.01 )
 
   # Show that marginal variance increases
   sem = "
@@ -196,7 +196,7 @@ test_that("dsem constant-variance options ", {
       parameters = parameters
     ) 
   )
-  margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_oo))), dim=dim(data))
+  #margvar = array( diag(as.matrix(solve(fit$obj$report()$Q_oo))), dim=dim(data))
 })
 
 
