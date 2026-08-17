@@ -325,6 +325,7 @@ functions:
 
 # Load package
 library(dsem)
+library(Matrix)
 
 # call dsem without estimating parameters
 out = dsem(
@@ -332,12 +333,16 @@ out = dsem(
   sem = dsem,
   control = dsem_control(
     run_model = FALSE, 
-    quiet = TRUE
+    quiet = TRUE,
+    gmrf_parameterization = "gmrf"
   )
 )
 
 # Extract covariance
-Sigma1 = solve(as.matrix(out$obj$report()$Q_oo))
+IminusRho_kk = out$obj$report()$IminusRho_kk
+G_kk = out$obj$report()$Gamma_kk
+Q_kk = t(IminusRho_kk) %*% t(G_kk) %*% G_kk %*% IminusRho_kk
+Sigma1 = solve(as.matrix(Q_kk))
 plot( x=1:10, y = diag(Sigma1), xlab="time", 
       ylab="Marginal variance", type="l", 
       ylim = c(0,max(diag(Sigma1))))
@@ -388,12 +393,16 @@ out = dsem(
   control = dsem_control(
     run_model = FALSE, 
     quiet = TRUE, 
-    constant_variance = "marginal"
+    constant_variance = "marginal",
+    gmrf_parameterization = "gmrf"
   )
 )
 
 # Extract covariance
-Sigma2 = solve(as.matrix(out$obj$report()$Q_oo))
+IminusRho_kk = out$obj$report()$IminusRho_kk
+G_kk = out$obj$report()$Gamma_kk
+Q_kk = t(IminusRho_kk) %*% t(G_kk) %*% G_kk %*% IminusRho_kk
+Sigma2 = solve(as.matrix(Q_kk))
 plot( x=1:10, y = diag(Sigma2), xlab="time", 
       ylab="Marginal variance", type="l", 
       ylim = c(0,max(diag(Sigma1))))
