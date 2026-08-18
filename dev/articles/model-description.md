@@ -174,7 +174,7 @@ and the joint exogenous covariance matrix
 $`\mathbf G_{\mathrm{joint}}`$:
 
 ``` math
-\mathbf Q_{\mathrm{joint}} = ({\mathbf{I - P}_{\mathrm{joint}}}^T) (\mathbf G_{\mathrm{joint}} \mathbf G_{\mathrm{joint}}^T)^{-1} (\mathbf{I - P_{\mathrm{joint}}})
+\mathbf Q_{\mathrm{joint}} = ({\mathbf{I - P}_{\mathrm{joint}}}^T) (\mathbf G_{\mathrm{joint}}^T \mathbf G_{\mathrm{joint}})^{-1} (\mathbf{I - P_{\mathrm{joint}}})
 ```
 
 Finally, it is convenient to write the joint path matrix by summing
@@ -312,7 +312,7 @@ consider a first-order autoregressive process
 
 ``` r
 
-dsem = " 
+time_term = " 
 x -> x, 1, ar1, 0.8
 x <-> x, 0, sd, 1
 "
@@ -330,7 +330,7 @@ library(Matrix)
 # call dsem without estimating parameters
 out = dsem(
   tsdata = ts(data.frame( x = rep(1,10) )),
-  sem = dsem,
+  sem = time_term,
   control = dsem_control(
     run_model = FALSE, 
     quiet = TRUE,
@@ -389,7 +389,7 @@ autoregressive example
 # call dsem without estimating parameters
 out = dsem(
   tsdata = ts(data.frame( x = rep(1,10) )),
-  sem = dsem,
+  sem = time_term,
   control = dsem_control(
     run_model = FALSE, 
     quiet = TRUE, 
@@ -431,7 +431,7 @@ walk:
 ``` r
 
 #
-dsem = "
+time_term = "
   # Factor follows random walk with unit variance
   F <-> F, 0, NA, 1
   F -> F, 1, NA, 1
@@ -451,7 +451,7 @@ data = data.frame(
 # call dsem without estimating parameters
 out = dsem(
   tsdata = ts(data),
-  sem = dsem,
+  sem = time_term,
   family = list(x = gaussian(), y = gaussian(), F = fixed()),
   control = dsem_control(
     run_model = FALSE, 

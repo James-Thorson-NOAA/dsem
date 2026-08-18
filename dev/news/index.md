@@ -4,6 +4,13 @@
 
 - Replace array with tmbutils::array in CPP, to disambiguate new array
   typedef in RcppEigen, following andrjohns in dsem#63
+- Fix bug in gmrf_parameterization = “project”, where it was doing
+  (I-P)^-1 G x, instead of (I-P)^-1 G^T x, where the latter is correct
+  given that Q = (I-P^T) (G^-1 G)^-1 (I-P)
+- Fix typo in model description vignette for Q formula
+- Move gmrf_parameterization = “gmrf_project” to dgmrf_lowrank()
+  function, and change simulate.dsem to match REPORT now having Gamma_kk
+  and IminusRho_kk
 
 ## dsem 3.0.0
 

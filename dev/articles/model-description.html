@@ -290,8 +290,8 @@ itself constructed from the joint path matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\mathbf P_{\mathrm{joint}}</annotation></semantics></math>
 and the joint exogenous covariance matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><annotation encoding="application/x-tex">\mathbf G_{\mathrm{joint}}</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐐</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msup><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mi>T</mi></msup><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><msubsup><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow><mi>T</mi></msubsup><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
-\mathbf Q_{\mathrm{joint}} = ({\mathbf{I - P}_{\mathrm{joint}}}^T) (\mathbf G_{\mathrm{joint}} \mathbf G_{\mathrm{joint}}^T)^{-1} (\mathbf{I - P_{\mathrm{joint}}})
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐐</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msup><msub><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><mi>𝐏</mi></mrow><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><mi>T</mi></msup><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><msubsup><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow><mi>T</mi></msubsup><msub><mi>𝐆</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mrow><mi>𝐈</mi><mo mathvariant="bold">−</mo><msub><mi>𝐏</mi><mrow><mi mathvariant="normal">j</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi></mrow></msub></mrow><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\mathbf Q_{\mathrm{joint}} = ({\mathbf{I - P}_{\mathrm{joint}}}^T) (\mathbf G_{\mathrm{joint}}^T \mathbf G_{\mathrm{joint}})^{-1} (\mathbf{I - P_{\mathrm{joint}}})
 </annotation></semantics></math></p>
 <p>Finally, it is convenient to write the joint path matrix by summing
 across path coefficients
@@ -467,7 +467,7 @@ variances are stationary for each variable over time, and some path
 matrices will result in a nonstationary marginal variance. To see this,
 consider a first-order autoregressive process</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dsem</span> <span class="op">=</span> <span class="st">" </span></span>
+<code class="sourceCode R"><span><span class="va">time_term</span> <span class="op">=</span> <span class="st">" </span></span>
 <span><span class="st">x -&gt; x, 1, ar1, 0.8</span></span>
 <span><span class="st">x &lt;-&gt; x, 0, sd, 1</span></span>
 <span><span class="st">"</span></span></code></pre></div>
@@ -481,7 +481,7 @@ functions:</p>
 <span><span class="co"># call dsem without estimating parameters</span></span>
 <span><span class="va">out</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span></span>
 <span>  tsdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span> x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">10</span><span class="op">)</span> <span class="op">)</span><span class="op">)</span>,</span>
-<span>  sem <span class="op">=</span> <span class="va">dsem</span>,</span>
+<span>  sem <span class="op">=</span> <span class="va">time_term</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span></span>
 <span>    run_model <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>    quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -532,7 +532,7 @@ again using our first-order autoregressive example</p>
 <code class="sourceCode R"><span><span class="co"># call dsem without estimating parameters</span></span>
 <span><span class="va">out</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span></span>
 <span>  tsdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span> x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">10</span><span class="op">)</span> <span class="op">)</span><span class="op">)</span>,</span>
-<span>  sem <span class="op">=</span> <span class="va">dsem</span>,</span>
+<span>  sem <span class="op">=</span> <span class="va">time_term</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span></span>
 <span>    run_model <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>    quiet <span class="op">=</span> <span class="cn">TRUE</span>, </span>
@@ -572,7 +572,7 @@ variables are explained by
 factors that each follow a random walk:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#</span></span>
-<span><span class="va">dsem</span> <span class="op">=</span> <span class="st">"</span></span>
+<span><span class="va">time_term</span> <span class="op">=</span> <span class="st">"</span></span>
 <span><span class="st">  # Factor follows random walk with unit variance</span></span>
 <span><span class="st">  F &lt;-&gt; F, 0, NA, 1</span></span>
 <span><span class="st">  F -&gt; F, 1, NA, 1</span></span>
@@ -592,7 +592,7 @@ factors that each follow a random walk:</p>
 <span><span class="co"># call dsem without estimating parameters</span></span>
 <span><span class="va">out</span> <span class="op">=</span> <span class="fu"><a href="../reference/dsem.html">dsem</a></span><span class="op">(</span></span>
 <span>  tsdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html" class="external-link">ts</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>,</span>
-<span>  sem <span class="op">=</span> <span class="va">dsem</span>,</span>
+<span>  sem <span class="op">=</span> <span class="va">time_term</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian</a></span><span class="op">(</span><span class="op">)</span>, F <span class="op">=</span> <span class="fu"><a href="../reference/fixed.html">fixed</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="../reference/dsem_control.html">dsem_control</a></span><span class="op">(</span></span>
 <span>    run_model <span class="op">=</span> <span class="cn">FALSE</span>, </span>

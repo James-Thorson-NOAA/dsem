@@ -213,4 +213,4 @@ ggraph(layout) +
 
 ![](nonlinear_files/figure-html/plot_graph-1.png)
 
-Runtime for this vignette: 3.23 secs
+Runtime for this vignette: 3.47 secs
