@@ -65,7 +65,7 @@ test_that("dsem example is working ", {
   simulate(fit, variance = "none")
   simulate(fit, variance = "random")
   simulate(fit, variance = "both")
-  #simulate(fit, resimulate_gmrf=TRUE)
+  simulate(fit, resimulate_gmrf=TRUE)
 
   # Refit with measurement errors .. ignore quality of fit, just checking that it runs
   family = list(

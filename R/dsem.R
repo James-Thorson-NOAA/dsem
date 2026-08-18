@@ -481,6 +481,7 @@ function( sem,
       #Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
     }
     # Map off unobserved if using gmrf_parameterization = "gmrf_project"
+    # because these are then overwritten by projected values
     if( (options[1] == 3) & (sum(project_k)>0) ){
       Map$x_tj = ifelse( seq_along(Map$x_tj) %in% (Data$unobs_idx+1), NA, Map$x_tj )        # Convert back from CPP numbering
     }
@@ -1017,6 +1018,14 @@ function( object,
     z <- as.matrix(z)
     return(mu + z)
   }
+  # Q = M^T ( G^T G )^-1 M
+  # so z = M^-1 G^T eps, where eps ~ MVN(I)
+  rgmrf_quadform <- function( mu, G, M, nsim ){
+    z = matrix(rnorm(nrow(M) * nsim), ncol=nsim)
+    z = t(G) %*% z
+    z = solve( M, z )
+    return(mu + z);
+  }
 
   # pull out objects for easy use
   obj = object$obj
@@ -1044,14 +1053,20 @@ function( object,
       # Simulate new fields
       newrep = obj$report( par=par_zr[,r] )
       newparfull = obj$env$parList()
-      if( "Q_kk" %in% names(newrep) ){
-        # gmrf_parameterization = "full"
-        Q_kk = newrep$Q_kk
-      }else{
-        # gmrf_parameterization = "gmrf_project"
-        Q_kk = newrep$Q_oo
-      }
-      tmp = rmvnorm_prec( as.vector(newrep$delta_tj + newrep$xhat_tj), Q_kk, nsim=1 )
+      #if( "Q_kk" %in% names(newrep) ){
+      #  # gmrf_parameterization = "full"
+      #  Q_kk = newrep$Q_kk
+      #}else{
+      #  # gmrf_parameterization = "gmrf_project"
+      #  Q_kk = newrep$Q_oo
+      #}
+      #tmp = rmvnorm_prec( as.vector(newrep$delta_tj + newrep$xhat_tj), Q_kk, nsim=1 )
+      tmp = rgmrf_quadform(
+        mu = as.vector(newrep$delta_tj + newrep$xhat_tj),
+        G = newrep$Gamma_kk,
+        M = newrep$IminusRho_kk,
+        nsim = 1
+      )
       # Modify call
       #newcall = object$call
       # Get control

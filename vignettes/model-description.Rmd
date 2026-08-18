@@ -149,7 +149,7 @@ $$
 where $\B Q_{\PL{joint}}$ is a $TJ \times TJ$ precision matrix such that $\B {Q_{\PL{joint}}}^{-1}$ is the estimated covariance among latent states.  This joint precision is itself constructed from the joint path matrix $\B P_{\PL{joint}}$ and the joint exogenous covariance matrix $\B G_{\PL{joint}}$:
 
 $$
-\B Q_{\PL{joint}} = ({\mathbf{I - P}_{\PL{joint}}}^T) (\B G_{\PL{joint}} \B G_{\PL{joint}}^T)^{-1} (\mathbf{I - P_{\PL{joint}}})
+\B Q_{\PL{joint}} = ({\mathbf{I - P}_{\PL{joint}}}^T) (\B G_{\PL{joint}}^T \B G_{\PL{joint}})^{-1} (\mathbf{I - P_{\PL{joint}}})
 $$
 
 Finally, it is convenient to write the joint path matrix by summing across path coefficients $k$ rather than lags $g$:
@@ -243,7 +243,7 @@ Calculating the effect of initial conditions is in a sense the total effect of $
 We have defined the joint precision for a GMRF based on a path matrix and matrix of exogenous covariances.  The exogenous (or conditional) variances are stationary for each variable over time, and some path matrices will result in a nonstationary marginal variance.  To see this, consider a first-order autoregressive process
 
 ```{r echo=TRUE, eval=TRUE}
-dsem = " 
+time_term = " 
 x -> x, 1, ar1, 0.8
 x <-> x, 0, sd, 1
 "
@@ -260,7 +260,7 @@ library(Matrix)
 # call dsem without estimating parameters
 out = dsem(
   tsdata = ts(data.frame( x = rep(1,10) )),
-  sem = dsem,
+  sem = time_term,
   control = dsem_control(
     run_model = FALSE, 
     quiet = TRUE,
@@ -310,7 +310,7 @@ and then using this rescaled exogenous covariance when constructing the precisio
 # call dsem without estimating parameters
 out = dsem(
   tsdata = ts(data.frame( x = rep(1,10) )),
-  sem = dsem,
+  sem = time_term,
   control = dsem_control(
     run_model = FALSE, 
     quiet = TRUE, 
@@ -337,7 +337,7 @@ We note that some DSEM specifications will be reduced rank.  This arises for exa
 
 ```{r echo=TRUE, eval=TRUE}
 #
-dsem = "
+time_term = "
   # Factor follows random walk with unit variance
   F <-> F, 0, NA, 1
   F -> F, 1, NA, 1
@@ -357,7 +357,7 @@ data = data.frame(
 # call dsem without estimating parameters
 out = dsem(
   tsdata = ts(data),
-  sem = dsem,
+  sem = time_term,
   family = list(x = gaussian(), y = gaussian(), F = fixed()),
   control = dsem_control(
     run_model = FALSE, 

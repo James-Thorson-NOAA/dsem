@@ -395,6 +395,12 @@ Type objective_function<Type>::operator() ()
   //delta_tj = tmp_tj.array();
 
   // Apply GMRF
+  // x = Rho x + MVN(G^T G)
+  // so
+  // Q = (I-Rho^T) (G^T G)^-1 (I-Rho)
+  // or
+  // eps ~ MVN(I)
+  // x = (I-Rho)^-1 G^T eps
   tmbutils::array<Type> z_tj( n_t, n_j );
   // Option-1:  use full-rank GMRF
   if( options(0)==0 ){
@@ -426,7 +432,8 @@ Type objective_function<Type>::operator() ()
     matrix<Type> z_k1 = x_tj.reshaped( n_k, 1 );
 
     // (I-Rho)^{-1} * Gamma * Epsilon
-    matrix<Type> z2_k1 = Gamma_kk * z_k1;
+    //matrix<Type> z2_k1 = Gamma_kk * z_k1;
+    matrix<Type> z2_k1 = Gamma_kk.transpose() * z_k1;
     matrix<Type> z3_k1 = inverseIminusRho_kk.solve(z2_k1);
 
     // Back-format vector
